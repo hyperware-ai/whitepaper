@@ -1,0 +1,266 @@
+\documentclass[runningheads]{llncs}
+\setcounter{tocdepth}{2}
+\makeatletter
+\renewcommand*\l@author[2]{}
+\renewcommand*\l@title[2]{}
+\makeatletter
+%
+\usepackage{listings}
+\usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+\usepackage{hyperref}
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+\usepackage{color}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
+%
+\begin{document}
+%
+\title{Kinode: Offchain Cloud Computing Stack}
+%
+\titlerunning{Kinode}
+%
+\author{doria % \and
+% Second Author\inst{2,3}\orcidID{1111-2222-3333-4444} \and
+% Third Author\inst{3}\orcidID{2222--3333-4444-5555}
+}
+%
+% \authorrunning{doria}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{ }
+% \institute{Princeton University, Princeton NJ 08544, USA \and
+% Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
+% \email{lncs@springer.com}\\
+% \url{http://www.springer.com/gp/computer-science/lncs} \and
+% ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
+% \email{\{abc,lncs\}@uni-heidelberg.de}}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+Kinode OS is a software platform built and maintained to integrate all the facets of modern crypto application development.
+The node-based cloud computing model enabled by Kinode will at long last bridge the impedance mismatch between onchain protocols and web services.
+Users can run their own services both at the interface and backend level, and corporations or entities can provide services in a permissionless, protocolized manner.
+Developers can write apps in any programming language that compiles to Wasm, then distribute them to sovereign users.
+Separately from the OS, Kinode is also an onchain namespace, utility token for governing and assigning value to that namespace, fully-onchain PKI (Public-Key Infrastructure), and a DAO that controls both onchain assets and continued development of the OS.
+All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from using p2p computing.
+
+\keywords{Operating System \and Decentralized \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
+\end{abstract}
+%
+%
+%
+\tableofcontents
+\newpage
+%
+%
+%
+\section{Kimap}
+\verb|kimap| is an onchain key-value store inspired by \href{https://github.com/dapphub/dmap}{dmap}, a minimalist onchain path-formatted key-value store.
+It serves as the base-level shared global state that all nodes use to share critical data to the entire network.
+Like dmap, kimap is organized as a hierarchical path system and has mutable/immutable keys.
+Several aspects of the map implementation are customized for the 'namespace' use case.
+However, the most important details that enable dmap to be read from and verified easily remain in place.
+
+Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for developers seeking to build peer-to-peer.
+This issue rears its head in scenarios both social and purely technical: finding a new user to chat or play a game with, or a node's software acquiring the actual networking information for a username given out-of-band.
+Many solutions have been designed to address this problem or aspects of it, but so far, the "devex" (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
+Why is this?
+\begin{itemize}
+    \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the "batteries included" identity/discoverability/network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
+    \item "Pure" peer-to-peer protocols still rely on hardcoded lists to bootstrap new entrants.
+    \item Constructs such as distributed hash tables, frequently used in p2p protocols, are complex to properly implement.
+\end{itemize}
+We believe that in order for decentralized software to out-compete, it must be both easier to reason about (for a developer) and more effective at delivering some desirable user experience.
+Developers must be able to easily reason about software in order to effectively build on it, and building on existing software is how growth begins to compound.
+This principle drives the design of kimap.
+\begin{itemize}
+    \item All globally-shared data must be \textit{in one place}.
+    This property ensures that a full, up-to-date snapshot data can be read easily.
+    In our case, that "one place" is onchain inside a single smart contract.
+    \item All data necessary to bootstrap peer-to-peer interaction must be made available within the globally-shared map.
+    Any "missing piece" required to complete handshakes or source peers will result in unreliability and re-centralization.
+\end{itemize}
+
+With this in mind, the following specification describes kimap:
+All keys are strings containing exclusively characters 0-9, a-z (lowercase), and - (hyphen).
+Every key has an owner address, which can be a contract or an EOA. The owner address can transfer the key to a new owner and mint keys directly below the key in the path hierarchy. For example, if a wallet owns \verb|mypath.network|, that wallet can mint \verb|hello.mypath.network|.
+
+An entry may be created with the prefix \verb|~|. Such keys may not have keys minted beneath them: they are terminal nodes. The prefix denotes that such keys are used to store a bytes payload of readable data. The format of the stored data is determined on a protocol-by-protocol basis depending on the key name. Any valid key name with the tilde-prefix may store data.
+
+Example kimap:
+\begin{lstlisting}
+os
+    foo
+        ~ip
+        ~ws_port
+        ~net_key
+    bar
+        ~routers
+        ~net_key
+kino
+    baz
+        package
+            ~publisher
+            ~hash
+            ~name
+            ~mirrors
+eth
+    alice
+        ~routers
+        ~net_key
+    bob
+        ~routers
+        ~net_key
+\end{lstlisting}
+
+There are 3 top-level namespace entries in the example, \verb|eth|, \verb|kino|, and \verb|os|.
+Below those are a number of namespace entries that can be considered "domains", such as \verb|foo|, \verb|bar|, \verb|baz|.
+The full path for \verb|foo|'s \verb|~ip| sub-entry would be \verb|~ip.foo.os|.
+In this paper, we will sometimes use the term "domain" interchangeably with what is referred to here as a "namespace entry".
+This is a useful shorthand, and in many ways, kimap does mirror the role of DNS in the worldwide web.
+However, this analogy would be inaccurate if applied directly to all namespace entries.
+
+In the above example, one can see a number of entries which have \verb|~net_key| as a sub-entry.
+This identifies the entry as participating in the KNS (Kinode Name System) protocol \textit{on top} of the kimap.
+Hopefully this makes it clear as to why "domain" is a potentially confusing term to describe any given kimap entry.
+Entries \verb|baz.kino| and \verb|package.baz.kino| have no sub-entries to describe their status as a domain in the KNS.
+The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
+The specification of KNS itself, as a protocol within this namespace, is described in its own chapter, as is the specification of the Kinode Package Manager which makes an appearance in this example.
+
+\subsection{Namespace Hierarchy}
+
+Each entry in kimap controls sub-entries by default. Describe programmatic relinquishment of this control...
+
+\subsection{Top-Level Domains}
+
+Entries at the top level of kimap, with no parent entry, can be considered Top-Level Domains.
+TLDs may not store data using the \verb|~| prefix.
+
+Minting of new TLDs in kimap is permissioned.
+Top level entries are valuable, because they produce new namespaces that can be applied to new protocols, entities, or individuals.
+Allowing new TLDs to be created freely would lead to name-squatting and other perils clearly demonstrated by the history of similar namespaces.
+Instead, the distribution of TLDs over time is one of the key responsibilities of Kinode's governance apparatus, described in the Kinode DAO chapter.
+
+Since every entry can be owned by a contract, different control logic can be reliably implemented at the ownership level.
+At first launch of kimap, a few selected TLDs will have ownership transferred to immutable contracts.
+Other TLDs will be time-locked in contracts, acting as a rent mechanism.
+
+\subsection{Storing Data at Terminal Nodes}
+
+At any level below the top in the kimap path hierarchy, a new key may be minted with the \verb|~| (tilde) prefix to signify that it stores a value.
+Entries of this variety \textbf{may not} mint sub-entries, hence the prefix: one can use \verb|~my_protocol_data.hello.os| to store data while minting \verb|my_protocol_data.hello.os| in order to mint sub-entries beneath it, should one desire to do so.
+
+Data is stored as bytes inside the contract map.
+The owner of a namespace entry is the only address that can modify the data stored at that entry.
+The interpretation of stored bytes is the responsibility of the protocol reading and writing from that entry.
+Data can be mutable or immutable.
+All data is public.
+Protocols that wish to operate on private data may store hashes at namespace entries, or alternatively operate within the end-to-end encrypted Kinode networking protocol.
+
+\subsection{Ownership and Transferring}
+
+\subsection{Token-Bound Accounts}
+
+Each namespace entry that does not store data, i.e. does not have a \verb|~| prefix, is a token-bound account.
+
+
+\subsubsection{Creation and Use}
+\subsection{Extensibility}
+
+
+
+\section{KNS, Kinode Name System}
+\subsection{Indexing}
+\subsection{Adding other onchain identity primitives}
+
+
+
+\section{Kinode OS}
+\subsection{Microkernel}
+\subsection{Message passing}
+\subsection{WIT definition and process format}
+\subsection{Example process}
+\subsection{Capabilities-based security}
+\subsection{System Primitives}
+\subsubsection{Virtual filesystem}
+\subsubsection{Networking}
+\subsubsection{HTTP client \& server}
+\subsubsection{ETH RPC access}
+\subsubsection{SQLite, KV-store}
+\subsection{Runtime extensions}
+\subsection{Backwards compatibility}
+
+
+
+\section{Package Manager}
+\subsection{Default-distro app: App Store}
+\subsection{Economics}
+
+
+
+\section{KINO Token}
+\subsection{Binding to kimap namespace}
+\subsection{Unbinding}
+\subsection{Rewards}
+\subsection{Emissions}
+\subsection{Future uses}
+
+
+
+\section{veKINO "vote-escrow" Token}
+\subsection{Voting and Rewards}
+\subsection{Emissions}
+\subsection{Default-distro app: Governance Portal}
+
+
+
+\section{Kinode DAO}
+\subsection{Governance structure}
+\subsection{Proposals and voting}
+\subsection{TLD management}
+\subsubsection{Auction Types}
+\subsubsection{Profitability}
+
+
+\section{A Kinode Future}
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+% \bibliographystyle{splncs04}
+% \bibliography{mybibliography}
+%
+%\begin{thebibliography}{8}
+%\bibitem{ref_article1}
+%Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+%
+%\bibitem{ref_lncs1}
+%Author, F., Author, S.: Title of a proceedings paper. In: Editor,
+%F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
+%Springer, Heidelberg (2016). \doi{10.10007/1234567890}
+%
+%\bibitem{ref_book1}
+%Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
+%Location (1999)
+%
+%\bibitem{ref_proc1}
+%Author, A.-B.: Contribution title. In: 9th International Proceedings
+%on Proceedings, pp. 1--2. Publisher, Location (2010)
+%
+%\bibitem{ref_url1}
+%LNCS Homepage, \url{http://www.springer.com/lncs}, last accessed %2023/10/25
+%\end{thebibliography}
+\end{document}
