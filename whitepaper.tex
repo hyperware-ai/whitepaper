@@ -163,7 +163,7 @@ Each entry in kimap has write access to all of its sub-entries, at any level of 
 Even if \verb|package.baz.kino| is minted and transferred to different owner than \verb|baz.kino|, which itself is owned by a different address than \verb|kino|, the owner of \verb|kino| may transfer or edit data stored at \verb|~hash.package.baz.kino|.
 There are two ways for the owner of a non-top-level entry to ensure control over their namespace entry: parent entries can be owned by an inert address (0x00..00, etc) or owned by a contract which is programmatically incapable of mutating their entry.
 
-This property enables arbitrarily complex logic governing different sub-namespaces of kimap.
+This property enables arbitrarily complex logic governing sub-namespaces of kimap.
 A given namespace can be owned by a contract which implements rent logic, requiring regular payments for control over a sub-entry.
 Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
 We anticipate and welcome these experimental outcomes.
@@ -311,6 +311,11 @@ In the future, Kinode will benefit from "client diversity" as does a traditional
 %
 %
 \section{Package Manager}
+
+Like KNS, the Kinode Package Manager is a protocol deployed on kimap.
+It is another protocol critical to the operation of Kinode OS.
+As described in the Kinode OS chapter, the userspace presented by the OS is comprised of processes, which are bundled into packages.
+
 \subsection{Specification}
 \subsection{Default-distro app: App Store}
 %
@@ -325,26 +330,63 @@ However, this mass of bytes is near-useless without a \textit{weighting mechanis
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, "governance" as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized matter for the network to be stable, neutral, and permissionless.
+There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized matter for the network to be stable, neutral, and permissionless. [TODO more on this somewhere]
 
 \subsection{Binding to kimap namespace}
+
+A token holder may \textit{bind} \$KINO to any entry in kimap.
+Binding is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
+Every protocol built on kimap can automatically benefit from the binding of \$KINO to keys to create a rankable listing data structure and market for user attention.
+Binding also begets rewards, which are assigned to the owner of the namespace entry, \textbf{not} the address which owns the bound tokens.
+This mechanism allows protocols on kimap to encourage and incentivize users to bind tokens to entries that are not their own.
+
+Binding \$KINO to a namespace entry generates \$veKINO, a non-transferable vote-escrow token, and assigns it to the owner of the bound entry.
+The quantity of \$veKINO minted is quadratically related to the bound quantity of \$KINO.
+As a result, the total voting power of a given namespace entry scales quadratically with the amount of \$KINO bound to it.
+
+[insert equation used to calculate voting power]
+
 \subsection{Unbinding}
+
+\$KINO can be unbound at any time by the address which initially bound it.
+The \$veKINO will be destroyed at the time of unbinding.
+Note that due to the quorum-calculation strategy used, voting power will not immediately be destroyed by the destruction of \$veKINO, but will eventually match the distribution.
+
 \subsection{Rewards}
+
+Voting power scales quadratically with \$KINO bound to a given namespace entry, but rewards scale linearly.
+Rewards are assigned in exchange for performing governance actions, and in the future will also be connected to other protocol activities.
+Rewards are distributed from a pool that is controlled by the DAO.
+The DAO is capped at a 2\% rate of \$KINO emissions to build up this pool.
+
 \subsection{Emissions}
+
+2\% for X years, then 0.
+
 \subsection{Future uses}
 %
 %
 %
-\section{veKINO "vote-escrow" Token}
+\section{veKINO Token}
+
+\$KINO can be bound to acquire \$veKINO, a vote-escrow token that allows the holder to participate in the governance of Kinode DAO. This is not an empty role -- unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol. Since the OS is not an onchain protocol, it is not immutable and does not benefit from being so. While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLD holders and prevent abuse.
+
+\subsection{Creating Proposals}
 \subsection{Voting and Rewards}
-\subsection{Emissions}
+\subsection{Delegation}
+
+Rather than complicate the namespace and voting mechanisms with built-in onchain delegation, Kinode governance leverages the power of personal nodes to enable offchain vote delegation.
+Users who wish to delegate their vote to another member may run software in their Kinode voting app to simply match the behavior of that other namespace entry onchain.
+This allows users to be rewarded for participation while retaining full control of their vote.
+The DAO (and possibly large voting entities) also has the ability to run paymaster server(s) to allow for free governance participation in this way.
+Users may perform a one-time approval to execute votes through a paymaster leveraging account abstraction for “free” voting.
+
 \subsection{Default-distro app: Governance Portal}
 %
 %
 %
 \section{Kinode DAO}
 \subsection{Governance structure}
-\subsection{Proposals and voting}
 \subsection{TLD management}
 \subsubsection{Auction Types}
 \subsubsection{Profitability}
@@ -352,33 +394,5 @@ There is no governance necessary if a protocol is truly immutable and permission
 %
 %
 \section{A Kinode Future}
-%
-% ---- Bibliography ----
-%
-% BibTeX users should specify bibliography style 'splncs04'.
-% References will then be sorted and formatted in the correct style.
-%
-% \bibliographystyle{splncs04}
-% \bibliography{mybibliography}
-%
-%\begin{thebibliography}{8}
-%\bibitem{ref_article1}
-%Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
-%
-%\bibitem{ref_lncs1}
-%Author, F., Author, S.: Title of a proceedings paper. In: Editor,
-%F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
-%Springer, Heidelberg (2016). \doi{10.10007/1234567890}
-%
-%\bibitem{ref_book1}
-%Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
-%Location (1999)
-%
-%\bibitem{ref_proc1}
-%Author, A.-B.: Contribution title. In: 9th International Proceedings
-%on Proceedings, pp. 1--2. Publisher, Location (2010)
-%
-%\bibitem{ref_url1}
-%LNCS Homepage, \url{http://www.springer.com/lncs}, last accessed %2023/10/25
-%\end{thebibliography}
+
 \end{document}
