@@ -48,13 +48,13 @@
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-Kinode is a software platform built and maintained to integrate all the facets of modern crypto application development.
+This paper describes Kinode, a software platform built and maintained to integrate all the facets of modern crypto application development.
 The node-based cloud computing model enabled by Kinode will at long last bridge the impedance mismatch between onchain protocols and web services.
 Users can run their own services both at the interface and backend level, and corporations or entities can provide services in a permissionless, protocolized manner.
 Developers can write apps in any programming language that compiles to Wasm, then distribute them to sovereign users.
 Kinode is a lot of things:
 Along with being the Kinode Operating System, Kinode is also an onchain namespace, utility token for governing and assigning value to that namespace, fully-onchain PKI (Public-Key Infrastructure), and a DAO that controls both onchain assets and continued development of the OS.
-All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from using p2p computing.
+All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from using peer-to-peer computing.
 
 \keywords{Operating System \and Decentralized \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
 \end{abstract}
@@ -95,9 +95,13 @@ This principle drives the design of kimap.
 
 With this in mind, the following specification describes kimap:
 All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen), and \_ (underscore) [TODO maybe not underscore? need to be compatible with existing app names though..].
+An entry is a path made of ordered keys.
 Every key has an owner address, which can be a contract or an EOA. The owner address can transfer the key to a new owner and mint keys directly below the key in the path hierarchy. For example, if a wallet owns \verb|mypath.network|, that wallet can mint \verb|hello.mypath.network|.
 
-An entry may be created with the prefix \verb|~|. Such keys may not have keys minted beneath them: they are terminal nodes. The prefix denotes that such keys are used to store a bytes payload of readable data. The format of the stored data is determined on a protocol-by-protocol basis depending on the key name. Any valid key name with the tilde-prefix may store data.
+Every kimap entry is an ERC-721 NFT (non-fungible token).
+Thus, every kimap entry is a unique transferable onchain asset with a known ownership history.
+
+A key may be minted with the prefix \verb|~|. Such keys may not have keys minted beneath them: they are terminal nodes. The prefix denotes that such keys are used to store a bytes payload of readable data. The format of the stored data is determined on a protocol-by-protocol basis depending on the key name. Any valid key name with the tilde-prefix may store data.
 
 \begin{figure}
     \centering
@@ -123,7 +127,7 @@ An entry may be created with the prefix \verb|~|. Such keys may not have keys mi
             ~routers
             ~net-key
     \end{lstlisting}
-    \caption{Example kimap}
+    \caption{Example kimap.}
     \label{fig:example kimap}
 \end{figure}
 
@@ -290,9 +294,39 @@ The virtual machine is developed and distributed by Kinode DAO.
 A reference implementation will be maintained, and a formal specification of all aspects of the virtual machine is currently under development.
 In the future, Kinode will benefit from "client diversity" as does a traditional blockchain: many implementations of the virtual machine will make the network more robust to potential bugs and decentralize the development process, which leads to productive ossification of core features, resulting in stability and long-term strength.
 
-[TODO this whole section]
+While (generally) all packaged into a single executable, the OS can productively be described in 3 parts: a \textit{runtime}, a set of \textit{runtime modules}, and \textit{userspace}.
+The "kernel" frequently referred to in this paper is in fact just a runtime module.
+
+The runtime is a "native" (to whatever architecture it targets, which may be Unix, a browser, hardware...) program that manages node booting (including onchain registration) and (generally asynchronously or in parallel) executes the runtime modules.
+Runtime modules are blocks of code written at the same level of abstraction as the runtime itself, but designed to resemble userspace processes.
+These modules are registered in the kernel \textit{as} processes, meaning that they can be messaged by userspace in the system-wide request-response protocol and secured via capabilities.
+Finally, userspace is comprised of all non-runtime-module processes executed virtually by the kernel.
+These processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{https://component-model.bytecodealliance.org/}.
+They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of "system calls" afforded to userspace processes by the kernel.
 
 \subsection{Microkernel}
+
+As of this writing, the microkernel\footnote{https://wiki.osdev.org/Microkernel} runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    eth:distro:sys
+    http_client:distro:sys
+    http_server:distro:sys
+    kernel:distro:sys
+    kv:distro:sys
+    net:distro:sys
+    state:distro:sys
+    terminal:distro:sys
+    timer:distro:sys
+    sqlite:distro:sys
+    vfs:distro:sys
+    \end{lstlisting}
+    \caption{The full list of runtime modules in the OS distribution maintained by Kinode DAO.}
+    \label{fig:runtime modules list}
+\end{figure}
+
 \subsection{Message Passing}
 \subsection{WIT Definition and Process Format}
 \subsection{Example Process}
@@ -379,7 +413,7 @@ A \verb|metadata-uri| entry may contain a UTF-8 string [TODO confirm this] corre
                     ~metadata-hash
                     ~metadata-uri
     \end{lstlisting}
-    \caption{Example kimap with multiple packages present}
+    \caption{Example kimap with multiple packages present.}
     \label{fig:example kimap with packages}
 \end{figure}
 
@@ -459,7 +493,13 @@ The DAO is capped at a 2\% rate of \$KINO emissions to build up this pool.
 \$KINO can be bound to acquire \$veKINO, a vote-escrow token that allows the holder to participate in the governance of Kinode DAO. This is not an empty role -- unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol. Since the OS is not an onchain protocol, it is not immutable and does not benefit from being so. While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLD holders and prevent abuse.
 
 \subsection{Creating Proposals}
+
+TODO
+
 \subsection{Voting and Rewards}
+
+TODO
+
 \subsection{Delegation}
 
 Rather than complicate the namespace and voting mechanisms with built-in onchain delegation, Kinode governance leverages the power of personal nodes to enable offchain vote delegation.
