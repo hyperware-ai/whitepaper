@@ -6,6 +6,7 @@
 \makeatletter
 %
 \usepackage{listings}
+\usepackage{tikz}
 \usepackage[T1]{fontenc}
 % T1 fonts will be used to generate the final print and online PDFs,
 % so please use T1 fonts in your manuscript whenever possible.
@@ -159,6 +160,11 @@ Since every entry can be owned by a contract, different control logic can be rel
 At first launch of kimap, a few selected TLDs will have ownership transferred to immutable contracts.
 Other TLDs will be time-locked in contracts, acting as a rent mechanism.
 
+Why create a new namespace, given that others exist with established network effects?
+Primarily, because Kinode OS needs it.
+The goal of the OS is to create a fully-integrated programming environment, and existing namespace options are simply not designed to enable this.
+This does not mean the namespace must stand alone–see the section on \hyperref[sec:extensibility]{extensibility} for a description of how other namespaces may be integrated with kimap.
+
 \subsection{Namespace Hierarchy}
 
 Each entry in kimap has write access to all of its sub-entries, at any level of nesting.
@@ -194,16 +200,22 @@ TODO
 
 \subsection{Token-Bound Accounts}
 
-Each namespace entry that does not store data, i.e. does not have a \verb|~| prefix, is a \href{https://eips.ethereum.org/EIPS/eip-6551}{token-bound account}.
+Each namespace entry that does not store data, i.e. does not have a \verb|~| prefix, is an ERC-6551\footnote{A standard which allows ERC-721 NFTs to have an attached Ethereum account:  https://eips.ethereum.org/EIPS/eip-6551} token-bound account.
 This means that namespace entries are automatically endowed with a wallet, controlled by their owner, for receiving, holding, and sending digital assets that live on the same chain as kimap.
 The address of each entry's token-bound account is deterministic based on the path value.
 Thus, before a path is even minted, one can send assets to its future wallet address or otherwise operate on it.
 
+Token-bound accounts are self-evidently useful but become particularly powerful when combined with the KNS protocol to given every node identity an attached wallet.
+
 \subsubsection{Creation and Use}
 
-TODO
+A token-bound account is created automatically for every non-tilde-prefixed kimap entry.
+The address of the account is deterministically generated based on the full path of the entry.
+The owner of the entry has the ability to operate the account.
+TODO add more here
 
 \subsection{Extensibility}
+\label{sec:extensibility}
 
 Kimap is designed to be generic and extensible.
 Protocols such as KNS and the Kinode Package Manager extend kimap by placing special consideration on certain keys and interpreting the data stored at them in a particular way.
@@ -259,7 +271,9 @@ Ports between 8000-8999 are usually saved for HTTP server use.
 
 \subsection{Indexing}
 
-[TODO]
+Events emitted by kimap are used for indexing map data.
+Luckily, Kinode OS provides all the primitives necessary to do so effectively.
+TODO more here
 
 \subsection{Adding Other Onchain Identity Primitives}
 
@@ -441,56 +455,142 @@ A common failure mode of distributed networks is that content becomes saturated 
 %
 \section{KINO Token}
 
-\$KINO is a utility token designed to fill two roles in the Kinode network: assignment of \textbf{relative value in the global namespace} and \textbf{governance}.
+\$KINO is a utility token designed to fill two roles in the Kinode network: assignment of \textbf{relative value in the global namespace} and \textbf{namespace and protocol governance}.
+The token operates alongside the kimap contract–"What you guys are referring to as KINO, is in fact, kimap/KINO, or as I've recently taken to calling it, kimap plus KINO."
+
+\subsection{Binding to kimap Namespace}
+
+A token holder may choose to \textit{bind} \$KINO to an entry in kimap.
+To bind \$KINO, a token holder submits a transaction to the kimap contract specifying the amount of \$KINO to bind and the target entry.
+Data-storing entries (prefixed with \verb|~|) cannot be a target for binding.
+Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
+
+Binding is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
+Every protocol built on kimap can automatically benefit from the binding of \$KINO to keys to create a rankable listing data structure and market for user attention.
+Binding may also beget protocol rewards, which are assigned to the owner of the namespace entry, \textbf{not} the address which owns the bound tokens.
+This mechanism allows protocols on kimap to encourage and incentivize users to bind tokens to entries that are not their own.
+
+\subsection{Unbinding}
+
+\$KINO can be unbound from a kimap entry at any time by the address which initially bound it.
+Unbinding is performed via a transaction to the kimap contract specifying the amount of \$KINO to unbind and the target entry.
+Note that multiple addresses can bind to the same kimap entry at any given time, meaning that various addresses may hold a claim to unbind \$KINO from an entry. Since the total amount of \$KINO bound to an entry will always be exactly equal to the sum of the claims by all addresses, the order of binding and unbinding operations is not contentious.
+
+\subsection{Discussion}
 
 As described in its chapter, kimap addresses the discoverability problem in peer-to-peer programming by allowing participants to claim paths and post data to a global hierarchical namespace.
 However, this mass of bytes is near-useless without a \textit{weighting mechanism} that can be used programmatically or manually to evaluate content for relative value.
 
-Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
-For this reason, "governance" as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized matter for the network to be stable, neutral, and permissionless. [TODO more on this somewhere]
+Consider the operation of a web search engine.
+First, content is crawled and indexed.
+In the indexing process, semantic and relative value is assigned to a given piece of content.
+These weights are then used during a given search to provide a ranked set of content objects which best match the search query.
+Kimap combined with \$KINO is not itself a search engine, but it does provide the substrate to operate search engines and similar mechanisms in a decentralized way.
+The entries in the map are content, and bound \$KINO is a weight-primitive which applies a topology to that content.
 
-\subsection{Binding to kimap Namespace}
+This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
+A "provider" can be considered any party which places entries in the global namespace.
+This group near-universally seeks to optimize for visibility, which is a zero-sum competition with others in the same group.
+A "user" can be considered any "set of eyes" on the namespace (though not necessarily human eyes), which providers compete over.
+Historically, both providers within and the operator of a centralized directory object have been incentivized to abuse the attention of users.
+Additionally, operators have been incentivized to unfairly extract from providers, devising schemes such as placing a competitor's entries above a provider unless a special fee is paid.
+Providers abuse attention in a similar manner by bribing operators to weight their content higher in areas where it's not actually relevant to the user.
 
-A token holder may \textit{bind} \$KINO to any entry in kimap.
-Binding is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
-Every protocol built on kimap can automatically benefit from the binding of \$KINO to keys to create a rankable listing data structure and market for user attention.
-Binding also begets rewards, which are assigned to the owner of the namespace entry, \textbf{not} the address which owns the bound tokens.
-This mechanism allows protocols on kimap to encourage and incentivize users to bind tokens to entries that are not their own.
+These inefficiencies appear unavoidable in the modern web.
+The kimap architecture combined with a single weighting mechanism publicly shared between users and providers presents an alternative in which all parties are forced to compete fairly.
+Users, too, are empowered to reward and punish entries in the global namespace.
+Because \textit{any address} can bind to \textit{any namespace entry}, the ability of a single provider to spend tokens on their irrelevant or otherwise spam-like entry is washed out by the broader ability of users to reward valued content by binding to it.
 
-Binding \$KINO to a namespace entry generates \$veKINO, a non-transferable vote-escrow token, and assigns it to the owner of the bound entry.
-The quantity of \$veKINO minted is quadratically related to the bound quantity of \$KINO.
-As a result, the total voting power of a given namespace entry scales quadratically with the amount of \$KINO bound to it.
+Meanwhile, the "operator" role is neutralized.
+Kinode DAO is responsible for maintaining the namespace but has no control over the operation of a namespace entry held by another party or the binding/unbinding operations.
+The DAO is also naturally incentivized to increase the value of \$KINO by not interfering with its use as a weighting mechanism.
+Any "thumb on the scale" by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
 
-[insert equation used to calculate voting power]
+Because it is generic, the kimap+KINO substrate does not include a built-in algorithm to execute "search" or any other ranking strategy on its weights and values.
+There is no single algorithm that will apply to the entire kimap.
+Algorithms will instead be written for specific protocols running on kimap.
+These will have access to \$KINO bindings as one tool in determining quality rankings, and many will also take into account other factors.
+At the time of this writing, it is impossible to predict the specifics of algorithms that will enter popular use for evaluating protocols on kimap.
 
-\subsection{Unbinding}
+Now, we must discuss two known risks facing kimap+KINO.
+One may note that the onchain primitives described in this paper are remarkably simple.
+Binding and unbinding tokens does not require any game theory or MEV protection properties.
+Registering and mutating namespace entries is also not subject to adversarial conditions, since the ability to do so is only granted to an entry's owner.
+\footnote{However, that does not mean the same is true for contracts that utilize the protocol.
+Kimap and KINO are designed to be modular–as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed "on top" to manage a given namespace, generate yield, and many other activities.
+These contracts must be designed carefully to avoid failure modes common to onchain protocols.
+For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and "steal" the name.
+A simple solution is to have the user commit to a hash of their desired name such as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{ENS does}.}
+As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{audits pending at the time of this writing}.
+Instead, the risks presented are a combination of social and game-theoretic regarding the adoption of both kimap and \$KINO for their intended use.
 
-\$KINO can be unbound at any time by the address which initially bound it.
-The \$veKINO will be destroyed at the time of unbinding.
-Note that due to the quorum-calculation strategy used, voting power will not immediately be destroyed by the destruction of \$veKINO, but will eventually match the distribution.
+The first risk is that kimap does not inspire developers to built on it.
+As a new namespace primitive, it is an uphill battle to overcome network effects of existing namespaces.
+We have worked to avoid this conflict by implementing and encouraging integrations with existing onchain namespaces that already have network effects.
+This risk is also addressed by working to make Kinode OS a more attractive development target.
+Since Kinode OS is extremely tightly integrated with kimap+KINO by default, adoption of Kinode OS will carry through to kimap.
+There is also a possibility that Kinode OS enters widespread use but for some reason does not lead developers to building on top of kimap, instead preferring to deploy on other namespace systems or perhaps create their own on a per-protocol basis.
+While this seems unlikely, such a scenario would likely encourage Kinode DAO to propose changes in order to re-align the two aspects of the project.
+
+The second risk is if kimap enters widespread use, but for some reason, \$KINO is an unpopular value-weighting system for the namespace.
+It is possible for algorithms operating on kimap to use other weight systems, even including a binding/unbinding system deployed by someone else that uses an entirely different token.
+Kimap algorithms will undoubtedly, in many cases, take factors other than just the amount of \$KINO bound into account when ranking and filtering entries.
+If another digital asset, token or otherwise, began to dominate these algorithms, it would have a negative impact on the value of \$KINO.
+This outcome is protected against by effectively distributing ownership of \$KINO between many different kinds of users.
+If users, providers, and the operator (the DAO) are all incentivized via protocol ownership, \$KINO will remain an extremely powerful Schelling point for its intended purpose.
 
 \subsection{Rewards}
 
-Voting power scales quadratically with \$KINO bound to a given namespace entry, but rewards scale linearly.
-Rewards are assigned in exchange for performing governance actions, and in the future will also be connected to other protocol activities.
-Rewards are distributed from a pool that is controlled by the DAO.
-The DAO is capped at a 2\% rate of \$KINO emissions to build up this pool.
+Why would a user, or anyone for that matter, bind tokens to a namespace entry?
+Two broad categories of reasoning, "natural" utility and "augmented" value, combine to justify the binding action.
+
+\subsubsection{Natural Utility}
+
+Binding tokens offers an automatic value to the owner of the bound namespace by enhancing their property's relative value and ranking in the various algorithms running on the namespace.
+For this reason, owners of a namespace entry will be naturally incentivized to bind their tokens to their namespace.
+This will manifest itself differently across different protocols running on kimap.
+In the Kinode Name System, tokens bound to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others.
+The mere social incentive to connect value to an identity namespace entry will likely inspire significant amounts of binding.
+We expect this dynamic to play out not such for KNS entries, but also for a number of other social or social-adjacent protocols that naturally fit into the kimap architecture.
+
+\subsubsection{Augmented Value}
+
+Yield is not an inherent aspect of Kinode's onchain footprint.
+As noted above, the onchain Kinode protocol is simple.
+More complex elements such as onchain yield are expected to be built on top of kimap+KINO.
+
+One way this is likely to occur is through yield mechanisms designed to reward users for binding \$KINO to a specific namespace entry. Other possibilities for augmented binding value are protocol-specific airdrops, profit distribution schemes, and protocols which enable users to earn value through binding some amount of tokens and then providing a service offchain (for example, a compute-provider network that provides completions-as-a-service using a particular large language model, which required providers to bind a certain number of tokens to their own node identity through a contract in order to produce a reputational slashing mechanism).
+
+Lastly, binding \$KINO emits \$veKINO, discussed later.
+Ownership and utilization of \$veKINO can augment the value of binding via DAO-mediated rewards for governance participation.
 
 \subsection{Emissions}
 
-2\% for X years, then 0.
+2\% for X years, then 0. [TODO expand on this]
 
 \subsection{Current and Future Uses}
 
 \$KINO is currently used by both KNS and the Kinode package manager protocol to address spam, provide a ranking/sorting system, and enable value accrual.
+
+One interesting option available to protocols on kimap not demonstrated by the protocols in this paper is the ability to discriminate between top-level domains.
+It is not required that a protocol apply itself to the entire kimap.
+Instead, a protocol may define itself as only being valid within a single top-level domain, a subset of top-level domains, or even a subset of entries at some arbitrary level of nesting.
+This may prove to be an ideal way to run protocols in a future where kimap is very large and indexing the entire map is more difficult than indexing a subset of it.
 
 %
 %
 %
 \section{veKINO Token}
 
-\$KINO can be bound to acquire \$veKINO, a vote-escrow token that allows the holder to participate in the governance of Kinode DAO. This is not an empty role -- unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol. Since the OS is not an onchain protocol, it is not immutable and does not benefit from being so. While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLD holders and prevent abuse.
+Binding \$KINO mints an equivalent amount of \$veKINO to the address which performs the binding.
+\$veKINO is a non-transferable vote-escrow token used by Kinode DAO to execute governance proposals.
+This is not an empty role–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
+
+Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
+For this reason, "governance" as applied to purely onchain protocols has historically been somewhat weak.
+There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized matter for the network to be stable, neutral, and permissionless.
+
+While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLD purchasers and to prevent abuse.
 
 \subsection{Creating Proposals}
 
@@ -509,10 +609,27 @@ The DAO (and possibly large voting entities) also has the ability to run paymast
 Users may perform a one-time approval to execute votes through a paymaster leveraging account abstraction for “free” voting.
 
 \subsection{Default-distro App: Governance Portal}
+
+
 %
 %
 %
 \section{Kinode DAO}
+
+If Kinode were a shape, it would be a triangle:
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+    \draw (0,3) node[fill=yellow!80!black]{$kimap+KINO$}
+    -- (4,3) node[fill=yellow!80!black]{$Kinode OS$}
+    -- (2,0) node[fill=yellow!80!black]{$Kinode DAO$}
+    -- cycle;
+    \end{tikzpicture}
+    \caption{The Triangle}
+    \label{fig:triangle}
+\end{figure}
+
 \subsection{Governance Structure}
 \subsection{TLD Management}
 \subsubsection{Auction Types}
@@ -522,5 +639,26 @@ Users may perform a one-time approval to execute votes through a paymaster lever
 %
 %
 \section{A Kinode Future}
+
+The primary success metric for Kinode is the number of protocols operating on the network.
+A Kinode protocol can include an onchain element, whether it is a protocol inside kimap or otherwise.
+A Kinode protocol will always include an offchain peer-to-peer element: a software package that one can run on their node.
+
+The secondary success metric for Kinode is the number of nodes online in the network.
+Nodes can run anywhere: by a user in their home, in a data center, or on a mobile device.
+Nodes will execute the Kinode OS specification, but be virtualized by a diversity of runtimes optimized for different environments.
+
+In a Kinode future, the web as we know it today is replaced by a tapestry of permissionless protocols that combine the sovereignty of peer-to-peer with the power of industrial-scale computing.
+Via runtime extensions and controlled namespaces, today's first-party platforms will transform into modularized protocols where users tap into centrally-operated services à la carte.
+A new generation of protocols will be built p2p-first, allowing anyone to act as a provider of powerful services like AI image, text, and video producers or high-speed anonymous networking.
+
+These protocols will not be developed by massive teams or require brigades of DevOps workers to stay online.
+A small group of programmers will specify their design, create an implementation, and publish it onchain.
+They may choose to enable future upgrades by decentralizing the governance of their specification with a DAO and token, or simply allow its permissionless use forever in a final state.
+Switching between protocols will be a trivially easy process for users.
+The monopoly of ossified web protocols will be obliterated by Kinode's user-node architecture, which allows for the operation of "transformer" protocols that enable vampire-attacks on any existing protocol with no technical knowhow on the side of the user.
+
+Mainstream technology will continue to evolve rapidly at both the hardware and software level. New programming languages and new chips will emerge that continue to improve on performance and security.
+Kinode is a beneficiary of this innovation, and at the same time, it unleashes the potential of new computing capabilities while maintaining the sovereignty of the end user.
 
 \end{document}
