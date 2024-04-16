@@ -306,14 +306,17 @@ Here is a brief description of the procedure to do so:
 This chapter discusses the architecture of Kinode OS. For a more "hands-on" description of the OS, including detailed programming examples and documentation, go to \href{https://book.kinode.org/}{book.kinode.org}.
 
 Kinode OS is a process virtual machine run to operate a "node" on the Kinode network.
+At its core, the virtual machine wraps around a Wasm runtime
+\footnote{Wasm is specified at https://webassembly.github.io/spec. Kinode uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
+which executes all userspace code.
 After a node identity is registered onchain in the KNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the kimap.
 Once this has been done, if the networking details (routers, IP, etc) are properly read from chain and able to be matched by the runtime, that node is now "online".
-Other nodes can now interact with the booted node.
+Other nodes can now interact with the booted node through the Kinode networking protocol by reading its KNS node identity and using the data stored there.
 
-The virtual machine is developed and distributed by Kinode DAO, which maintains a reference implementation. A formal specification of all aspects of the virtual machine is currently under development.
+The OS is developed and distributed by Kinode DAO. A formal specification of all aspects of the virtual machine is currently under development.
 The runtime is as simple as possible, with a maximal amount of logic ejected to userspace and the rest stored in modules.
 In the future, Kinode will benefit from "client diversity" as does a traditional blockchain: many implementations of the virtual machine
-\footnote{The Wasm runtime is by a wide margin the most complex aspect of the system, and at least a dozen such runtimes exist today, written in multiple languages.
+\footnote{The Wasm runtime is by a wide margin the most complex aspect of the OS, and at least a dozen such runtimes exist today, written in multiple languages.
 This bodes well for future Kinode client diversity.}
 will make the network more robust to potential bugs and decentralize the development process, leading to productive ossification of core features, resulting in stability and long-term strength.
 
@@ -331,22 +334,6 @@ The reference implementation built and maintained by the DAO is currently writte
 It also comes with a number of pre-installed userspace packages that perform critical tasks.
 In the future, other entities will likely seek to distribute their own implementations which may contain different pre-installed packages or even different runtime modules.
 
-\subsection{Microkernel}
-
-Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{https://wiki.osdev.org/Microkernel} which is responsible for five things:
-\begin{enumerate}
-    \item Using a Wasm runtime
-    \footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
-    to execute compiled processes which implement the Kinode WIT standard.
-    \item Implementing the host functions, exposed to all processes, defined in Kinode WIT standard.
-    \item Implementing the kernel API that allows processes with kernel-messaging capabilities to perform process management.
-    \item Passing messages between all processes including to/from the kernel itself.
-    \item Enforcing messaging capabilities.
-\end{enumerate}
-
-
-As of this writing, the microkernel runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
-
 \begin{figure}
     \centering
     \begin{lstlisting}
@@ -362,15 +349,188 @@ As of this writing, the microkernel runtime module in Kinode DAO's implementatio
     sqlite:distro:sys
     vfs:distro:sys
     \end{lstlisting}
-    \caption{The full list of runtime modules in the OS distribution maintained by Kinode DAO.}
+    \caption{The full list of runtime modules in the OS distribution maintained by Kinode DAO as of this writing.}
     \label{fig:runtime modules list}
 \end{figure}
 
+\subsection{WIT}
+
+Wasm Interface Type\footnote{https://component-model.bytecodealliance.org/design/wit.html}, or WIT, is a format to describe types and function definitions which can be used in a Wasm component.
+Kinode OS uses a single WIT file to define the types shared across all processes and provide a number of functions.
+The functions fall into 3 categories:
+\begin{itemize}
+    \item self-configuration
+    \item capabilities management
+    \item message I/O
+\end{itemize}
+
+WIT files are organized into worlds. All types and functions provided to Kinode processes are currently stored in one world labeled \verb|lib|.
+
+\subsubsection{WIT Types}
+
+Discussion of the types presented here will occur throughout the rest of the OS description.
+Some types in kinode.wit are omitted for brevity.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{lstlisting}
+    record process-id {
+        process-name: string,
+        package-name: string,
+        publisher-node: node-id,
+    }
+    record address {
+        node: node-id,
+        process: process-id,
+    }
+    record lazy-load-blob {
+        mime: option<string>,
+        bytes: list<u8>,
+    }
+    \end{lstlisting}
+    \caption{Basic types in kinode.wit}
+    \label{fig:WIT Types 1}
+\end{figure}
+
+An \verb|address| globally identifies a process running on a particular node.
+
+A \verb|process-id| identifies a particular process by its publisher, package name, and process name.
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    record capability {
+        issuer: address,
+        params: json,
+    }
+    \end{lstlisting}
+    \caption{Capability type in kinode.wit}
+    \label{fig:WIT Types 3}
+\end{figure}
+
+Capabilities are signed by the local kernel's \verb|~net-key|, turning them into unforgeable tokens of authority.
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    record request {
+        inherit: bool,
+        expects-response: option<u64>,
+        body: list<u8>,
+        metadata: option<json>,
+        capabilities: list<capability>,
+    }
+    record response {
+        inherit: bool,
+        body: list<u8>,
+        metadata: option<json>,
+        capabilities: list<capability>,
+    }
+    variant message {
+        request(request),
+        response(tuple<response, option<context>>),
+    }
+    \end{lstlisting}
+    \caption{Message type in kinode.wit}
+    \label{fig:WIT Types 2}
+\end{figure}
+
+Messages are produced and consumed by Kinode processes. Further discussion in the Message Passing section.
+
+\subsubsection{WIT Host Functions}
+
+WIT host functions must be implemented by the kernel.
+The Wasm Component model allows these functions to be called by processes.
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    // self-configuration
+    print-to-terminal()
+    set-on-exit()
+    get-on-exit()
+    get-state()
+    set-state()
+    clear-state()
+    spawn()
+
+    // capabilities management
+    save-capabilities()
+    drop-capabilities()
+    our-capabilities()
+
+    // message I/O
+    receive()
+    get-blob()
+    send-request()
+    send-requests()
+    send-response()
+    send-and-await-response()
+    \end{lstlisting}
+    \caption{Host functions in kinode.wit}
+    \label{fig:WIT Functions}
+\end{figure}
+
+\subsubsection{WIT Process Format}
+
+The process format enforced by kinode.wit is remarkably simple: it imports the types and functions defined in the main library world, and requires processes to implement a single function: init.
+\footnote{This does not preclude processes from implementing other functions.}
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    world process {
+        include lib;
+        export init: func(our: string);
+    }
+    \end{lstlisting}
+    \caption{Process world in kinode.wit}
+    \label{fig:Process world}
+\end{figure}
+
+Init serves as the entry point for a process.
+The kernel begins execution of a process by calling init.
+When init returns, the process will cease execution.
+\footnote{All processes are single-threaded. To perform parallel computation, one can spawn child processes.}
+
+\subsection{Microkernel}
+
+Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{https://wiki.osdev.org/Microkernel} which is responsible for five things:
+\begin{enumerate}
+    \item Using a Wasm runtime
+    \footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
+    to execute compiled processes which implement the Kinode WIT standard, where execution includes managing their memory usage.
+    \item Implementing the host functions, exposed to all processes, defined in Kinode WIT standard.
+    \item Implementing the kernel API that allows processes with kernel-messaging capabilities to perform aspects of process management.
+    \item Passing messages between all processes including to/from the kernel itself.
+    \item Enforcing messaging capabilities.
+\end{enumerate}
+
+Messaging capabilities are a subset of the capabilities security model defined by the OS, issued by the kernel process, \verb|kernel:distro:sys|.
+Each process can mark itself as either \verb|public| or \verb|private| at instantiation.
+Public processes can be messaged by any other process.
+Private processes, as enforced by the kernel, require that the message source holds their messaging capability.
+See the capabilites section of this chapter for details on their use and how capabilities apply to processes running a remote node.
+
+As of this writing, the kernel runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
+
 \subsection{Message Passing}
-\subsection{WIT Definition and Process Format}
-\subsection{Example Process}
+
+A message between two Kinode processes is either a request or a response, as seen in the WIT definitions.
+A message has a single source \verb|address| and a single target \verb|address|.
+
+If the node identity indicated in the target \verb|address| matches that of the local kernel or is simply the string \verb|our|, the message is routed directly through the kernel to the target (assuming the source has the capability to message the target or the target is public).
+Otherwise, the message is routed through the networking protocol to the remote node indicated.
+
+Ordering of messages between a given source and a given target is enforced by both kernel and networking protocol.
+Messages are not otherwise ordered, meaning that if process A sends messages 1, 2, 3 to process B, and process B sends messages 4, 5, 6 to A, no guarantees are enforced other than that process B will receive messages 1, 2, 3 in that order and process A will receive 4, 5, 6 in that order.
+If process C sends message 7 to A, it may be received before 1, after 3, or somewhere in between.
+
+
+
 \subsection{Capabilities-Based Security}
 \subsection{System Primitives}
+\subsection{Example Process}
 \subsubsection{Virtual Filesystem}
 \subsubsection{Networking}
 \subsubsection{HTTP Client \& Server}
