@@ -278,7 +278,8 @@ Ports between 8000-8999 are usually saved for HTTP server use.
 
 Events emitted by kimap are used for indexing map data.
 Luckily, Kinode OS provides all the primitives necessary to do so effectively.
-TODO more here
+
+TODO more here: include the event data types and what values are indexed such that they can be used as filters.
 
 \subsection{Adding Other Onchain Identity Primitives}
 
@@ -302,16 +303,19 @@ Here is a brief description of the procedure to do so:
 %
 \section{Kinode OS}
 
-Note: for a more "hands-on" description of the OS, go to \href{https://book.kinode.org/r}{book.kinode.org}.
+This chapter discusses the architecture of Kinode OS. For a more "hands-on" description of the OS, including detailed programming examples and documentation, go to \href{https://book.kinode.org/}{book.kinode.org}.
 
 Kinode OS is a process virtual machine run to operate a "node" on the Kinode network.
 After a node identity is registered onchain in the KNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the kimap.
 Once this has been done, if the networking details (routers, IP, etc) are properly read from chain and able to be matched by the runtime, that node is now "online".
-Other nodes will now be able to interact with the booted node.
+Other nodes can now interact with the booted node.
 
-The virtual machine is developed and distributed by Kinode DAO.
-A reference implementation will be maintained, and a formal specification of all aspects of the virtual machine is currently under development.
-In the future, Kinode will benefit from "client diversity" as does a traditional blockchain: many implementations of the virtual machine will make the network more robust to potential bugs and decentralize the development process, which leads to productive ossification of core features, resulting in stability and long-term strength.
+The virtual machine is developed and distributed by Kinode DAO, which maintains a reference implementation. A formal specification of all aspects of the virtual machine is currently under development.
+The runtime is as simple as possible, with a maximal amount of logic ejected to userspace and the rest stored in modules.
+In the future, Kinode will benefit from "client diversity" as does a traditional blockchain: many implementations of the virtual machine
+\footnote{The Wasm runtime is by a wide margin the most complex aspect of the system, and at least a dozen such runtimes exist today, written in multiple languages.
+This bodes well for future Kinode client diversity.}
+will make the network more robust to potential bugs and decentralize the development process, leading to productive ossification of core features, resulting in stability and long-term strength.
 
 While (generally) all packaged into a single executable, the OS can productively be described in 3 parts: a \textit{runtime}, a set of \textit{runtime modules}, and \textit{userspace}.
 The "kernel" frequently referred to in this paper is in fact just a runtime module.
@@ -323,9 +327,25 @@ Finally, userspace is comprised of all non-runtime-module processes executed vir
 These processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{https://component-model.bytecodealliance.org/}.
 They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of "system calls" afforded to userspace processes by the kernel.
 
+The reference implementation built and maintained by the DAO is currently written in Rust, as are all the runtime modules.
+It also comes with a number of pre-installed userspace packages that perform critical tasks.
+In the future, other entities will likely seek to distribute their own implementations which may contain different pre-installed packages or even different runtime modules.
+
 \subsection{Microkernel}
 
-As of this writing, the microkernel\footnote{https://wiki.osdev.org/Microkernel} runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
+Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{https://wiki.osdev.org/Microkernel} which is responsible for five things:
+\begin{enumerate}
+    \item Using a Wasm runtime
+    \footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
+    to execute compiled processes which implement the Kinode WIT standard.
+    \item Implementing the host functions, exposed to all processes, defined in Kinode WIT standard.
+    \item Implementing the kernel API that allows processes with kernel-messaging capabilities to perform process management.
+    \item Passing messages between all processes including to/from the kernel itself.
+    \item Enforcing messaging capabilities.
+\end{enumerate}
+
+
+As of this writing, the microkernel runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
 
 \begin{figure}
     \centering
