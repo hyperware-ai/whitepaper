@@ -49,13 +49,13 @@
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-This paper describes Kinode, a software platform built and maintained to integrate all the facets of modern crypto application development.
-The node-based cloud computing model enabled by Kinode will at long last bridge the impedance mismatch between onchain protocols and web services.
-Users can run their own services both at the interface and backend level, and corporations or entities can provide services in a permissionless, protocolized manner.
+Kinode is a software platform built and maintained to integrate all the facets of modern crypto application development.
+The node-based cloud computing model enabled by Kinode bridges the impedance mismatch between onchain protocols and web services.
+Users can run their own services both at the interface and backend level.
+Corporations or other entities can provide services in a permissionless, protocolized manner.
 Developers can write apps in any programming language that compiles to Wasm, then distribute them to sovereign users.
-Kinode is a lot of things:
-Along with being the Kinode Operating System, Kinode is also an onchain namespace, utility token for governing and assigning value to that namespace, fully-onchain PKI (Public-Key Infrastructure), and a DAO that controls both onchain assets and continued development of the OS.
-All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from using peer-to-peer computing.
+Kinode is a lot of things: an operating system, fully onchain namespace/global messaging primitive, utility token for governing and assigning value to that namespace, fully-onchain PKI (Public-Key Infrastructure), and a DAO that controls both onchain assets and continued development of the OS.
+All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
 \keywords{Operating System \and Decentralized \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
 \end{abstract}
@@ -68,14 +68,9 @@ All of these aspects work in lockstep to solve the problems that have heretofore
 %
 %
 \section{Kimap}
-\verb|kimap| is an onchain key-value store inspired by \href{https://github.com/dapphub/dmap}{dmap}, a minimalist onchain path-formatted key-value store.
-It serves as the base-level shared global state that all nodes use to share critical data to the entire network.
-Like dmap, kimap is organized as a hierarchical path system and has mutable/immutable keys.
-Several aspects of the map implementation are customized for the 'namespace' use case.
-However, the most important details that enable dmap to be read from and verified easily remain in place.
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for developers seeking to build peer-to-peer.
-This issue rears its head in scenarios both social and purely technical: finding a new user to chat or play a game with, or a node's software acquiring the actual networking information for a username given out-of-band.
+Discoverability rears its head in scenarios both social and purely technical: finding a new user to chat or play a game with, or a node's software acquiring the actual networking information for a username given out-of-band.
 Many solutions have been designed to address this problem or aspects of it, but so far, the "devex" (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
 Why is this?
 \begin{itemize}
@@ -85,7 +80,7 @@ Why is this?
 \end{itemize}
 We believe that in order for decentralized software to out-compete, it must be both easier to reason about (for a developer) and more effective at delivering some desirable user experience.
 Developers must be able to easily reason about software in order to effectively build on it, and building on existing software is how growth begins to compound.
-This principle drives the design of kimap.
+These principles drive the design of kimap.
 \begin{itemize}
     \item All globally-shared data must be \textit{in one place}.
     This property ensures that a full, up-to-date snapshot data can be read easily.
@@ -94,13 +89,23 @@ This principle drives the design of kimap.
     \item Any "missing piece" required to complete handshakes or source peers will result in unreliability and re-centralization.
 \end{itemize}
 
-With this in mind, the following specification describes kimap:
-All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen), and \_ (underscore) [TODO maybe not underscore? need to be compatible with existing app names though..].
-An entry is a path made of ordered keys.
-Every key has an owner address, which can be a contract or an EOA. The owner address can transfer the key to a new owner and mint keys directly below the key in the path hierarchy. For example, if a wallet owns \verb|mypath.network|, that wallet can mint \verb|hello.mypath.network|.
+Kimap is an onchain key-value store inspired by \href{https://github.com/dapphub/dmap}{dmap}, a minimalist onchain path-formatted key-value store.
+It serves as the base-level shared global state that all nodes use to share critical data to the entire network.
+Like dmap, kimap is organized as a hierarchical path system and has mutable/immutable keys.
+Several aspects of the map implementation are customized for the "namespace" use case.
+However, the most important details that enable dmap to be read from and verified easily remain in place.
 
-Every kimap entry is an ERC-721 NFT (non-fungible token).
-Thus, every kimap entry is a unique transferable onchain asset with a known ownership history.
+With this in mind, the following specification describes kimap:
+
+\begin{itemize}
+    \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen), and \_ (underscore) [TODO maybe not underscore? need to be compatible with existing app names though..].
+    This property ensures that a full, up-to-date snapshot data can be read easily.
+    \item An entry is a path made of ordered keys.
+    \item Every entry has an owner address, which can be a contract or an EOA.
+    \item The owner address can transfer the entry to a new owner and mint keys directly below the entry in the path hierarchy. For example, if a wallet owns \verb|mypath.network|, that wallet can mint \verb|hello.mypath.network|.
+    \item Every kimap entry is an ERC-721 NFT (non-fungible token).
+    Thus, each entry is a unique transferable onchain asset with a known ownership history.
+\end{itemize}
 
 A key may be minted with the prefix \verb|~|. Such keys may not have keys minted beneath them: they are terminal nodes. The prefix denotes that such keys are used to store a bytes payload of readable data. The format of the stored data is determined on a protocol-by-protocol basis depending on the key name. Any valid key name with the tilde-prefix may store data.
 
