@@ -369,7 +369,7 @@ WIT files are organized into worlds. All types and functions provided to Kinode 
 \subsubsection{WIT Types}
 
 Discussion of the types presented here will occur throughout the rest of the OS description.
-Some types in kinode.wit are omitted for brevity.
+Some types in kinode.wit are omitted for brevity or because they are discussed later.
 
 \begin{figure}[htbp]
     \centering
@@ -395,47 +395,6 @@ Some types in kinode.wit are omitted for brevity.
 An \verb|address| globally identifies a process running on a particular node.
 
 A \verb|process-id| identifies a particular process by its publisher, package name, and process name.
-
-\begin{figure}
-    \centering
-    \begin{lstlisting}
-    record capability {
-        issuer: address,
-        params: json,
-    }
-    \end{lstlisting}
-    \caption{Capability type in kinode.wit}
-    \label{fig:WIT Types 3}
-\end{figure}
-
-Capabilities are signed by the local kernel's \verb|~net-key|, turning them into unforgeable tokens of authority.
-
-\begin{figure}
-    \centering
-    \begin{lstlisting}
-    record request {
-        inherit: bool,
-        expects-response: option<u64>,
-        body: list<u8>,
-        metadata: option<json>,
-        capabilities: list<capability>,
-    }
-    record response {
-        inherit: bool,
-        body: list<u8>,
-        metadata: option<json>,
-        capabilities: list<capability>,
-    }
-    variant message {
-        request(request),
-        response(tuple<response, option<context>>),
-    }
-    \end{lstlisting}
-    \caption{Message type in kinode.wit}
-    \label{fig:WIT Types 2}
-\end{figure}
-
-Messages are produced and consumed by Kinode processes. Further discussion in the Message Passing section.
 
 \subsubsection{WIT Host Functions}
 
@@ -516,19 +475,85 @@ As of this writing, the kernel runtime module in Kinode DAO's implementation of 
 
 \subsection{Message Passing}
 
-A message between two Kinode processes is either a request or a response, as seen in the WIT definitions.
+A message between two Kinode processes is either a request or a response.
 A message has a single source \verb|address| and a single target \verb|address|.
 
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    record request {
+        inherit: bool,
+        expects-response: option<u64>,
+        body: list<u8>,
+        metadata: option<json>,
+        capabilities: list<capability>,
+    }
+    record response {
+        inherit: bool,
+        body: list<u8>,
+        metadata: option<json>,
+        capabilities: list<capability>,
+    }
+    variant message {
+        request(request),
+        response(tuple<response, option<context>>),
+    }
+    \end{lstlisting}
+    \caption{Message type in kinode.wit}
+    \label{fig:WIT Types 2}
+\end{figure}
+
+Messages are produced and consumed by Kinode processes. Further discussion in the Message Passing section.
+
 If the node identity indicated in the target \verb|address| matches that of the local kernel or is simply the string \verb|our|, the message is routed directly through the kernel to the target (assuming the source has the capability to message the target or the target is public).
-Otherwise, the message is routed through the networking protocol to the remote node indicated.
+Otherwise, the message is routed through the networking runtime module, \verb|net:distro:sys| to the remote node indicated.
 
 Ordering of messages between a given source and a given target is enforced by both kernel and networking protocol.
 Messages are not otherwise ordered, meaning that if process A sends messages 1, 2, 3 to process B, and process B sends messages 4, 5, 6 to A, no guarantees are enforced other than that process B will receive messages 1, 2, 3 in that order and process A will receive 4, 5, 6 in that order.
 If process C sends message 7 to A, it may be received before 1, after 3, or somewhere in between.
 
+Message delivery is not guaranteed.
+If a message targets a local process, the target may crash or the kernel may suspend execution between message creation and delivery.
+Far more treacherous is delivery of messages to remote processes.
+Nodes may go offline, experience network congestion, or otherwise drop incoming messages.
+\footnote{Computer networking, being a fundamentally physical process, is impossible to effectively abstract over without failure modes, because the physical world imposes them.}
+To this end, two error modes are baked into Kinode message passing: offline and timeout.
 
+Requests can be sent at any time, while responses must target a process that has a matching outstanding request.
+A request is outstanding if:
+\begin{enumerate}
+    \item it expects a response
+    \item its timeout has not expired
+\end{enumerate}
+Every request that expects a response must set a timeout value, measured in seconds.
+The kernel is responsible for returning a timeout error to a request which expects a response and does not get matched to one within the number of seconds declared.
 
-\subsection{Capabilities-Based Security}
+The offline error type is only returned by \verb|net:distro:sys|.
+It may be returned if the node that a request targets is definitively unreachable.
+This may occur if a direct node's networking information in KNS is invalid, an indirect node has no routers, a node refuses all networking protocol connections / does not comport to protocol, or any other such immediate error.
+In practice, "offline" and "timeout" can usually be treated the same way: by a combination of alerting the program user and retrying the message.
+
+\subsection{Capability-Based Security}
+
+Kinode OS uses a capability-based security model [TODO footnote with link] to enable sensible control of power between both userspace processes and runtime modules.
+Security between programs is directly related to the sovereignty goals of the OS: a user must be able to install a program without needing to evaluate its source code or trust its developer.
+Wasm programs are sandboxed, but have access to powerful tools including networking, memory, CPU, and disk space, not to mention the possible secrets they contain (consider a wallet program).
+Not only must these tools be granted to programs on a case-by-case basis, without some form of control between sandboxed programs, the sandbox becomes pointless, as any power or secret knowledge granted to a given program could be accessed by other programs!
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    record capability {
+        issuer: address,
+        params: json,
+    }
+    \end{lstlisting}
+    \caption{Capability type in kinode.wit}
+    \label{fig:WIT Types 3}
+\end{figure}
+
+Capabilities are signed by the local kernel's \verb|~net-key|, turning them into unforgeable tokens of authority.
+
 \subsection{System Primitives}
 \subsection{Example Process}
 \subsubsection{Virtual Filesystem}
