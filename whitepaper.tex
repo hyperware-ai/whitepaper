@@ -552,9 +552,46 @@ Not only must these tools be granted to programs on a case-by-case basis, withou
     \label{fig:WIT Types 3}
 \end{figure}
 
-Capabilities are signed by the local kernel's \verb|~net-key|, turning them into unforgeable tokens of authority.
+If a process is in possession of a capability, it may send it to another process.
+Capabilities are signed by the local kernel's \verb|~net-key| to  them into unforgeable tokens of authority.
+Processes don't need to concern themselves with verifying signatures.
+Instead, the kernel filters out local capabilities which are not properly signed.
+Remote capabilities–capabilities created by a different kernel–are not verified.
+Why not?
+If an invalid capability is created and passed in a message, the holder will be alerted to its invalid nature if/when the holder tries to use it.
+
+As described in the Package Manager section, software written on Kinode OS will often benefit from declaring a set of capabilities desired at the time of install.
+Many of the built-in runtime modules distributed with the OS, including the kernel itself, have a capabilities protocol.
+The kernel's capabilities protocol is part of the OS specification because it applies to every process and is the bedrock security model of the OS.
+It is also very simple:
+\begin{enumerate}
+    \item Upon instantiation, every process is given its own \textit{messaging capability}.
+    \item Every process may mark itself as \verb|public|.
+    \item A messaging capability is defined as a capability with the \verb|issuer| field set to the process in question, and the \verb|params| field set to the string \verb|"messaging"|\footnote{Quotation marks included here to produce valid JSON, as is best practice for the params field.}
+    \item If a process is public, the kernel will pass any message to it. If not, the kernel will check that local processes sending requests to this process are in possession of the messaging capability.
+\end{enumerate}
+
+Note that remote processes are not filtered by messaging capabilities.
+Because other kernels can spoof such information as process names, it does not make sense to distribute what we may call "system capabilities" through the network.
+"Userspace capabilities", ones created and checked-against in userspace by processes, can reasonably be distributed remotely.
+Instead of using messaging capabilities to filter remote processes, a process instead may decide whether or not it accepts message from remote sources in general, which in practice simply means it gives its messaging capability to \verb|net:distro:sys|.
 
 \subsection{System Primitives}
+
+Kinode OS essentially manages four primitives via runtime modules:
+
+\begin{enumerate}
+    \item Networking/Identity: sending encrypted messages between nodes using permanent cryptographic identities.
+    \item Data Persistence: writing to disk with the option to use remote backup systems.
+    \item Global Consensus State: integrating with blockchains to read data and write transactions.
+    \item Web: HTTP client and server.
+\end{enumerate}
+
+The common thread between these items is the requirement for I/O.
+Therefore, they cannot be built as userspace Wasm processes.
+
+
+
 \subsection{Example Process}
 \subsubsection{Virtual Filesystem}
 \subsubsection{Networking}
