@@ -536,7 +536,23 @@ If process C sends message 7 to A, it may be received before 1, after 3, or some
 \subsubsection{HTTP Client \& Server}
 \subsubsection{ETH RPC}
 \subsubsection{SQLite, KV-Store}
-\subsection{Runtime Extensions}
+\subsection{Extensions}
+
+Wasm is an excellent compilation target for processes.
+Processes are naturally sandboxed and cross-platform.
+However, there are also costs associated with Wasm.
+For example, not all libraries can be compiled to Wasm and hardware support for accelerators like GPUs is currently lacking.
+Extensions supplement and compliment Kinode processes, removing these constraints, while maintaining the advantages associated with Kinode, e.g., the request/response system.
+
+Extensions are WebSocket clients, written in any language and run natively alongside Kinode, that connect to a paired Kinode process.
+The process serves as the interface between the extension and the rest of the Kinode system.
+
+Extensions can be written in any language and can use any library, since an extension is just a native program that can connect to Kinode as a WebSocket client and that implements a certain protocol.
+
+The cost of extensions is that they are not as easy for users to install and use.
+Since they are native, rather than Wasm, they will not run on arbitrary systems.
+Therefore only sophisticated users should be expected to run extensions, since they will either need to compile them themselves or set up and maintain an additional program running next to Kinode.
+
 \subsection{Backwards Compatibility}
 %
 %
