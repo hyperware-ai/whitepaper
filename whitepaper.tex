@@ -638,6 +638,34 @@ A common failure mode of distributed networks is that content becomes saturated 
 %
 %
 %
+\section{Kit}
+
+Kit is the development toolkit for Kinode.
+It provides a variety of tools, including but not limited to:
+\begin{itemize}
+\item \verb|new| Creates templates
+\item \verb|build| Builds packages, compiling processes
+\item \verb|start-package| Installs and starts built packages
+\item \verb|boot-fake-node| Runs ``fake'' temporary development nodes
+\item \verb|run-tests| Runs user-defined tests on a network of ``fake'' nodes
+\end{itemize}
+
+Kit aims to provide developers with every tool they need to go from idea to finished project.
+For example, a developer can use \verb|kit new| to create a template, iteratively develop, build, and test using a combination of an IDE, \verb|kit build|, \verb|kit start-package|, and \verb|kit boot-fake-node|, and develop tests to ensure stability of the project going forward using \verb|run-tests|.
+
+Kit's built-in templates help newcomers to learn by giving them working examples so they can begin quickly begin experimenting.
+They also demonstrate off best-practices.
+
+Kit makes use of Kinode's HTTP server RPC endpoint to interact with Kinode.
+As such, kit is restricted to localhost only.
+However, \verb|kit connect| allows remote development as long as developers have \verb|ssh| access to the remote machine.
+\verb|kit connect| showcases a strategy employed throughout \verb|kit|: make use of existing tools and wrap them in a very easy-to-use way (or make new ones when they don't exist).
+Here, \verb|connect| uses \verb|ssh| tunneling to send the \verb|kit| request securely to the remote machine.
+As such, developers can work on remote Kinode's with the same ease that \verb|kit| affords for local development, but security is not compromised for users.
+
+%
+%
+%
 \section{KINO Token}
 
 \$KINO is a utility token designed to fill two roles in the Kinode network: assignment of \textbf{relative value in the global namespace} and \textbf{namespace and protocol governance}.
