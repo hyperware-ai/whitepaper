@@ -6,6 +6,7 @@
 \makeatletter
 %
 \usepackage{listings}
+\usepackage{float}
 \usepackage{tikz}
 \usepackage[T1]{fontenc}
 % T1 fonts will be used to generate the final print and online PDFs,
@@ -666,7 +667,7 @@ Programs that wish to "install" and "uninstall" packages merely submit these req
 These programs must also have advanced capabilities to access the virtual filesystem, such that they can create new top-level directories formatted in such a way that the kernel can access compiled \verb|.wasm| files that contain a single process.
 
 By convention, packages are stored in a \verb|.zip| file with the name of the package (package name [colon] publisher node id).
-The top level of the zipped directory contains a \verb|metadata.json| file, a \verb|pkg| directory, and a directory for each process defined in the \verb|pkg| directory.
+The top level of the zipped directory contains a \verb|metadata.json| file, a \verb|pkg| directory, and optionally a directory for the source code of each process defined in the \verb|pkg| directory.
 The \verb|pkg| directory defines processes by
 \begin{enumerate}
     \item containing a \verb|.wasm| file, the name of which matches the process name
@@ -697,7 +698,7 @@ A \verb|~metadata-hash| entry must contain 32 bytes corresponding to a SHA-256 h
 
 A \verb|metadata-uri| entry may contain a UTF-8 string [TODO confirm this] corresponding to a Uniform Resource Identifier where one may access the metadata file for which the hash is contained in \verb|~metadata-hash|.
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \begin{lstlisting}
     os
@@ -726,12 +727,60 @@ A \verb|metadata-uri| entry may contain a UTF-8 string [TODO confirm this] corre
     \label{fig:example kimap with packages}
 \end{figure}
 
-In Fig. 2 there are 4 packages present: \verb|foos-app:foo.os|, \verb|baz:bar.kino|, \verb|bam:bar.kino|, and \verb|boozle:bam.bar.kino|.
+In Fig. 9 there are 4 packages present: \verb|foos-app:foo.os|, \verb|baz:bar.kino|, \verb|bam:bar.kino|, and \verb|boozle:bam.bar.kino|.
 Note that the parent path from a valid package sub-entry contains the entire package name including publisher.
 Note also that a publisher does not need to be a valid node identity as defined in the KNS protocol, though in practice it likely will be.
 A single publisher providing multiple packages can do so by minting sub-entries corresponding to those packages' names.
 Lastly, a package may also itself be a node identity as demonstrated in \verb|bam.bar.kino|.
 This is a good example of how protocols in kimap's global namespace interact and overlap with one another.
+
+\subsection{Package Metadata}
+
+The value of a package's \verb|~metadata-uri| must be some kind of resource serving \verb|metadata.json|, a file that must hash to \verb|~metadata-hash|.
+If these requirements are met, a user may use \verb|metadata.json| to gather information about a package.
+
+\begin{figure}[H]
+    \centering
+    \begin{lstlisting}
+        {
+            "name": "template",
+            "description": "a description of the package",
+            "image": "a URL to an image file",
+            "properties": {
+                "package_name": "template",
+                "current_version": "0.1.0",
+                "publisher": "template.os",
+                "mirrors": [
+                    "mirror-node-1.os",
+                    "mirror-node-2.os"
+                ],
+                "code_hashes": {
+                    "0.1.0": "abc"
+                }
+            },
+            "external_url": "a URL to a project website",
+            "animation_url": "a URL to an animation file"
+        }
+    \end{lstlisting}
+    \caption{A metadata file.}
+    \label{fig:example metadata.json}
+\end{figure}
+
+The structure of \verb|metadata.json| is designed to match that of the ERC-721 metadata spec such that packages can be ERC-721 NFTs.
+
+The \verb|mirrors| field is an array of strings that should be node identities.
+These nodes are where to actually find the zipped package for download.
+Mirrors must configure themselves to host a package using their App Store program.
+
+Note that the top-level \verb|name| field and \verb|package_name| in \verb|properties| need not match. The former may be a descritive user-facing name while the latter must match the actual package name to be used by the OS.
+
+All fields are required but may be left empty other than \verb|package_name| and \verb|publisher|, which are required to have values.
+
+If \verb|current_version|, \verb|code_hashes|, or \verb|mirrors| are left empty, users will be unable to download the package.
+
+\subsection{Package Manifest}
+
+
 
 \subsection{Default-distro App: App Store}
 
