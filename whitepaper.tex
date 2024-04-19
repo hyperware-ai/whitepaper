@@ -578,7 +578,7 @@ Instead of using messaging capabilities to filter remote processes, a process in
 
 \subsection{System Primitives}
 
-Kinode OS essentially manages four primitives via runtime modules:
+Kinode OS manages four primitives via runtime modules:
 
 \begin{enumerate}
     \item Networking/Identity: sending encrypted messages between nodes using permanent cryptographic identities.
@@ -589,10 +589,58 @@ Kinode OS essentially manages four primitives via runtime modules:
 
 The common thread between these items is the requirement for I/O.
 Therefore, they cannot be built as userspace Wasm processes.
+Instead, they are written as runtime modules: chunks of code at the same native level of the runtime and specially registered as processes in the kernel, which itself is a runtime module.
 
+Networking, data persistence, blockchain access, and HTTP read/write are all presented to userspace processes as a request-response API between a runtime module and the process using the primitive.
+See Fig. 2 for a full list of the process IDs which present these primitives.
+The API for a given runtime module included in the \verb|distro| package is part of the set of interfaces grouped within the Kinode OS versioning system.
+The OS uses semantic versioning to indicate breaking and non-breaking changes to these APIs, the kernel, the KNS/kimap onchain protocols, and the networking protocol.
+This is covered further in the Backwards Compatibility subsection.
 
+A few not-strictly-necessary but useful I/O primitives are also presented as APIs via runtime modules.
+These are: a terminal, a timer, and the advanced data persistence options of SQlite, a key-value store, and a virtual filesystem.
+
+Kinode OS can aquire new primitives via runtime \textit{extensions}, covered in their own subsection.
 
 \subsection{Example Process}
+
+Now that the OS has been described in the abstract, and before we dive in to the specific designs of various runtime modules, it may be helpful to provide a code sample showing what a process actually looks like.
+
+\begin{figure}
+\begin{lstlisting}
+wit_bindgen::generate!({
+    path: "wit",
+    world: "process",
+});
+
+struct Component;
+export!(Component);
+
+use crate::kinode::process::standard::print_to_terminal;
+
+impl Guest for Component {
+    fn init(our: String) {
+        print_to_terminal(0, "hello from a process");
+        print_to_terminal(
+            0,
+            &format!("our process-id: {our}")
+        );
+    }
+}
+\end{lstlisting}
+    \caption{A process implemented in Rust}
+    \label{fig:example process}
+\end{figure}
+
+By generating bindings from \verb|kinode.wit|, a process acquires a set of types and functions in whatever programming language it is written in.
+The types and functions generated are often cumbersome to use directly due to their basic nature–in practice nearly all processes will use a library written for their particular langauge that smooths over the WIT interface and provides helper functions, type implementations, and so on.
+\footnote{ As of this writing, most processes have been written in Rust and an extensive library of this description has already been written, available at https://github.com/kinode-dao/process\_lib }
+To generate WIT bindings, it is merely required to import \verb|kinode.wit| and use the guest language's tooling, in the case of this example wit-bindgen\footnote{https://github.com/bytecodealliance/wit-bindgen} for Rust.
+
+\subsection{Selected Runtime Modules}
+
+This section describes a number of runtime modules of critical importance.
+
 \subsubsection{Virtual Filesystem}
 \subsubsection{Networking}
 \subsubsection{HTTP Client \& Server}
