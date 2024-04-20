@@ -68,6 +68,54 @@ All of these aspects work in lockstep to solve the problems that have heretofore
 %
 %
 %
+\section{Overview}
+
+Cryptocurrency, specifically smart contract blockchains, have triggered a nascent revolution in permissionless protocols, software that anyone can participate in and no one can shut down.
+But progress towards a fully decentralized, permissionless internet has stagnated even as specific niches like decentralized finance (DeFi) flourish.
+We believe that this progress is constrained less by blockchain speed and throughput (although improvements on this front are certainly appreciated) and more by an underdeveloped off-chain computing substrate.
+
+Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.
+\footnote{link to bitcoin whitepaper perhaps and rephrase to match}
+The mechanism to achieve this, now well-proven, expanded to turing-complete VMs, and replicated dozens of times, is simple: signed transactions validated by a decentralized validator set and deposited into an append-only distributed ledger.
+
+Which operations benefit from being a transaction?
+Permissionless financial transactions obviously require blockchains at least at the moment of settlement.
+Operations which mutate ownership of an asset as well.
+Smart contracts have proven that double-spend prevention can productively be applied to any digital asset which requires guaranteed global consensus on the order and provenance of operations.
+
+Which operations \textit{do not} benefit from such guarantees?
+For one, any action that can be sufficiently trusted with only consensus from a single entity, AKA a single digital signature.
+Any action between parties that trust one another is similarly unaffected.
+It turns out that the category of networked operations that do not require global consensus is much larger than the category of those that do benefit from being blockchain transactions.
+
+Some protocols, like many in DeFi, can function perfectly fine with no interactive aspects other than their onchain transaction protocol.
+The user interface for such a protocol is merely a wrapper over the smart contract deployed onchain.
+There is a vast landscape of possible protocols, however, which cannot be fit entirely into the transaction paradigm, and attempts to do so have led to countless failures.
+
+Some believe that merely increasing transaction throughput by a few orders of magnitude can be a solution to this problem.
+We do not.
+There is a significant cost to placing transactions in a globally-distributed ledger, not just monetary but also in terms of latency, data storage, and compute overhead.
+Transactions will \textit{always} present an impedence mismatch and be an inferior technical solution for certain operations, and until we can provide a proper solution for such operations, "Web3" will never compete on even footing with "Web2" offerings.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+    \draw (0,3) node[fill=yellow!80!black]{$kimap+\$KINO$}
+    -- (4,3) node[fill=yellow!80!black]{$Kinode OS$}
+    -- (2,0) node[fill=yellow!80!black]{$Kinode DAO$}
+    -- cycle;
+    \end{tikzpicture}
+    \caption{Architecture of Kinode.}
+    \label{fig:triangle}
+\end{figure}
+
+The goal of the Kinode Hyperstructure
+\footnote{description and link to hyperstructures}
+is to present a permissionless substrate for computing.
+Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does "everything else".
+We present in this paper an operating system, onchain global namespace, value assignment and ranking mechanism, and a governance structure for those components.
+
+
 \section{Kimap}
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for developers seeking to build peer-to-peer.
@@ -960,19 +1008,6 @@ Users may perform a one-time approval to execute votes through a paymaster lever
 %
 \section{Kinode DAO}
 
-If Kinode were a shape, it would be a triangle:
-
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-    \draw (0,3) node[fill=yellow!80!black]{$kimap+KINO$}
-    -- (4,3) node[fill=yellow!80!black]{$Kinode OS$}
-    -- (2,0) node[fill=yellow!80!black]{$Kinode DAO$}
-    -- cycle;
-    \end{tikzpicture}
-    \caption{The Triangle}
-    \label{fig:triangle}
-\end{figure}
 
 \subsection{Governance Structure}
 \subsection{TLD Management}
