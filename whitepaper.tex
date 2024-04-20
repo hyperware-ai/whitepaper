@@ -30,8 +30,8 @@
 %
 \titlerunning{Kinode}
 %
-\author{doria % \and
-% Second Author\inst{2,3}\orcidID{1111-2222-3333-4444} \and
+\author{doria and
+Nicholas B Ludwig % \and
 % Third Author\inst{3}\orcidID{2222--3333-4444-5555}
 }
 %
@@ -118,11 +118,11 @@ We present in this paper an operating system, onchain global namespace, value as
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for developers seeking to build peer-to-peer.
 Discoverability rears its head in scenarios both social and purely technical: finding a new user to chat or play a game with, or a node's software acquiring the actual networking information for a username given out-of-band.
-Many solutions have been designed to address this problem or aspects of it, but so far, the "devex" (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
+Many solutions have been designed to address this problem or aspects of it, but so far, the ``devex'' (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
 Why is this?
 \begin{itemize}
-    \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the "batteries included" identity / discoverability / network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
-    \item "Pure" peer-to-peer protocols still rely on hardcoded lists to bootstrap new entrants.
+    \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the ``batteries included'' identity / discoverability / network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
+    \item ``Pure'' peer-to-peer protocols still rely on hardcoded lists to bootstrap new entrants.
     \item Constructs such as distributed hash tables, frequently used in p2p protocols, are complex to properly implement.
 \end{itemize}
 We believe that in order for decentralized software to out-compete, it must be both easier to reason about (for a developer) and more effective at delivering some desirable user experience.
@@ -131,15 +131,15 @@ These principles drive the design of kimap.
 \begin{itemize}
     \item All globally-shared data must be \textit{in one place}.
     This property ensures that a full, up-to-date snapshot data can be read easily.
-    \item In our case, that "one place" is onchain inside a single smart contract.
+    \item In our case, that ``one place'' is onchain inside a single smart contract.
     \item All data necessary to bootstrap peer-to-peer interaction must be made available within the globally-shared map.
-    \item Any "missing piece" required to complete handshakes or source peers will result in unreliability and re-centralization.
+    \item Any ``missing piece'' required to complete handshakes or source peers will result in unreliability and re-centralization.
 \end{itemize}
 
 Kimap is an onchain key-value store inspired by \href{https://github.com/dapphub/dmap}{dmap}, a minimalist onchain path-formatted key-value store.
 It serves as the base-level shared global state that all nodes use to share critical data to the entire network.
 Like dmap, kimap is organized as a hierarchical path system and has mutable/immutable keys.
-Several aspects of the map implementation are customized for the "namespace" use case.
+Several aspects of the map implementation are customized for the ``namespace'' use case.
 However, the most important details that enable dmap to be read from and verified easily remain in place.
 
 With this in mind, the following specification describes kimap:
@@ -185,15 +185,15 @@ A key may be minted with the prefix \verb|~|. Such keys may not have keys minted
 \end{figure}
 
 There are 3 top-level namespace entries in the example, \verb|eth|, \verb|kino|, and \verb|os|.
-Below those are a number of namespace entries that can be considered "domains", such as \verb|foo|, \verb|bar|, \verb|baz|.
+Below those are a number of namespace entries that can be considered ``domains'', such as \verb|foo|, \verb|bar|, \verb|baz|.
 The full path for \verb|foo|'s \verb|~ip| sub-entry would be \verb|~ip.foo.os|.
-In this paper, we will sometimes use the term "domain" interchangeably with what is referred to here as a "namespace entry".
+In this paper, we will sometimes use the term ``domain'' interchangeably with what is referred to here as a ``namespace entry''.
 This is a useful shorthand, and in many ways, kimap does mirror the role of DNS in the worldwide web.
 However, this analogy would be inaccurate if applied directly to all namespace entries.
 
 In the above example, one can see a number of entries which have \verb|~net-key| as a sub-entry.
 This identifies the entry as participating in the KNS (Kinode Name System) protocol \textit{on top} of the kimap.
-Hopefully this makes it clear as to why "domain" is a potentially confusing term to describe any given kimap entry.
+Hopefully this makes it clear as to why ``domain'' is a potentially confusing term to describe any given kimap entry.
 Entries \verb|baz.kino| and \verb|package.baz.kino| have no sub-entries to describe their status as a domain in the KNS.
 The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of KNS itself, as a protocol within this namespace, is described in its own chapter, as is the specification of the Kinode Package Manager which makes an appearance in this example.
@@ -230,7 +230,7 @@ We anticipate and welcome these experimental outcomes.
 
 As part of Kinode DAO's responsibilities in guaranteeing the utility and reliability of the protocol, certain namespaces will be given over to immutable contracts at launch.
 The \verb|os| TLD, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
-To prevent name squatting and generally dilute the value of this "namespace of last resort", minted sub-entries are required to be 9 or more characters long.
+To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
 This also serves as a good example of the kind of custom logic a namespace may implement.
 
 \subsection{Storing Data At Terminal Nodes}
@@ -269,7 +269,7 @@ Kimap is designed to be generic and extensible.
 Protocols such as KNS and the Kinode Package Manager extend kimap by placing special consideration on certain keys and interpreting the data stored at them in a particular way.
 A specific description of how this works can be seen in the chapters for each of those protocols.
 
-In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key. For example, a protocol that aims to act as an motd ("message of the day") system may specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which is perhaps a node identity in the KNS. If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
+In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key. For example, a protocol that aims to act as an motd (``message of the day'') system may specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which is perhaps a node identity in the KNS. If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
 
 Extension of kimap is permissionless: any protocol may begin operating on the keys and data stored in the map simply by specifying itself.
 Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
@@ -340,32 +340,32 @@ Here is a brief description of the procedure to do so:
 
 \section{Kinode OS}
 
-This chapter discusses the architecture of Kinode OS. For a more "hands-on" description of the OS, including detailed programming examples and documentation, go to \href{https://book.kinode.org/}{book.kinode.org}.
+This chapter discusses the architecture of Kinode OS. For a more ``hands-on'' description of the OS, including detailed programming examples and documentation, go to \href{https://book.kinode.org/}{book.kinode.org}.
 
-Kinode OS is a process virtual machine run to operate a "node" on the Kinode network.
+Kinode OS is a process virtual machine run to operate a ``node'' on the Kinode network.
 At its core, the virtual machine wraps around a Wasm runtime
 \footnote{Wasm is specified at https://webassembly.github.io/spec. Kinode uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
 which executes all userspace code.
 After a node identity is registered onchain in the KNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the kimap.
-Once this has been done, if the networking details (routers, IP, etc) are properly read from chain and able to be matched by the runtime, that node is now "online".
+Once this has been done, if the networking details (routers, IP, etc) are properly read from chain and able to be matched by the runtime, that node is now ``online''.
 Other nodes can now interact with the booted node through the Kinode networking protocol by reading its KNS node identity and using the data stored there.
 
 The OS is developed and distributed by Kinode DAO. A formal specification of all aspects of the virtual machine is currently under development.
 The runtime is as simple as possible, with a maximal amount of logic ejected to userspace and the rest stored in modules.
-In the future, Kinode will benefit from "client diversity" as does a traditional blockchain: many implementations of the virtual machine
+In the future, Kinode will benefit from ``client diversity'' as does a traditional blockchain: many implementations of the virtual machine
 \footnote{The Wasm runtime is by a wide margin the most complex aspect of the OS, and at least a dozen such runtimes exist today, written in multiple languages.
 This bodes well for future Kinode client diversity.}
 will make the network more robust to potential bugs and decentralize the development process, leading to productive ossification of core features, resulting in stability and long-term strength.
 
 While (generally) all packaged into a single executable, the OS can productively be described in 3 parts: a \textit{runtime}, a set of \textit{runtime modules}, and \textit{userspace}.
-The "kernel" frequently referred to in this paper is in fact just a runtime module.
+The ``kernel'' frequently referred to in this paper is in fact just a runtime module.
 
-The runtime is a "native" (to whatever architecture it targets, which may be Unix, a browser, hardware...) program that manages node booting (including onchain registration) and (generally asynchronously or in parallel) executes the runtime modules.
+The runtime is a ``native'' (to whatever architecture it targets, which may be Unix, a browser, hardware...) program that manages node booting (including onchain registration) and (generally asynchronously or in parallel) executes the runtime modules.
 Runtime modules are blocks of code written at the same level of abstraction as the runtime itself, but designed to resemble userspace processes.
 These modules are registered in the kernel \textit{as} processes, meaning that they can be messaged by userspace in the system-wide request-response protocol and secured via capabilities.
 Finally, userspace is comprised of all non-runtime-module processes executed virtually by the kernel.
 These processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{https://component-model.bytecodealliance.org/}.
-They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of "system calls" afforded to userspace processes by the kernel.
+They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of ``system calls'' afforded to userspace processes by the kernel.
 
 The reference implementation built and maintained by the DAO is currently written in Rust, as are all the runtime modules.
 It also comes with a number of pre-installed userspace packages that perform critical tasks.
@@ -693,11 +693,11 @@ It is another protocol critical to the operation of Kinode OS.
 As described in the Kinode OS chapter, the userspace presented by the OS is comprised of processes, which are bundled into packages.
 There is no built-in method for managing the packages installed in a node.
 Rather, userspace programs with the required capabilities must save packages in the virtual filesystem and prompt the kernel to start running certain processes.
-The kernel has no built-in concept of a "package".
+The kernel has no built-in concept of a ``package''.
 
 If a process has the necessary capabilities, they may create requests to and receive responses from \verb|kernel:distro:sys| like any other process.
 The kernel specifies a request type that includes commands relevant to managing processes.
-Programs that wish to "install" and "uninstall" packages merely submit these requests.
+Programs that wish to ``install'' and ``uninstall'' packages merely submit these requests.
 These programs must also have advanced capabilities to access the virtual filesystem, such that they can create new top-level directories formatted in such a way that the kernel can access compiled \verb|.wasm| files that contain a single process.
 
 By convention, packages are stored in a \verb|.zip| file with the name of the package (package name [colon] publisher node id).
@@ -721,7 +721,7 @@ It is accepted uncritically, and it is again the responsibility of the userspace
 \subsection{Specification}
 
 The userspace app store / package manager maintained by Kinode DAO uses an onchain protocol running on kimap to enable app discoverability and ranking.
-The definition of a package (interchangeably called an "app") in this protocol is any kimap entry which has both of the following sub-entries:
+The definition of a package (interchangeably called an ``app'') in this protocol is any kimap entry which has both of the following sub-entries:
 
 \verb|~metadata-hash|, \verb|~metadata-uri|.
 
@@ -851,7 +851,7 @@ TODO elaborate
 
 As noted, Kinode DAO's distribution of the OS comes with an app store.
 This package is named \verb|app_store:sys|.
-The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify packages onchain, manages the installation of packages using kernel commands, and presents a web UI for a node operator to browse, install, and manage packages (generally labeled as "apps" in the frontend).
+The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify packages onchain, manages the installation of packages using kernel commands, and presents a web UI for a node operator to browse, install, and manage packages (generally labeled as ``apps'' in the frontend).
 
 The app store also uses \$KINO to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization. [TODO explain]
@@ -859,7 +859,7 @@ A common failure mode of distributed networks is that content becomes saturated 
 \section{KINO Token}
 
 \$KINO is a utility token designed to fill two roles in the Kinode network: assignment of \textbf{relative value in the global namespace} and \textbf{namespace and protocol governance}.
-The token operates alongside the kimap contract–"What you guys are referring to as KINO, is in fact, kimap/KINO, or as I've recently taken to calling it, kimap plus KINO."
+The token operates alongside the kimap contract–``What you guys are referring to as KINO, is in fact, kimap/KINO, or as I've recently taken to calling it, kimap plus KINO.''
 
 \subsection{Binding to kimap Namespace}
 
@@ -892,9 +892,9 @@ Kimap combined with \$KINO is not itself a search engine, but it does provide th
 The entries in the map are content, and bound \$KINO is a weight-primitive which applies a topology to that content.
 
 This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
-A "provider" can be considered any party which places entries in the global namespace.
+A ``provider'' can be considered any party which places entries in the global namespace.
 This group near-universally seeks to optimize for visibility, which is a zero-sum competition with others in the same group.
-A "user" can be considered any "set of eyes" on the namespace (though not necessarily human eyes), which providers compete over.
+A ``user'' can be considered any ``set of eyes'' on the namespace (though not necessarily human eyes), which providers compete over.
 Historically, both providers within and the operator of a centralized directory object have been incentivized to abuse the attention of users.
 Additionally, operators have been incentivized to unfairly extract from providers, devising schemes such as placing a competitor's entries above a provider unless a special fee is paid.
 Providers abuse attention in a similar manner by bribing operators to weight their content higher in areas where it's not actually relevant to the user.
@@ -904,12 +904,12 @@ The kimap architecture combined with a single weighting mechanism publicly share
 Users, too, are empowered to reward and punish entries in the global namespace.
 Because \textit{any address} can bind to \textit{any namespace entry}, the ability of a single provider to spend tokens on their irrelevant or otherwise spam-like entry is washed out by the broader ability of users to reward valued content by binding to it.
 
-Meanwhile, the "operator" role is neutralized.
+Meanwhile, the ``operator'' role is neutralized.
 Kinode DAO is responsible for maintaining the namespace but has no control over the operation of a namespace entry held by another party or the binding/unbinding operations.
 The DAO is also naturally incentivized to increase the value of \$KINO by not interfering with its use as a weighting mechanism.
-Any "thumb on the scale" by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
+Any ``thumb on the scale'' by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
 
-Because it is generic, the kimap+KINO substrate does not include a built-in algorithm to execute "search" or any other ranking strategy on its weights and values.
+Because it is generic, the kimap+KINO substrate does not include a built-in algorithm to execute ``search'' or any other ranking strategy on its weights and values.
 There is no single algorithm that will apply to the entire kimap.
 Algorithms will instead be written for specific protocols running on kimap.
 These will have access to \$KINO bindings as one tool in determining quality rankings, and many will also take into account other factors.
@@ -920,9 +920,9 @@ One may note that the onchain primitives described in this paper are remarkably 
 Binding and unbinding tokens does not require any game theory or MEV protection properties.
 Registering and mutating namespace entries is also not subject to adversarial conditions, since the ability to do so is only granted to an entry's owner.
 \footnote{However, that does not mean the same is true for contracts that utilize the protocol.
-Kimap and KINO are designed to be modular–as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed "on top" to manage a given namespace, generate yield, and many other activities.
+Kimap and KINO are designed to be modular–as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace, generate yield, and many other activities.
 These contracts must be designed carefully to avoid failure modes common to onchain protocols.
-For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and "steal" the name.
+For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and ``steal'' the name.
 A simple solution is to have the user commit to a hash of their desired name such as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{ENS does}.}
 As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{audits pending at the time of this writing}.
 Instead, the risks presented are a combination of social and game-theoretic regarding the adoption of both kimap and \$KINO for their intended use.
@@ -945,7 +945,7 @@ If users, providers, and the operator (the DAO) are all incentivized via protoco
 \subsection{Rewards}
 
 Why would a user, or anyone for that matter, bind tokens to a namespace entry?
-Two broad categories of reasoning, "natural" utility and "augmented" value, combine to justify the binding action.
+Two broad categories of reasoning, ``natural'' utility and ``augmented'' value, combine to justify the binding action.
 
 \subsubsection{Natural Utility}
 
@@ -999,7 +999,7 @@ Binding \$KINO mints an equivalent amount of \$veKINO to the address which perfo
 This is not an empty role–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
-For this reason, "governance" as applied to purely onchain protocols has historically been somewhat weak.
+For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
 There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized matter for the network to be stable, neutral, and permissionless.
 
 While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLD purchasers and to prevent abuse.
@@ -1084,7 +1084,7 @@ These protocols will not be developed by massive teams or require brigades of De
 A small group of programmers will specify their design, create an implementation, and publish it onchain.
 They may choose to enable future upgrades by decentralizing the governance of their specification with a DAO and token, or simply allow its permissionless use forever in a final state.
 Switching between protocols will be a trivially easy process for users.
-The monopoly of ossified web protocols will be obliterated by Kinode's user-node architecture, which allows for the operation of "transformer" protocols that enable vampire-attacks on any existing protocol with no technical knowhow on the side of the user.
+The monopoly of ossified web protocols will be obliterated by Kinode's user-node architecture, which allows for the operation of ``transformer'' protocols that enable vampire-attacks on any existing protocol with no technical knowhow on the side of the user.
 
 Mainstream technology will continue to evolve rapidly at both the hardware and software level. New programming languages and new chips will emerge that continue to improve on performance and security.
 Kinode is a beneficiary of this innovation, and at the same time, it unleashes the potential of new computing capabilities while maintaining the sovereignty of the end user.
