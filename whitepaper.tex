@@ -125,21 +125,21 @@ Historically, discoverability of both \textit{peers} and \textit{content} has be
 Discoverability can present both social barriers (finding a new user on a game or chat) and technical obstacles (node software aquiring networking information for particular username). 
 Many solutions have been designed to address this problem, but so far, the ``devex'' (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
 Why is this?
-\begin{itemize}
+\begin{enumerate}
     \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the ``batteries included'' identity/ discoverability/network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
     \item ``Pure'' peer-to-peer protocols still rely on hardcoded lists to bootstrap new entrants.
     \item Constructs such as distributed hash tables, frequently used in p2p protocols, are complex to properly implement.
-\end{itemize}
+\end{enumerate}
 We believe that in order for decentralized software to outcompete, it must be both easier to reason about (for a developer) and more effective at delivering desirable user experiences.
 
 These principles drive the design of kimap.
-\begin{itemize}
+\begin{enumerate}
     \item All globally-shared data must be \textit{in one place}.
     This property ensures that a full, up-to-date snapshot data is easily read.
     \item For Kinode, that ``one place'' is onchain inside a single smart contract.
     \item All data necessary to bootstrap peer-to-peer interaction must be available within the globally-shared map.
     \item Any ``missing piece'' required to complete handshakes or source peers will result in unreliability and re-centralization.
-\end{itemize}
+\end{enumerate}
 
 Kimap is an onchain key-value store inspired by \href{https://github.com/dapphub/dmap}{dmap}, a minimalist onchain path-formatted key-value store.
 It serves as the base-level shared global state that all nodes use to share critical data to the entire network.
@@ -149,7 +149,7 @@ However, the most important details that enable dmap to be read from and verifie
 
 With this in mind, the following specification describes kimap:
 
-\begin{itemize}
+\begin{enumerate}
     \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen), and \_ (underscore) [TODO maybe not underscore? need to be compatible with existing app names though..].
     This property ensures that a full, up-to-date snapshot data can be read easily.
     \item An entry is a path made of ordered keys.
@@ -157,7 +157,7 @@ With this in mind, the following specification describes kimap:
     \item The owner address can transfer the entry to a new owner and mint keys directly below the entry in the path hierarchy. For example, if a wallet owns \verb|mypath.network|, that wallet can mint \verb|hello.mypath.network|.
     \item Every kimap entry is an ERC-721 NFT (non-fungible token).
     Thus, each entry is a unique transferable onchain asset with a known ownership history.
-\end{itemize}
+\end{enumerate}
 
 A key may be minted with the prefix \verb|~|. Such keys may not have keys minted beneath them: they are terminal nodes. The prefix denotes that such keys are used to store a bytes payload of readable data. %TODO: Byte payload? Byte's payload?
 The format of the stored data is determined on a protocol-by-protocol basis depending on the key name. Any valid key name with the tilde-prefix may store data.
@@ -199,7 +199,7 @@ However, the ``domain'' analogy would be inaccurate if applied directly to all n
 E.g., only entries containing \verb|~net-key| are used by the KNS protocol which runs \textit{on top} of the kimap.
 Entries \verb|baz.kino| and \verb|package.baz.kino| have no sub-entries to describe their status as a domain in the KNS, and so the ``domain'' analogy breaks down for them.
 The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
-The specification of KNS itself, as a protocol operating on kimap, is described in Section~\ref{sec:kns}, as is the specification of the Kinode Package Manager, Section~\ref{sec:ospackagemanager}, which makes an appearance in this example.
+The specification of KNS itself, as a protocol operating on kimap, is described in Section~\ref{sec:kns}, as is the specification of the Kinode Package Manager, Section~\ref{sec:packagemanager}, which makes an appearance in this example.
 
 \subsection{Top-Level Domains}
 \label{sec:tld}
@@ -274,7 +274,7 @@ TODO add more here
 
 Kimap is designed to be generic and extensible.
 Protocols such as KNS and the Kinode Package Manager extend kimap by interpreting the data stored at certain keys in a particular way.
-A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:ospackagemanager}, respectively.
+A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
 
 In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key.
 For example, a motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which could be a node identity in the KNS.
@@ -301,16 +301,16 @@ Usually manipulated as strings in a process, a node's identity is the first comp
 \label{sec:knsspec}
 
 The definition of a node identity in the KNS protocol is any kimap entry that has a \verb|~net-key| sub-entry and either:
-\begin{itemize}
+\begin{enumerate}
 \item A \verb|~routers| sub-entry OR
 \item An \verb|~ip| sub-entry AND at least one of:
-	\begin{itemize}
+	\begin{enumerate}
 	\item \verb|~tcp-port| sub-entry
 	\item \verb|~udp-port| sub-entry
 	\item \verb|~ws-port| sub-entry
 	\item \verb|~wt-port| sub-entry
-	\end{itemize}
-\end{itemize}
+	\end{enumerate}
+\end{enumerate}
 
 A sample of this protocol can be seen in Fig.~\ref{fig:example kimap}.
 Two classes of nodes are defined: \textit{direct} and \textit{indirect}.
@@ -333,12 +333,12 @@ This integer is translated to an IPv4 address if it is <32-bit.
 Otherwise it is translated to an IPv6 address. [TODO clarify translation process]
 
 Lastly, the bytes at any of the following port entries must be 2 bytes corresponding to a 16-bit unsigned integer: [TODO clarify little or big endian]
-\begin{itemize}
+\begin{enumerate}
 \item \verb|~tcp-port| sub-entry
 \item \verb|~udp-port| sub-entry
 \item \verb|~ws-port| sub-entry
 \item \verb|~wt-port| sub-entry
-\end{itemize}
+\end{enumerate}
 This integer is translated to a port number.
 In practice, port numbers used are between 9000 and 65535.
 Ports between 8000-8999 are usually saved for HTTP server use.
@@ -429,12 +429,12 @@ In the future, other entities will likely seek to distribute their own implement
 
 Wasm Interface Type\footnote{https://component-model.bytecodealliance.org/design/wit.html}, or WIT, is a format to describe types and function definitions which can be used in a Wasm component.
 Kinode OS uses a single WIT file to define the types shared across all processes and provide a number of functions.
-The functions fall into 3 categories:
-\begin{itemize}
-    \item self-configuration
-    \item capabilities management
-    \item message I/O
-\end{itemize}
+The functions fall into three categories:
+\begin{enumerate}
+    \item Self-configuration
+    \item Capabilities management
+    \item Message I/O
+\end{enumerate}
 
 WIT files are organized into worlds. All types and functions provided to Kinode processes are currently stored in one world labeled \verb|lib|.
 
@@ -639,7 +639,7 @@ Remote capabilities–capabilities created by a different kernel–are not verif
 Why not?
 If an invalid capability is created and passed in a message, the holder will be alerted to its invalid nature if/when the holder tries to use it.
 
-As described in the Package Manager section, Section~\ref{sec:ospackagemanager}, software written on Kinode OS will often benefit from declaring a set of capabilities desired at the time of install.
+As described in the Package Manager section, Section~\ref{sec:packagemanager}, software written on Kinode OS will often benefit from declaring a set of capabilities desired at the time of install.
 Many of the built-in runtime modules distributed with the OS, including the kernel itself, have a capabilities protocol.
 The kernel's capabilities protocol is part of the OS specification because it applies to every process and is the bedrock security model of the OS.
 It is also very simple:
@@ -745,42 +745,42 @@ This section describes a number of runtime modules of critical importance.
 \label{sec:osbackwardscompat}
 
 \section{Package Manager}
-\label{sec:ospackagemanager}
+\label{sec:packagemanager}
 
 Like KNS, the Kinode Package Manager is a protocol deployed on kimap.
 It is another protocol critical to the operation of Kinode OS.
 As described in the Kinode OS Section~\ref{sec:os}, the userspace presented by the OS is comprised of processes, which are bundled into packages.
-There is no built-in method for managing the packages installed in a node.
+There is no kernel-level method for managing the packages installed in a node.
 Rather, userspace programs with the required capabilities must save packages in the virtual filesystem and prompt the kernel to start running certain processes.
-The kernel has no built-in concept of a ``package''.
+The kernel has no built-in concept of a ``package'': all of the logic related to packages is in userspace.
 
 If a process has the necessary capabilities, they may create requests to and receive responses from \verb|kernel:distro:sys| like any other process.
 The kernel specifies a request type that includes commands relevant to managing processes.
-Programs that wish to ``install'' and ``uninstall'' packages merely submit these requests.
-These programs must also have advanced capabilities to access the virtual filesystem, such that they can create new top-level directories formatted in such a way that the kernel can access compiled \verb|.wasm| files that contain a single process.
+Programs that wish to ``install'' and ``uninstall'' processes merely submit these requests.
+These programs must also have capabilities to access the virtual filesystem, such that they can create new top-level directories formatted in such a way that the kernel can access compiled \verb|.wasm| files that contain a single process.
 
-By convention, packages are stored in a \verb|.zip| file with the name of the package (package name [colon] publisher node id).
+By convention, packages are stored in a \verb|.zip| file with the full name of the package \verb|<package_name>:<publisher_node_id>|, e.g., for a chat app \verb|chat| published by \verb|template.os|, the full name of the package is \verb|chat:template.os|.
 The top level of the zipped directory contains a \verb|metadata.json| file, a \verb|pkg| directory, and optionally a directory for the source code of each process defined in the \verb|pkg| directory.
 The \verb|pkg| directory defines processes by
 \begin{enumerate}
-    \item containing a \verb|.wasm| file, the name of which matches the process name
-    \item optionally declaring the process in a file named \verb|manifest.json|, which defines the processes in the package that should be ran upon installation.
+    \item Containing a \verb|.wasm| file, the name of which matches the process name
+    \item Optionally declaring the process in a file named \verb|manifest.json|, which defines the processes in the package that should be run upon installation.
 \end{enumerate}
 
-\verb|pkg| may also contain a \verb|scripts.json| file which defines a list of processes that can be ran as scripts.
+\verb|pkg| may also contain a \verb|scripts.json| file which defines a list of processes that can be run as scripts.
 Scripts are merely processes that, by convention, can be executed from the system terminal, run for some period of time, and, before exiting, optionally return a final response, which the terminal may print.
 
 It is important to note that all of the above logic exists outside of the kernel and runtime.
 A package's directory, metadata, and manifest are all interpreted by userspace code and boiled down to a series of kernel commands including \verb|InitializeProcess|, \verb|RunProcess|, and \verb|KillProcess|.
-Of course, Kinode OS would not be very useful without this logic, and so the distribution maintained by the DAO comes with a combination app store and package manager called \verb|app_store:sys|.
+Of course, Kinode OS would not be very useful without this logic, and so the distribution maintained by Kinode DAO comes with a combination app store and package manager called \verb|app_store:sys|.
 Note that the publisher name, \verb|sys|, is not a node identity.
 The publisher value in a package name is not enforced by the kernel.
 It is accepted uncritically, and it is again the responsibility of the userspace package manager to assert a valid publisher if desired.
 
 \subsection{Specification}
-\label{sec:ospackagemanagerspec}
+\label{sec:packagemanagerspec}
 
-The userspace app store / package manager maintained by Kinode DAO uses an onchain protocol running on kimap to enable app discoverability and ranking.
+The userspace app store/package manager maintained by Kinode DAO uses an onchain protocol running on kimap to enable app discoverability and ranking.
 The definition of a package (interchangeably called an ``app'') in this protocol is any kimap entry which has both of the following sub-entries:
 
 \verb|~metadata-hash|, \verb|~metadata-uri|.
@@ -829,7 +829,7 @@ Lastly, a package may also itself be a node identity as demonstrated in \verb|ba
 This is a good example of how protocols in kimap's global namespace interact and overlap with one another.
 
 \subsection{Package Metadata}
-\label{sec:ospackagemanagermetadata}
+\label{sec:packagemanagermetadata}
 
 The value of a package's \verb|~metadata-uri| must be some kind of resource serving \verb|metadata.json|, a file that must hash to \verb|~metadata-hash|.
 If these requirements are met, a user may use \verb|metadata.json| to gather information about a package.
@@ -874,7 +874,7 @@ All fields are required but may be left empty other than \verb|package_name| and
 If \verb|current_version|, \verb|code_hashes|, or \verb|mirrors| are left empty, users will be unable to download the package.
 
 \subsection{Package Manifest}
-\label{sec:ospackagemanagermanifest}
+\label{sec:packagemanagermanifest}
 
 In the \verb|pkg| directory of a package, a developer may write a manifest to programmatically define how a package should be installed and save it as \verb|manifest.json|.
 If this file is not present, the package will not be installable.
@@ -910,7 +910,7 @@ All fields are required.
 TODO elaborate
 
 \subsection{Default-distro App: App Store}
-\label{sec:osappstore}
+\label{sec:appstore}
 
 As noted, Kinode DAO's distribution of the OS comes with an app store.
 This package is named \verb|app_store:sys|.
@@ -922,7 +922,11 @@ A common failure mode of distributed networks is that content becomes saturated 
 \section{KINO Token}
 \label{sec:kino}
 
-\$KINO is a utility token designed to fill two roles in the Kinode network: assignment of \textbf{relative value in the global namespace} and \textbf{namespace and protocol governance}.
+\$KINO is a utility token designed to fill two roles in the Kinode network:
+\begin{enumerate}
+\item Assignment of relative value in the global namespace and
+\item Namespace and protocol governance.
+\end{enumerate}
 The token operates alongside the kimap contract–``What you guys are referring to as KINO, is in fact, kimap/KINO, or as I've recently taken to calling it, kimap plus KINO.''%TODO: just flagging this as meta discussion
 
 \subsection{Binding to kimap Namespace}
@@ -960,7 +964,7 @@ The entries in the map are content, and bound \$KINO is a weight-primitive which
 
 This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
 A ``provider'' can be considered any party which places entries in the global namespace.
-This group near-universally seeks to optimize for visibility, which is a zero-sum competition with others in the same group.
+Providers near-universally seek to optimize for visibility, which is a zero-sum competition with other providers.
 A ``user'' can be considered any ``set of eyes'' on the namespace (though not necessarily human eyes), which providers compete over.
 Historically, both providers within and the operator of a centralized directory object have been incentivized to abuse the attention of users.
 Additionally, operators have been incentivized to unfairly extract from providers, devising schemes such as placing a competitor's entries above a provider unless a special fee is paid.
@@ -1057,13 +1061,13 @@ This may prove to be an ideal way to run protocols in a future where kimap is ve
 
 In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Kinode is presented as an inverted triangle with kimap+KINO and Kinode OS above Kinode DAO.
 Seated at the bottom, the DAO is responsible for:
-\begin{itemize}
+\begin{enumerate}
     \item Initially distributing the kimap namespace.
     \item Incentivizing the use of the namespace until it becomes self-perpetuating.
     \item Voting on other proposals to improve Kinode in a backwards-compatible way over time.
     \item Funding ongoing development of Kinode OS.
     \item Maintaining the OS, which must adapt to developments in computing.
-\end{itemize}
+\end{enumerate}
 
 \subsection{veKINO Token}
 \label{sec:daovekino}
@@ -1074,7 +1078,7 @@ This is not an empty role–unlike purely onchain protocols, which often fail to
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized matter for the network to be stable, neutral, and permissionless.
+There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
 
 While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLD purchasers and to prevent abuse.
 
