@@ -741,6 +741,22 @@ This section describes a number of runtime modules of critical importance.
 \subsection{Runtime Extensions}
 \label{sec:osextensions}
 
+Wasm is an excellent compilation target for processes.
+Processes are naturally sandboxed and cross-platform.
+However, there are also costs associated with Wasm.
+For example, not all libraries can be compiled to Wasm and hardware support for accelerators like GPUs is currently lacking.
+Extensions supplement and compliment Kinode processes, removing these constraints, while maintaining the advantages associated with Kinode, e.g., the request/response system.
+
+Extensions are WebSocket clients, written in any language and run natively alongside Kinode, that connect to a paired Kinode process.
+The paired process serves as the interface between the extension and the rest of the Kinode system.
+
+Extensions can be written in any language and can use any library, since an extension is just a native program that can connect to Kinode as a WebSocket client and that implements a certain protocol.
+
+The cost of extensions is that they are not as easy for users to install and use.
+Since they are native, rather than Wasm, they will not run on arbitrary systems.
+They are also not as easy to distribute as packages.
+Therefore only sophisticated users should be expected to run extensions, since they will either need to compile them themselves or set up and maintain an additional program running next to Kinode.
+
 \subsection{Backwards Compatibility}
 \label{sec:osbackwardscompat}
 
@@ -919,6 +935,40 @@ The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify pa
 The app store also uses \$KINO to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization. [TODO explain]
 
+[TODO provide spec for metadata.json, manifest.json, scripts.json]
+
+%
+%
+%
+\section{Kit}
+
+Kit is the development toolkit for Kinode.
+It provides a variety of tools, including but not limited to:
+\begin{itemize}
+\item \verb|new| Creates templates
+\item \verb|build| Builds packages, compiling processes
+\item \verb|start-package| Installs and starts built packages
+\item \verb|boot-fake-node| Runs ``fake'' temporary development nodes
+\item \verb|run-tests| Runs user-defined tests on a network of ``fake'' nodes
+\end{itemize}
+
+Kit aims to provide developers with every tool required to go from idea to finished project.
+For example, a developer can use \verb|kit new| to create a template, iteratively develop, build, and test using a combination of an IDE, \verb|kit build|, \verb|kit start-package|, and \verb|kit boot-fake-node|.
+Finally, use \verb|run-tests| to ensure stability of the project going forward.
+
+Kit's built-in templates help newcomers to learn by giving them working examples so they can begin quickly begin experimenting.
+They also demonstrate off best-practices.
+
+Kit makes use of Kinode's HTTP server RPC endpoint to interact with Kinode.
+As such, kit is restricted to localhost only.
+However, \verb|kit connect| allows remote development as long as developers have \verb|ssh| access to the remote machine.
+\verb|kit connect| showcases a strategy employed throughout \verb|kit|: when tools already exist, make use of them by wrapping them in a very easy-to-use way.
+Here, \verb|connect| uses \verb|ssh| tunneling to send the \verb|kit| request securely to the remote machine.
+As such, developers can work on remote Kinode's with the same ease that \verb|kit| affords for local development, but security is not compromised for users.
+
+%
+%
+%
 \section{KINO Token}
 \label{sec:kino}
 
