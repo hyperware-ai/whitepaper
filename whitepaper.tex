@@ -26,11 +26,11 @@
 %
 \begin{document}
 %
-\title{Kinode: A General-Purpose Sovereign Cloud Computer}
+\title{Kinode: A General-Purpose Sovereign Cloud Computer (DRAFT, PRIVATE)}
 %
-\titlerunning{Kinode}
+\titlerunning{Kinode – DRAFT, PRIVATE}
 %
-\author{doria and
+\author{Benjamin McCormick and
 Nicholas B Ludwig % \and
 % Third Author\inst{3}\orcidID{2222--3333-4444-5555}
 }
@@ -122,11 +122,11 @@ In this paper, we present an operating system, an onchain global namespace, a va
 \label{sec:kimap}
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for peer-to-peer developers.
-Discoverability can present both social barriers (finding a new user on a game or chat) and technical obstacles (node software aquiring networking information for particular username). 
+Discoverability can present both social barriers (finding a new user on a game or chat) and technical obstacles (node software aquiring networking information for particular username).
 Many solutions have been designed to address this problem, but so far, the ``devex'' (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
 Why is this?
 \begin{enumerate}
-    \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the ``batteries included'' identity/ discoverability/network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
+    \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the ``batteries included'' identity, discoverability, and network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
     \item ``Pure'' peer-to-peer protocols still rely on hardcoded lists to bootstrap new entrants.
     \item Constructs such as distributed hash tables, frequently used in p2p protocols, are complex to properly implement.
 \end{enumerate}
@@ -267,7 +267,8 @@ Token-bound accounts are self-evidently useful but become particularly powerful 
 A token-bound account is created automatically for every non-tilde-prefixed kimap entry.
 The address of the account is deterministically generated based on the full path of the entry.
 The owner of the entry has the ability to operate the account.
-TODO add more here
+
+%TODO add more here
 
 \subsection{Extensibility}
 \label{sec:extensibility}
@@ -333,6 +334,7 @@ This integer is translated to an IPv4 address if it is <32-bit.
 Otherwise it is translated to an IPv6 address. [TODO clarify translation process]
 
 Lastly, the bytes at any of the following port entries must be 2 bytes corresponding to a 16-bit unsigned integer: [TODO clarify little or big endian]
+
 \begin{enumerate}
 \item \verb|~tcp-port| sub-entry
 \item \verb|~udp-port| sub-entry
@@ -726,17 +728,27 @@ This section describes a number of runtime modules of critical importance.
 \subsubsection{Virtual Filesystem}
 \label{sec:osvfs}
 
+[TODO describe]
+
 \subsubsection{Networking}
 \label{sec:osnetworking}
+
+[TODO describe]
 
 \subsubsection{HTTP Client \& Server}
 \label{sec:oshttp}
 
+[TODO describe]
+
 \subsubsection{ETH RPC}
 \label{sec:oseth}
 
+[TODO describe]
+
 \subsubsection{SQLite, KV-Store}
 \label{sec:osdbs}
+
+[TODO describe]
 
 \subsection{Runtime Extensions}
 \label{sec:osextensions}
@@ -806,7 +818,7 @@ The package name is the last path item in the parent entry.
 
 A \verb|~metadata-hash| entry must contain 32 bytes corresponding to a SHA-256 hash of the \verb|metadata.json| file used to install a package.
 
-A \verb|metadata-uri| entry may contain a UTF-8 string [TODO confirm this]: a Uniform Resource Identifier indicating where the metadata file can be found (with hash matching \verb|~metadata-hash|).
+A \verb|metadata-uri| entry may contain a UTF-8 string[TODO confirm this]: a Uniform Resource Identifier indicating where the metadata file can be found (with hash matching \verb|~metadata-hash|).
 
 \begin{figure}[H]
     \centering
@@ -922,8 +934,7 @@ The manifest is a JSON array where each element is a description of a process th
     \label{fig:example manifest.json}
 \end{figure}
 
-All fields are required.
-TODO elaborate
+All fields are required.%TODO elaborate
 
 \subsection{Default-distro App: App Store}
 \label{sec:appstore}
@@ -935,7 +946,7 @@ The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify pa
 The app store also uses \$KINO to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization. [TODO explain]
 
-[TODO provide spec for metadata.json, manifest.json, scripts.json]
+[TODO provide spec for manifest.json and scripts.json]
 
 %
 %
@@ -1094,7 +1105,7 @@ Ownership and utilization of \$veKINO can augment the value of binding via DAO-m
 \subsection{Emissions}
 \label{sec:kinoemissions}
 
-2\% for X years, then 0. [TODO expand on this]
+[TODO: FILL IN WHEN CONFIRMED]
 
 \subsection{Current and Future Uses}
 \label{sec:kinouses}
@@ -1135,12 +1146,12 @@ While the DAO will be strongly incentivized by builders to remain permanently ba
 \subsubsection{Creating Proposals}
 \label{sec:daoproposals}
 
-TODO
+[TODO]
 
 \subsubsection{Voting and Rewards}
 \label{sec:daovoting}
 
-TODO
+[TODO]
 
 \subsubsection{Delegation}
 \label{sec:daodelegation}
