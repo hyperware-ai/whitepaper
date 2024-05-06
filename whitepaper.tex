@@ -728,12 +728,47 @@ This section describes a number of runtime modules of critical importance.
 \subsubsection{Virtual Filesystem}
 \label{sec:osvfs}
 
-[TODO describe]
+The OS ships with \verb|vfs:distro:sys|, a module which presents a standard filesystem API accessible to all processes with the capability to message it.
+Directories and files created in the VFS are saved on the host machine's filesystem.
+All I/O is mediated by the VFS, allowing processes to abstract away management of filesystem resources.
+The capability system also allocates total space available to a given process, allowing the node operator to distribute resources in a granular fashion.
+
+All processes that wish to persist data locally between boots will use either the VFS or another runtime module that writes to disk, which may be an extension or one of the default-distribution's SQLite or KV-Store modules.
 
 \subsubsection{Networking}
 \label{sec:osnetworking}
 
-[TODO describe]
+This runtime module is the part of the OS which implements the Kinode networking protocol.
+This module is somewhat special: in the kernel, messages with a \verb|target| that contains a node identity other than that of the kernel are all routed to \verb|net:distro:sys|.
+Once a message is passed to the networking module, it is routed to the target node using the information available in the Kinode Name System.
+For this reason, the networking module \textit{must} be made aware of the current onchain state of the KNS.
+
+KNS updates are given to \verb|net:distro:sys| using a request API made available to processes that have messaging capabilities to it.
+Note that messaging capability to \verb|net| is only required to send configurational messages, and is not required to simply send networked messages: those are handled through the kernel.
+Note also that as the KNS state grows, it will become prudent to not load the entire state into the networking module, but rather dynamically query the state as networking information is required for accessing new nodes or updating stale data from known ones.
+
+The networking protocol itself will not be fully specified here, as it is still being finalized and is best suited by its own document. However, some key aspects:
+
+\begin{itemize}
+    \item The protocol uses exclusively information available onchain, including IP addresses, ports, and router nodes, to faciliate message-passing.
+    See the description of KNS for more on this.
+    \item Direct nodes publish their routing information onchain.
+    Indirect nodes publish a set of routers who faciliate message-passing for them.
+    This is analogous to STUN+TURN in WebRTC.
+    A router may be able to facilitate a direct connection for indirect nodes in a STUN-like manner.
+    \item Networking may occur across many underlying transport protocols.
+    The specification of KNS in the kimap allows for a node identity to publicize the port to be used for each transport protocol that node supports.
+    The runtime is responsible for implementing each protocol that a node broadcasts.
+    In practice, nodes will use TCP for direct communication and routers will support a variety of protocols used by special-purpose nodes (such as mobile devices or nodes running in-browser).
+    \item Messages are end-to-end encrypted using a Noise protocol
+    \footnote{http://www.noiseprotocol.org/noise.html}
+    where each node has a static public key in their Ed25519 key published onchain, the cipher function is ChaChaPoly, and hash function is BLAKE2s.
+    The XX pattern is used for handshakes.
+    \item Message-passing in a networked context aims to be as similar as possible to the local context.
+    However, the offline and timeout error-cases together cover the inescapable realities of networking.
+    \item There are no ACKs at the Kinode protocol level: if the underlying transport protocol confirms delivery, failure to do so can become an offline error.
+    Otherwise, the request-response pattern must be used to confirm message delivery.
+\end{itemize}
 
 \subsubsection{HTTP Client \& Server}
 \label{sec:oshttp}
