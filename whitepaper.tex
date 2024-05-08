@@ -30,9 +30,10 @@
 %
 \titlerunning{Kinode – DRAFT, PRIVATE}
 %
-\author{Benjamin McCormick and
-Nicholas B Ludwig % \and
-% Third Author\inst{3}\orcidID{2222--3333-4444-5555}
+\author{
+Benjamin McCormick \and
+Nicholas B Ludwig \and
+James Foley
 }
 %
 % \authorrunning{doria}
@@ -56,10 +57,13 @@ Users can run their own services at both the interface and backend level.
 Corporations or other entities can provide services in a permissionless, protocolized manner.
 Developers can write apps in any programming language that compiles to Wasm, then distribute them to sovereign users. %TODO: what exactly do you mean by sovereign in this context? Let's be as clear as possible
 
-Kinode is a lot of things: an operating system, an onchain namespace/global messaging primitive, a utility token for governing and assigning value to that namespace, an onchain PKI (Public-Key Infrastructure), and a DAO that controls both onchain assets and continued development of the OS.
+Kinode is a lot of things: an operating system, global messaging primitive, 
+an onchain namespace with built in PKI (Public-Key Infrastructure) and modular smart contract account system,
+a utility token for governing and assigning value to that namespace, 
+and a DAO that controls both onchain assets and continued development of the OS.
 All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
-% \keywords{Operating System \and Decentralized \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
+\keywords{Operating System \and Decentralized \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer \and Smart Contract Account }
 \end{abstract}
 %
 %
@@ -118,7 +122,7 @@ is to present a permissionless substrate for computing.
 Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does ``everything else''.
 In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and a governance structure for those components.
 
-\section{Kimap}
+\section{KiMap Fundamentals}
 \label{sec:kimap}
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for peer-to-peer developers.
@@ -136,7 +140,7 @@ These principles drive the design of kimap.
 \begin{enumerate}
     \item All globally-shared data must be \textit{in one place}.
     This property ensures that a full, up-to-date snapshot data is easily read.
-    \item For Kinode, that ``one place'' is onchain inside a single smart contract.
+    \item For Kinode, that ``one place'' is on a public blockchain inside a single smart contract.
     \item All data necessary to bootstrap peer-to-peer interaction must be available within the globally-shared map.
     \item Any ``missing piece'' required to complete handshakes or source peers will result in unreliability and re-centralization.
 \end{enumerate}
@@ -146,21 +150,25 @@ It serves as the base-level shared global state that all nodes use to share crit
 Like dmap, kimap is organized as a hierarchical path system and has mutable/immutable keys.
 Several aspects of the map implementation are customized for the ``namespace'' use case.
 However, the most important details that enable dmap to be read from and verified easily remain in place.
+% I do not know if I'd describe the minimal verification as the most important details
 
 With this in mind, the following specification describes kimap:
 
 \begin{enumerate}
     \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen), and \_ (underscore) [TODO maybe not underscore? need to be compatible with existing app names though..].
     This property ensures that a full, up-to-date snapshot data can be read easily.
-    \item An entry is a path made of ordered keys.
-    \item Every entry has an owner address, which can be a contract or an EOA.
-    \item The owner address can transfer the entry to a new owner and mint keys directly below the entry in the path hierarchy. For example, if a wallet owns \verb|mypath.network|, that wallet can mint \verb|hello.mypath.network|.
-    \item Every kimap entry is an ERC-721 NFT (non-fungible token).
-    Thus, each entry is a unique transferable onchain asset with a known ownership history.
+    \item Keys are derived using a minimally modified version of the namehash algorithm tailored to support the disticntion between name keys and value keys.
+    \item A key may be of two types, a name key and a data key.
+    \item Every name key may create sub name keys directly beneath it.
+    \item Every name key is an ERC-721 NFT (non-fungible token), 
+    with a connected token bound account with a counterfactual address, 
+    that is a smart contract account implemented according to the ERC-7579 standard.
+    \item Every name key may enscribe data in data keys directly beneath it.
 \end{enumerate}
 
-A key may be minted with the prefix \verb|~|. Such keys may not have keys minted beneath them: they are terminal nodes. The prefix denotes that such keys are used to store a bytes payload of readable data. %TODO: Byte payload? Byte's payload?
-The format of the stored data is determined on a protocol-by-protocol basis depending on the key name. Any valid key name with the tilde-prefix may store data.
+% \subsection{KiMap Entries and Key Types}
+
+\subsection{Example KiMap Entries}
 
 \begin{figure}[H]
     \centering
@@ -201,46 +209,17 @@ Entries \verb|baz.kino| and \verb|package.baz.kino| have no sub-entries to descr
 The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of KNS itself, as a protocol operating on kimap, is described in Section~\ref{sec:kns}, as is the specification of the Kinode Package Manager, Section~\ref{sec:packagemanager}, which makes an appearance in this example.
 
-\subsection{Top-Level Zones}
-\label{sec:tld}
+\subsection{Name Keys}
 
-Entries at the top-level of kimap, with no parent entry, can be considered Top-Level Zones.
+Name keys are the primary keys in kimap. 
+They determine ownership of nodes in the namespace and the ability to both create sub nodes beneath them, and enscription of data into data keys beneath them.
+It is the name keys which are tokenized as ERC-721 NFTs and bound to modular smart accounts at counterfactual addresses. 
+Section \ref{sec:kimapadvanced} of this paper will go into abilities these different aspects bring to the system, from programmatic control of ownership to governance over subsections of the namespace.
 
-Minting of new TLZs in kimap is permissioned.
-Top-level entries are valuable, because they produce new namespaces that can be applied to new protocols, entities, or individuals.
-Allowing new TLZs to be created freely would lead to name-squatting and other perils clearly demonstrated by the history of similar namespaces. %TODO: such as? And what are the "other perils"
-Instead, the distribution of TLZs over time is one of the key responsibilities of Kinode's governance apparatus, described in the Kinode DAO discussion in Section~\ref{sec:dao}.
-
-Since every entry in the namespace can be owned by a contract, different control logic can be reliably implemented at the ownership level.
-At first launch of kimap, a few selected TLZs will have ownership transferred to immutable contracts. %TODO: by the Kinode DAO?
-Other TLZs will be time-locked in contracts, acting as a rent mechanism. %TODO: what do you mean by rent mechanism?
-
-Why create a new namespace, given that others exist with established network effects?
-Primarily, because Kinode OS needs it.
-The goal of the OS is to create a fully-integrated programming environment, and existing namespace options are simply not designed to enable this.
-This does not mean the namespace must operate in isolation–see the section on \hyperref[sec:extensibility]{extensibility} for a description of how other namespaces may be integrated with kimap.
-
-\subsection{Namespace Hierarchy}
-\label{sec:namespaces}
-
-Each entry in kimap has write access to all of its sub-entries, at any level of nesting.
-Even if \verb|package.baz.kino| is minted and transferred to different owner than \verb|baz.kino|, which itself is owned by a different address than \verb|kino|, the owner of \verb|kino| may transfer or edit data stored at \verb|~metadata-hash.package.baz.kino|.
-There are two ways for the owner of a non-top-level entry to ensure control over their namespace entry: parent entries can be owned by an inert address (\verb|0x00..00|, e.g.) or owned by a contract which is programmatically incapable of mutating their entry.%TODO: how can the owner of a non-top level entry ensure that if they don't have the parent entry? Does that make most name spaces unsafe to own?
-
-This property enables arbitrarily complex logic governing sub-namespaces of kimap.
-A given namespace can be owned by a contract which implements rent logic, requiring regular payments for control over a sub-entry.
-Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
-We anticipate and welcome these experimental outcomes.
-
-As part of Kinode DAO's responsibilities in guaranteeing the utility and reliability of the protocol, certain namespaces will be given over to immutable contracts at launch.
-The \verb|os| TLZ, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
-To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
-This also serves as a good example of the kind of custom logic a namespace may implement.
-
-\subsection{Storing Data At Terminal Nodes}
+\subsection{Data Keys}
 \label{sec:terminalnodes}
 
-At any level below the top in the kimap path hierarchy, a new key may be minted with the \verb|~| (tilde) prefix to signify that it stores a value.
+Data keys are meant to support name keys in the KiMap. They may be created by any name key by prepending the label being created with a \verb|~|.
 
 Entries of this variety \textbf{may not} mint sub-entries, hence the prefix: one can use \verb|~my-data.hello.os| to store data while minting \verb|my-data.hello.os| in order to mint sub-entries beneath it, should one desire to do so.
 
@@ -251,43 +230,6 @@ Data can be mutable or immutable.
 All data is public.
 Protocols that wish to operate on private data may store hashes at namespace entries, or alternatively operate within the end-to-end encrypted Kinode networking protocol.
 
-\subsection{Token-Bound Accounts}
-\label{sec:tokenboundaccounts}
-
-Each namespace entry that does not store data, i.e. does not have a \verb|~| prefix, is an ERC-6551\footnote{A standard which allows ERC-721 NFTs to have an attached Ethereum account:  https://eips.ethereum.org/EIPS/eip-6551} token-bound account.
-This means that namespace entries are automatically endowed with a wallet, controlled by their owner, for receiving, holding, and sending digital assets that live on the same chain as kimap.
-The address of each entry's token-bound account is deterministic based on the path value.
-Thus, before a path is even minted, one can send assets to its future wallet address or otherwise operate on it.
-
-Token-bound accounts are self-evidently useful but become particularly powerful when combined with the KNS protocol to give every node identity an attached wallet.
-
-\subsubsection{Creation and Use}
-
-A token-bound account is created automatically for every non-tilde-prefixed kimap entry.
-The address of the account is deterministically generated based on the full path of the entry.
-The owner of the entry has the ability to operate the account.
-
-%TODO add more here
-
-\subsection{Extensibility}
-\label{sec:extensibility}
-
-Kimap is designed to be generic and extensible.
-Protocols such as KNS and the Kinode Package Manager extend kimap by interpreting the data stored at certain keys in a particular way.
-A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
-
-In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key.
-For example, a motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which could be a node identity in the KNS.
-If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
-
-
-Extension of kimap is permissionless: any protocol can operate on the keys and data stored in the map.
-Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
-If an entry label is already in use by a popular protocol, developers creating a new protocol would be advised to either match the data format in current use for that entry label, or ensure non-overlap by prefixing/postfixing the entry label with a custom value.
-For example, if the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.kino|.
-
-Another strategy for avoiding conflicts is to subdivide the namespace by storing a protocol's data entries at a nested path beneath the relevant entry.
-If the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.kino| rather than directly below.
 
 \section{KNS, Kinode Name System}
 \label{sec:kns}
@@ -1014,6 +956,47 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 %
 %
 %
+\section{KiMap Advanced}
+\label{sec:kimapadvanced}
+
+\subsection{Token-Bound Accounts}
+\label{sec:tokenboundaccounts}
+
+Each namespace entry that does not store data, i.e. does not have a \verb|~| prefix, is an ERC-6551\footnote{A standard which allows ERC-721 NFTs to have an attached Ethereum account:  https://eips.ethereum.org/EIPS/eip-6551} token-bound account.
+This means that namespace entries are automatically endowed with a wallet, controlled by their owner, for receiving, holding, and sending digital assets that live on the same chain as kimap.
+The address of each entry's token-bound account is deterministic based on the path value.
+Thus, before a path is even minted, one can send assets to its future wallet address or otherwise operate on it.
+
+Token-bound accounts are self-evidently useful but become particularly powerful when combined with the KNS protocol to give every node identity an attached wallet.
+
+\subsubsection{Creation and Use}
+
+A token-bound account is created automatically for every non-tilde-prefixed kimap entry.
+The address of the account is deterministically generated based on the full path of the entry.
+The owner of the entry has the ability to operate the account.
+
+%TODO add more here
+
+\subsection{Extensibility}
+\label{sec:extensibility}
+
+Kimap is designed to be generic and extensible.
+Protocols such as KNS and the Kinode Package Manager extend kimap by interpreting the data stored at certain keys in a particular way.
+A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
+
+In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key.
+For example, a motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which could be a node identity in the KNS.
+If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
+
+
+Extension of kimap is permissionless: any protocol can operate on the keys and data stored in the map.
+Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
+If an entry label is already in use by a popular protocol, developers creating a new protocol would be advised to either match the data format in current use for that entry label, or ensure non-overlap by prefixing/postfixing the entry label with a custom value.
+For example, if the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.kino|.
+
+Another strategy for avoiding conflicts is to subdivide the namespace by storing a protocol's data entries at a nested path beneath the relevant entry.
+If the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.kino| rather than directly below.
+
 \section{KINO Token}
 \label{sec:kino}
 
