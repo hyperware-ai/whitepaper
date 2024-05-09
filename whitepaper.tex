@@ -230,6 +230,26 @@ Data can be mutable or immutable.
 All data is public.
 Protocols that wish to operate on private data may store hashes at namespace entries, or alternatively operate within the end-to-end encrypted Kinode networking protocol.
 
+\subsection{Extensibility}
+\label{sec:extensibility}
+
+Kimap is designed to be generic and extensible.
+Protocols such as KNS and the Kinode Package Manager extend kimap by interpreting the data stored at certain keys in a particular way.
+A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
+
+In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key.
+For example, a motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which could be a node identity in the KNS.
+If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
+
+
+Extension of kimap is permissionless: any protocol can operate on the keys and data stored in the map.
+Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
+If an entry label is already in use by a popular protocol, developers creating a new protocol would be advised to either match the data format in current use for that entry label, or ensure non-overlap by prefixing/postfixing the entry label with a custom value.
+For example, if the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.kino|.
+
+Another strategy for avoiding conflicts is to subdivide the namespace by storing a protocol's data entries at a nested path beneath the relevant entry.
+If the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.kino| rather than directly below.
+
 
 \section{KNS, Kinode Name System}
 \label{sec:kns}
@@ -976,26 +996,6 @@ The address of the account is deterministically generated based on the full path
 The owner of the entry has the ability to operate the account.
 
 %TODO add more here
-
-\subsection{Extensibility}
-\label{sec:extensibility}
-
-Kimap is designed to be generic and extensible.
-Protocols such as KNS and the Kinode Package Manager extend kimap by interpreting the data stored at certain keys in a particular way.
-A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
-
-In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key.
-For example, a motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which could be a node identity in the KNS.
-If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
-
-
-Extension of kimap is permissionless: any protocol can operate on the keys and data stored in the map.
-Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
-If an entry label is already in use by a popular protocol, developers creating a new protocol would be advised to either match the data format in current use for that entry label, or ensure non-overlap by prefixing/postfixing the entry label with a custom value.
-For example, if the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.kino|.
-
-Another strategy for avoiding conflicts is to subdivide the namespace by storing a protocol's data entries at a nested path beneath the relevant entry.
-If the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.kino| rather than directly below.
 
 \section{KINO Token}
 \label{sec:kino}
