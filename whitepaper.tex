@@ -988,29 +988,54 @@ The following elements are the core of KiMap's advanced features:
 \item Counterfactual addresses for every name key.
 \item ERC-6551 token-bound accounts.
 \item ERC-7579 modular smart contract accounts.
-\item A Kinode specific definition fallback modules and installation practices.
-\item An ability for names in the KiMap to specify required modules to install into their subsection of the namespace.
+\item A Kinode specific standard for fallback modules and installation practices.
+\item Hierarchical governance over module installation throughout subsections of the kimap. 
 \end{itemize}
 
 \subsection{Counterfactual Addresses For Kinode Smart Accounts}
 
+A counterfactual address is an smart contract address that may be known before code is deployed into its storage on the blockchain. 
+Ethereum enables this aspect with the create2 opcode, which deploys code to an address deterministically generated given the contract address calling the opcode, the initialization bytecode for the contract to be created, and a salt.
+Since each factor is known ahead of time for any given node in the kimap, then in a sense every kinode that may exist in the future already does.
+Every name key in kimap will have a corresponding counterfactual address for its smart contract account.
+
 \subsection{ERC-6551 Token-Bound Accounts}
 
-Each namespace entry that does not store data, i.e. does not have a \verb|~| prefix, is an ERC-6551\footnote{A standard which allows ERC-721 NFTs to have an attached Ethereum account:  https://eips.ethereum.org/EIPS/eip-6551} token-bound account.
-This means that namespace entries are automatically endowed with a wallet, controlled by their owner, for receiving, holding, and sending digital assets that live on the same chain as kimap.
-The address of each entry's token-bound account is deterministic based on the path value.
-Thus, before a path is even minted, one can send assets to its future wallet address or otherwise operate on it.
-
-Token-bound accounts are self-evidently useful but become particularly powerful when combined with the KNS protocol to give every node identity an attached wallet.
+The smart contract accounts that are deployed to these addresses are ERC-6551 compliant token bound accounts.
+This means the kimap's address and the token id of the name key that owns the smart contract account will be appended to the immutable bytecode of the account.
+Therefore, the smart contract account will be unbreakably linked to the owner of the token in the kimap.
+This enables the ownership of a given node on the network to be given according to any logic that operates on ERC-721 tokens.
+Anything and everything associated with the account can be transferre to a new owner at any time.
 
 \subsection{ERC-7579 Modular Smart Contract Accounts}
 
-\subsection{Kinode Fallback Modules}
+The smart contract account implementation will be a ERC-7579 compliant minimal, modular smart account.
+This means Kinode accounts will have access to a wide range of plugins created by various account vendors. 
+Users will be able to install and uninstall plugins from the broader ecosystem at will.
+However, there are two aspects that will be unique to Kinode. The first is that the root validator of the account
+will be immutably linked according to the ERC-6551 token bound owner of the kimap's ERC-721 token.
+Other validation modules are able to be installed, but the root validator, with power over all other validators, 
+will always be the owner of the token bound account.
+Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace, 
+as described below.
 
-\subsection{Hierarchical Module Installation}
+\subsection{Kinode Fallback Modules and Hierarchical Module Installation}
 
-%TODO add more here
+In accordance with the ERC-7579 standard as it pertains to fallback modules, the KiMap will empower holders 
+to write arbitrary behavior into their subsection of the namespace. 
+In this way, they can provide on chain methods for interacting with their nodes, upgrading their functionality 
+from just being a smart contract account to being a first class smart contract capable of expressing any type of
+logic they decide.
 
+Furthermore, KiMap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers 
+for any sub node in its hierarchy. These fallback handlers may be specified to be immutable, such that the 
+sub nodes would not be able to remove them from their account. Through this mechanism, KiMap allows for 
+arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion. 
+
+Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node,
+rich functionality would be impossible to achieve. A node that wanted to participate in one system by depositing its
+token into an arbitrary smary contract for that system would prevent it from participating in another system, 
+or exposing additional functionality for other purposes.
 
 \section{Kinode DAO}
 \label{sec:dao}
