@@ -1007,10 +1007,8 @@ They also demonstrate off best-practices.
 
 Kit makes use of Kinode's HTTP server RPC endpoint to interact with Kinode.
 As such, kit is restricted to localhost only.
-However, \verb|kit connect| allows remote development as long as developers have \verb|ssh| access to the remote machine.
-\verb|kit connect| showcases a strategy employed throughout \verb|kit|: when tools already exist, make use of them by wrapping them in a very easy-to-use way.
-Here, \verb|connect| uses \verb|ssh| tunneling to send the \verb|kit| request securely to the remote machine.
-As such, developers can work on remote Kinode's with the same ease that \verb|kit| affords for local development, but security is not compromised for users.
+Developers can make use of existing Unix tools, e.g., SSH tunnels, to use kit on remote Kinodes.
+As such, developers can work on remote Kinodes with the same ease that \verb|kit| affords for local development, but security is not compromised for users.
 
 %
 %
