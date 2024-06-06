@@ -45,9 +45,8 @@ All of these aspects work in lockstep to solve the problems that have heretofore
 \keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
 \end{abstract}
 %
-%
-%
 \tableofcontents
+%
 %
 %
 %
@@ -102,7 +101,10 @@ The goal of the Kinode Hyperstructure
 is to present a permissionless substrate for computing.
 Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does ``everything else''.
 In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and the long-term governance structure for those components.
-
+%
+%
+%
+%
 \section{Kimap}
 \label{sec:kimap}
 
@@ -186,51 +188,59 @@ E.g., only entries containing \verb|~net-key| are used by the KNS (Kinode Name S
 Entries \verb|baz.kino| and \verb|package.baz.kino| have no data keys to describe their status in the KNS, and so the ``domain'' analogy breaks down for them.
 The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of KNS itself, as a protocol operating on kimap, is described in Section~\ref{sec:kns}, as is the specification of the Kinode Package Manager, Section~\ref{sec:packagemanager}, both of which make an appearance in this example.
-
-\section{KNS, Kinode Name System}
+%
+%
+%
+%
+\section{KNS: Kinode Name System}
 \label{sec:kns}
 
-Kinode Name System (KNS) is a protocol built on top of kimap (kimap is covered above in Section~\ref{sec:kimap}).
-KNS transforms an entry in the kimap namespace into a \textit{node identity} for use in the Kinode network, where a ``node'' is an instance of Kinode OS, able to communicate p2p with other such nodes (see Section~\ref{sec:os} for more details).
+Kinode Name System is a protocol built on top of kimap that acts as a PKI for the network.
+KNS transforms an entry in the kimap namespace into a \textit{node identity} for use in the Kinode network, where a node is an instance of Kinode OS, able to communicate peer-to-peer with other such nodes.
 Node identities are central to the programming model of Kinode OS.
-Usually manipulated as strings in a process, a node's identity is the first component of an \verb|address|, which uniquely identifies a specific process, part of a package, published by a (different) \verb|node_id|, running on that particular node (see Section~\ref{sec:os} for definitions and discussion).
+Usually manipulated as strings in a process, a node identity is the first component of an \verb|address|, which uniquely identifies a specific process running on that node, part of a package, published by some node. See Section~\ref{sec:os} for definitions and discussion.
 
 \subsection{Specification}
 \label{sec:knsspec}
 
-The definition of a node identity in the KNS protocol is any kimap entry that has a \verb|~net-key| sub-entry and either:
+The definition of a node identity in the KNS protocol is any kimap entry that has:
+
 \begin{enumerate}
-\item A \verb|~routers| sub-entry OR
-\item An \verb|~ip| sub-entry AND at least one of:
-	\begin{enumerate}
-	\item \verb|~tcp-port| sub-entry
-	\item \verb|~udp-port| sub-entry
-	\item \verb|~ws-port| sub-entry
-	\item \verb|~wt-port| sub-entry
-	\end{enumerate}
+    \item A \verb|~net-key| sub-entry AND
+    \item \begin{enumerate}
+        \item A \verb|~routers| sub-entry OR
+        \item An \verb|~ip| sub-entry AND at least one of:
+        	\begin{enumerate}
+        	\item \verb|~tcp-port| sub-entry
+        	\item \verb|~udp-port| sub-entry
+        	\item \verb|~ws-port| sub-entry
+        	\item \verb|~wt-port| sub-entry
+        	\end{enumerate}
+        \end{enumerate}
 \end{enumerate}
 
 A sample of this protocol can be seen in Fig.~\ref{fig:example kimap}.
 Two classes of nodes are defined: \textit{direct} and \textit{indirect}.
 Direct nodes are those that publish an \verb|~ip| and one or more of the \verb|port| sub-entries.
-Indirect nodes are those that publish \verb|~routers|. %TODO: this is the first time direct/indirect nodes have been mentioned. Perhaps worth linking to further discussion since it's relevant to how to think about the system byond what's described here
+Indirect nodes are those that publish \verb|~routers|.
+The nature of direct and indirect nodes in networking is described in Section~\ref{sec:osnetworking}.
 
 The data stored at \verb|~net-key| must be 32 bytes corresponding to an Ed25519 public key.
 This is a node's signing key which is used across a variety of domains to verify ownership, including in the end-to-end encrypted networking protocol between nodes.
 The owner of a namespace entry/node identity may rotate this key at any time by posting a transaction to kimap mutating the data stored at \verb|~net-key|.
 
-The bytes at a \verb|~routers| entry must parse [TODO what encoding?] to an array of strings.
+The bytes at a \verb|~routers| entry must parse to an array of UTF-8 strings.
 These strings should be node identities.
 Each node in the array is treated by other participants in the networking protocol as a router for the parent entry.
 Routers should themselves be direct nodes.
 If a string in the array is not a valid node identity, or it is a valid node identity but not a direct one, that router will not be used by the networking protocol.
 Further discussion of the networking protocol specification is presented in the Section~\ref{sec:osnetworking}.
 
-The bytes at an \verb|~ip| entry must be 16 bytes corresponding [TODO clarify little or big endian] to a 128-bit unsigned integer.
+The bytes at an \verb|~ip| entry must be 16 big-endian bytes corresponding to a 128-bit unsigned integer.
 This integer is translated to an IPv4 address if it is <32-bit.
-Otherwise it is translated to an IPv6 address. [TODO clarify translation process]
+Otherwise it is translated to an IPv6 address. %TODO clarify translation process
 
-Lastly, the bytes at any of the following port entries must be 2 bytes corresponding to a 16-bit unsigned integer: [TODO clarify little or big endian]
+Lastly, the bytes at any of the following port entries must be 2 big-endian bytes corresponding to a 16-bit unsigned integer:
 
 \begin{enumerate}
 \item \verb|~tcp-port| sub-entry
@@ -238,7 +248,8 @@ Lastly, the bytes at any of the following port entries must be 2 bytes correspon
 \item \verb|~ws-port| sub-entry
 \item \verb|~wt-port| sub-entry
 \end{enumerate}
-This integer is translated to a port number.
+
+These integers are translated to port numbers.
 In practice, port numbers used are between 9000 and 65535.
 Ports between 8000-8999 are usually saved for HTTP server use.
 
@@ -246,26 +257,24 @@ Ports between 8000-8999 are usually saved for HTTP server use.
 \label{sec:knsindexing}
 
 Events emitted by kimap are used to index map data.
-Kinode OS provides all the primitives required to index effectively.
-
-TODO more here: include the event data types and what values are indexed such that they can be used as filters.
+Kinode OS provides all the primitives required to index effectively in a userspace application, and the default distribution of the OS includes a process which indexes kimap for the purpose of reporting KNS data to the networking protocol module.
 
 \subsection{Adding Other Onchain Identity Primitives}
 \label{sec:knsotherprimitives}
 
 The KNS is not an attempt at replacing or competing with existing onchain identity primitives such as ENS and Lens.
 Rather, it is designed to satisfy the public key infrastructure needs of the Kinode network.
-It is of paramount importance that nodes can initiate secure communication with one another without the use of any data-set other than what is available publicly onchain.
+It is of paramount importance that nodes can initiate secure communication with one another without the use of any data other than what is available publicly onchain.
 Peer-discovery middlemen induce centralization and complicate networking protocols.
 
-The structure of kimap means that KNS not only avoids competition with other identity primitives, but also seamlessly integrates them.
+The structure of kimap means that KNS avoids competition with other identity primitives by seamlessly integrating them.
 As of this paper, this has already been done for ENS protocol.
 Here is a brief description of the procedure to do so:
 \begin{enumerate}
     \item Create a contract to allow owners, and only owners, of a given identity primitive to mint their corresponding name in a kimap namespace controlled by this contract.
     \item Mint and transfer the top-level namespace entry corresponding to an outside identity primitive, \verb|lens| for example.
-    \item If necessary, configure a LayerZero, or other such cross-chain messaging protocol, to allow owners of an identity primitive on another chain to verify their ownership on the chain that kimap is deployed on.
-    \item The final result is that the owner of, for example, \verb|myname.lens| can now register \verb|myname.lens| in kimap and use it as their PKI entry for Kinode.
+    \item If necessary, configure LayerZero, or other such cross-chain messaging protocol, to allow owners of an identity primitive on another chain to verify their ownership on the chain that kimap is deployed on.
+    \item The final result is that the owner of, for example, \verb|myname.lens| can exclusively register \verb|myname.lens| in kimap, add a \verb|~net-key| sub-entry, and use it as their PKI entry for Kinode.
 \end{enumerate}
 
 \section{Kinode OS}
