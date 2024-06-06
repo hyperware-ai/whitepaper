@@ -23,6 +23,7 @@
 \usepackage{color}
 \renewcommand\UrlFont{\color{blue}\rmfamily}
 \urlstyle{rm}
+\def\UrlBreaks{\do\/\do-}
 %
 \begin{document}
 %
@@ -57,13 +58,13 @@ Users can run their own services at both the interface and backend level.
 Corporations or other entities can provide services in a permissionless, protocolized manner.
 Developers can write apps in any programming language that compiles to Wasm, then distribute them to sovereign users. %TODO: what exactly do you mean by sovereign in this context? Let's be as clear as possible
 
-Kinode is a lot of things: an operating system, global messaging primitive, 
+Kinode is a lot of things: an operating system, global messaging primitive,
 an onchain namespace with built in PKI (Public-Key Infrastructure) and modular smart contract account system,
-a utility token for governing and assigning value to that namespace, 
+a utility token for governing and assigning value to that namespace,
 and a DAO that controls both onchain assets and continued development of the OS.
 All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
-\keywords{Operating System \and Decentralized \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer \and Smart Contract Account }
+\keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
 \end{abstract}
 %
 %
@@ -122,7 +123,7 @@ is to present a permissionless substrate for computing.
 Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does ``everything else''.
 In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and a governance structure for those components.
 
-\section{KiMap Fundamentals}
+\section{Kimap}
 \label{sec:kimap}
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for peer-to-peer developers.
@@ -149,21 +150,19 @@ Kimap is an onchain key-value store inspired by \href{https://github.com/dapphub
 It serves as the base-level shared global state that all nodes use to share critical data to the entire network.
 Like dmap, kimap is organized as a hierarchical path system and has mutable/immutable keys.
 Several aspects of the map implementation are customized for the ``namespace'' use case.
-However, the most important details that enable dmap to be read from and verified easily remain in place.
-% I do not know if I'd describe the minimal verification as the most important details
 
 With this in mind, the following specification describes kimap:
 
 \begin{enumerate}
     \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen), and \_ (underscore) [TODO maybe not underscore? need to be compatible with existing app names though..].
     This property ensures that a full, up-to-date snapshot data can be read easily.
-    \item Keys are derived using a minimally modified version of the namehash algorithm tailored to support the disticntion between name keys and value keys.
+    \item Keys are derived using a minimally modified version of the namehash algorithm tailored to support the distinction between name keys and value keys.
     \item A key may be of two types, a name key and a data key.
     \item Every name key may create sub name keys directly beneath it.
-    \item Every name key is an ERC-721 NFT (non-fungible token), 
-    with a connected token bound account with a counterfactual address, 
+    \item Every name key is an ERC-721 NFT (non-fungible token),
+    with a connected token bound account with a counterfactual address,
     that is a smart contract account implemented according to the ERC-7579 standard.
-    \item Every name key may enscribe data in data keys directly beneath it.
+    \item Every name key may inscribe data in data keys directly beneath it.
 \end{enumerate}
 
 % \subsection{KiMap Entries and Key Types}
@@ -211,10 +210,35 @@ The specification of KNS itself, as a protocol operating on kimap, is described 
 
 \subsection{Name Keys}
 
-Name keys are the primary keys in kimap. 
+Entries at the top-level of kimap, with no parent entry, are called Top-Level Zones (TLZs).
+
+Minting of new TLZs in kimap is permissioned.
+Top-level entries are valuable, because they produce new namespaces that can be applied to new protocols, entities, or individuals.
+Allowing new TLZs to be created freely would lead to name-squatting and other perils clearly demonstrated by the history of similar namespaces. %TODO: such as? And what are the "other perils"
+Instead, the distribution of TLZs over time is one of the key responsibilities of Kinode's governance apparatus, described in the Kinode DAO discussion in Section~\ref{sec:dao}.
+
+Since every entry in the namespace can be owned by a contract, different control logic can be reliably implemented at the ownership level.
+At first launch of kimap, a few selected TLZs will be transferred to immutable contracts. %TODO: by the Kinode DAO?
+
+This property enables arbitrarily complex logic governing sub-namespaces of kimap.
+A given namespace can be owned by a contract which implements rent logic, requiring regular payments for control over a sub-entry.
+Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
+We anticipate and welcome these experimental outcomes.
+
+Why create a new namespace, given that others exist with established network effects?
+Primarily, because Kinode OS needs it.
+The goal of the OS is to create a fully-integrated programming environment, and existing namespace options are simply not designed to enable this.
+This does not mean the namespace must operate in isolation–see the section on \hyperref[sec:extensibility]{extensibility} for a description of how other namespaces may be integrated with kimap.
+
+Name keys are the primary keys in kimap.
 They determine ownership of nodes in the namespace and the ability to both create sub nodes beneath them, and enscription of data into data keys beneath them.
-It is the name keys which are tokenized as ERC-721 NFTs and bound to modular smart accounts at counterfactual addresses. 
+It is the name keys which are tokenized as ERC-721 NFTs and bound to modular smart accounts at counterfactual addresses.
 Section \ref{sec:kimapadvanced} of this paper will go into abilities these different aspects bring to the system, from programmatic control of ownership to governance over subsections of the namespace.
+
+As part of Kinode DAO's responsibilities in guaranteeing the utility and reliability of the protocol, certain namespaces will be given over to immutable contracts at launch.
+The \verb|os| TLD, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
+To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
+This also serves as a good example of the kind of custom logic a namespace may implement.
 
 \subsection{Data Keys}
 \label{sec:terminalnodes}
@@ -979,7 +1003,7 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 \section{KiMap Advanced}
 \label{sec:kimapadvanced}
 
-The basic functionality of KiMap is to provide a global coordination point for all nodes in the Kinode network, but it does not stop at enhancing off chain network coordination. 
+The basic functionality of KiMap is to provide a global coordination point for all nodes in the Kinode network, but it does not stop at enhancing off chain network coordination.
 KiMap is built to implement use cases that call for arbitrary on-chain enabling constraints.
 By combining many standards related to smart contract accounts, KiMap allows users to express stateful systems that respond to arbitrary conditions.
 The following elements are the core of KiMap's advanced features:
@@ -989,12 +1013,12 @@ The following elements are the core of KiMap's advanced features:
 \item ERC-6551 token-bound accounts.
 \item ERC-7579 modular smart contract accounts.
 \item A Kinode specific standard for fallback modules and installation practices.
-\item Hierarchical governance over module installation throughout subsections of the kimap. 
+\item Hierarchical governance over module installation throughout subsections of the kimap.
 \end{itemize}
 
 \subsection{Counterfactual Addresses For Kinode Smart Accounts}
 
-A counterfactual address is an smart contract address that may be known before code is deployed into its storage on the blockchain. 
+A counterfactual address is an smart contract address that may be known before code is deployed into its storage on the blockchain.
 Ethereum enables this aspect with the create2 opcode, which deploys code to an address deterministically generated given the contract address calling the opcode, the initialization bytecode for the contract to be created, and a salt.
 Since each factor is known ahead of time for any given node in the kimap, then in a sense every kinode that may exist in the future already does.
 Every name key in kimap will have a corresponding counterfactual address for its smart contract account.
@@ -1010,31 +1034,31 @@ Anything and everything associated with the account can be transferre to a new o
 \subsection{ERC-7579 Modular Smart Contract Accounts}
 
 The smart contract account implementation will be a ERC-7579 compliant minimal, modular smart account.
-This means Kinode accounts will have access to a wide range of plugins created by various account vendors. 
+This means Kinode accounts will have access to a wide range of plugins created by various account vendors.
 Users will be able to install and uninstall plugins from the broader ecosystem at will.
 However, there are two aspects that will be unique to Kinode. The first is that the root validator of the account
 will be immutably linked according to the ERC-6551 token bound owner of the kimap's ERC-721 token.
-Other validation modules are able to be installed, but the root validator, with power over all other validators, 
+Other validation modules are able to be installed, but the root validator, with power over all other validators,
 will always be the owner of the token bound account.
-Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace, 
+Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace,
 as described below.
 
 \subsection{Kinode Fallback Modules and Hierarchical Module Installation}
 
-In accordance with the ERC-7579 standard as it pertains to fallback modules, the KiMap will empower holders 
-to write arbitrary behavior into their subsection of the namespace. 
-In this way, they can provide on chain methods for interacting with their nodes, upgrading their functionality 
+In accordance with the ERC-7579 standard as it pertains to fallback modules, the KiMap will empower holders
+to write arbitrary behavior into their subsection of the namespace.
+In this way, they can provide on chain methods for interacting with their nodes, upgrading their functionality
 from just being a smart contract account to being a first class smart contract capable of expressing any type of
 logic they decide.
 
-Furthermore, KiMap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers 
-for any sub node in its hierarchy. These fallback handlers may be specified to be immutable, such that the 
-sub nodes would not be able to remove them from their account. Through this mechanism, KiMap allows for 
-arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion. 
+Furthermore, KiMap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers
+for any sub node in its hierarchy. These fallback handlers may be specified to be immutable, such that the
+sub nodes would not be able to remove them from their account. Through this mechanism, KiMap allows for
+arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion.
 
 Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node,
 rich functionality would be impossible to achieve. A node that wanted to participate in one system by depositing its
-token into an arbitrary smary contract for that system would prevent it from participating in another system, 
+token into an arbitrary smary contract for that system would prevent it from participating in another system,
 or exposing additional functionality for other purposes.
 
 \section{Kinode DAO}
@@ -1077,10 +1101,10 @@ While the DAO will be strongly incentivized by builders to remain permanently ba
 \label{sec:daodelegation}
 
 % I think we may need to change this part if it required that users maintain hot keys to sign their votes
-% Is there a way around that? Maybe we can require the offchain vote utility to use their node's networking key 
-% to prove they actually voted in this manner? that key, by default, is a hot key. 
-% Does that have enough security when it comes to votes? 
-% If not, we may be better off making a system that affords users the possibility of signing their vote 
+% Is there a way around that? Maybe we can require the offchain vote utility to use their node's networking key
+% to prove they actually voted in this manner? that key, by default, is a hot key.
+% Does that have enough security when it comes to votes?
+% If not, we may be better off making a system that affords users the possibility of signing their vote
 % with a wallet of their choice, for instance a hardware wallet, while allowing users who delegate their
 % votes to do so without signing anything.
 Rather than complicate the namespace and voting mechanisms with built-in onchain delegation, Kinode governance leverages the power of personal nodes to enable offchain vote delegation.
