@@ -9,17 +9,8 @@
 \usepackage{float}
 \usepackage{tikz}
 \usepackage[T1]{fontenc}
-% T1 fonts will be used to generate the final print and online PDFs,
-% so please use T1 fonts in your manuscript whenever possible.
-% Other font encondings may result in incorrect characters.
-%
 \usepackage{graphicx}
-% Used for displaying a sample figure. If possible, figure files should
-% be included in EPS format.
-%
 \usepackage{hyperref}
-% If you use the hyperref package, please uncomment the following two lines
-% to display URLs in blue roman font according to Springer's eBook style:
 \usepackage{color}
 \renewcommand\UrlFont{\color{blue}\rmfamily}
 \urlstyle{rm}
@@ -36,32 +27,19 @@ Benjamin McCormick \and
 Nicholas B Ludwig \and
 James Foley
 }
-%
-% \authorrunning{doria}
-% First names are abbreviated in the running head.
-% If there are more than two authors, 'et al.' is used.
-%
+% need this not to get "no institute given"
 \institute{ }
-% \institute{Princeton University, Princeton NJ 08544, USA \and
-% Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
-% \email{lncs@springer.com}\\
-% \url{http://www.springer.com/gp/computer-science/lncs} \and
-% ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
-% \email{\{abc,lncs\}@uni-heidelberg.de}}
 %
-\maketitle              % typeset the header of the contribution
+\maketitle % typeset the header of the contribution
 %
 \begin{abstract}
 Kinode is a software platform designed to integrate all facets of modern crypto application development.
-Its node-based cloud computing model bridges the impedance mismatch between onchain protocols and web services.
 Users can run their own services at both the interface and backend level.
 Corporations or other entities can provide services in a permissionless, protocolized manner.
-Developers can write apps in any programming language that compiles to Wasm, then distribute them to sovereign users. %TODO: what exactly do you mean by sovereign in this context? Let's be as clear as possible
+This node-based cloud computing model resolves the impedance mismatch between onchain protocols and web services.
+Developers can write apps in any programming language that compiles to Wasm and easily distribute them to nodes.
 
-Kinode is a lot of things: an operating system, global messaging primitive,
-an onchain namespace with built in PKI (Public-Key Infrastructure) and modular smart contract account system,
-a utility token for governing and assigning value to that namespace,
-and a DAO that controls both onchain assets and continued development of the OS.
+The Kinode platform includes several components which will be described in this whitepaper: a virtual machine, an onchain global namespace, a PKI (Public-Key Infrastructure), a utility token for governing and assigning value to that namespace, a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
 All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
 \keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
@@ -81,29 +59,31 @@ But progress towards a fully decentralized, permissionless internet has stagnate
 We believe that this progress is constrained less by blockchain speed and throughput than by an underdeveloped offchain computing substrate.
 
 Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.
-\footnote{link to bitcoin whitepaper perhaps and rephrase to match}
+\footnote{The Bitcoin whitepaper https://bitcoin.org/bitcoin.pdf describes using a distributed ledger to prevent double-spend of Bitcoin, and subsequent cryptocurrency projects generalized this to a blockchain preventing double-spend of arbitrary digital assets.}
 The mechanism to achieve this, now well-proven, expanded to turing-complete VMs, and replicated dozens of times, is simple: signed transactions validated by a decentralized validator set and deposited into an append-only distributed ledger.
 
-But which operations \textit{actually} benefit from an onchain transaction?
-Permissionless financial transactions obviously require blockchains, at least at the moment of settlement.
+But what operations \textit{actually benefit} from an onchain transaction?
+
+Permissionless finance obviously require blockchains, at least at the moment of settlement.
 Similarly for operations that mutate ownership of an asset.
 Smart contracts have proven that double-spend prevention can productively be applied to any digital asset that requires guaranteed global consensus on the order and provenance of operations.
 
-Now, which operations \textit{do not} benefit from such guarantees?
-For one, any action that only requires a single digital signature from a single entity. %TODO: do we need to explain WHY?
-Blockchain transactions are similarly unnecessary for actions undertaken between trusted parties, which, in fact, comprise a large portion of online transactions.
-It turns out that the category of networked operations that do not require global consensus is much larger than the category of those that do benefit from being blockchain transactions.
+Which operations do not benefit from such guarantees?
+For one, any action that only requires a signature from a single public key and does not need to be ordered:
+a signed message from an individual, or an API published by an entity acting as the single source of truth.
+Blockchain transactions are similarly unnecessary for actions undertaken between trusted parties, which, in fact, comprise a large portion of online communication.
+It turns out that the category of networked operations that \textit{do not} require global consensus is much larger than the category of those that do benefit from being transactions.
 
 Some protocols, like many in DeFi, function perfectly fine with no user interaction outside their onchain transaction protocol.
 The user interface for such a protocol is merely a wrapper over the smart contract deployed onchain.
-There is a vast landscape of possible protocols, however, which do not fit entirely into the transaction paradigm.
-Forcing these protocols into this model has led to countless failures. %TODO: not entirely clear what the "transaction paradigm" is here
+There is a vast landscape of possible protocols, however, which do not fit entirely into the purely-onchain paradigm.
+Forcing these protocols into this model has led to countless failures.
 
-Some believe that merely increasing transaction throughput by a few orders of magnitude can be a solution to this problem. %TODO: Same as above, I don't think "this problem" is clearly defined—the problem of using onchain transactions where they are not necessary?
+Some believe that merely increasing transaction throughput by a few orders of magnitude (no small task) can resolve the issue by allowing transactions to be cheaply verified, even when they are not strictly necessary.
 We do not.
-There are significant costs to placing transactions in a globally-distributed ledger—not only monetary, but also in terms of latency, data storage, and compute overhead.
-Transactions will \textit{always} present an impedence mismatch and be an inferior technical solution for certain operations. %TODO: could use one elaborating phrase..."certain operations that..."
-Until we provide a proper solution for such operations, ``Web3'' will simply never outcompete ``Web2''.
+There will always be significant relative costs to placing transactions in a globally-distributed ledger—not only monetary, but also in terms of latency, data storage, and compute overhead.
+Transactions will \textit{always} present an impedence mismatch and be an inferior technical solution for operations that do not require global consensus.
+Until we provide a proper platform for such operations, ``Web3'' will simply never outcompete ``Web2''.
 
 \begin{figure}[H]
     \centering
@@ -118,10 +98,10 @@ Until we provide a proper solution for such operations, ``Web3'' will simply nev
 \end{figure}
 
 The goal of the Kinode Hyperstructure
-\footnote{description and link to hyperstructures}
+\footnote{https://jacob.energy/hyperstructures.html}
 is to present a permissionless substrate for computing.
 Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does ``everything else''.
-In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and a governance structure for those components.
+In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and the long-term governance structure for those components.
 
 \section{Kimap}
 \label{sec:kimap}
