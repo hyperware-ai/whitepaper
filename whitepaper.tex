@@ -287,17 +287,15 @@ Kinode OS is a process virtual machine run to operate a ``node'' on the Kinode n
 At its core, the virtual machine wraps around a Wasm runtime
 \footnote{Wasm is specified at https://webassembly.github.io/spec. Kinode uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
 which executes all userspace code.
-After a node identity is registered onchain in the KNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the kimap.
+After a node identity is registered onchain in the KNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the kimap during registration.
 Once this has been done, if the networking details (routers, IP, etc) are properly read from the kimap and matched by the runtime, that node is now ``online''.
 Other nodes can interact with the booted node through the Kinode networking protocol by reading its KNS node identity and using the data stored there.
 
-Kinode DAO develops and distributes Kinode OS.
-Kinode DAO is currently developing a formal specification of all aspects of the virtual machine.
-The runtime is as simple as possible, with a maximal amount of logic ejected to userspace and the rest stored in modules.
+The runtime is as simple as possible, with a maximal amount of logic ejected to userspace.
 In the future, Kinode will benefit from ``client diversity'' as does a traditional blockchain: many implementations of the virtual machine
 \footnote{The Wasm runtime is by a wide margin the most complex aspect of the OS, and at least a dozen such runtimes exist today, written in multiple languages.
 This bodes well for future Kinode client diversity.}
-will make the network more resistant to potential bugs and decentralize the development process, leading to productive ossification of core features, stability, and long-term strength.
+will make the network more resilient to potential bugs and decentralize the development process, leading to productive ossification of core features, stability, and long-term strength.
 
 While all packaged into a single executable, the OS can productively be described in 3 parts: a \textit{runtime}, a set of \textit{runtime modules}, and \textit{userspace}.
 The ``kernel'' frequently referred to in this paper is in fact just a runtime module.
@@ -306,10 +304,10 @@ The runtime is a ``native'' (to whatever architecture it targets, which may be U
 Runtime modules are blocks of code written at the same level of abstraction as the runtime itself, but designed to resemble userspace processes.
 These modules are registered in the kernel \textit{as} processes, meaning that they can be messaged by userspace in the system-wide request-response protocol and secured via capabilities.
 Finally, userspace is comprised of all non-runtime-module processes executed virtually by the kernel.
-These processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{https://component-model.bytecodealliance.org/}.
+Userspace processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{https://component-model.bytecodealliance.org/}.
 They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of ``system calls'' afforded to userspace processes by the kernel.
 
-The reference implementation built and maintained by the DAO is currently written in Rust, as are all the runtime modules.
+The reference implementation is currently written in Rust, as are all the runtime modules.
 It also comes with a number of pre-installed userspace packages that perform critical tasks.
 In the future, other entities will likely seek to distribute their own implementations which may contain different pre-installed packages or even different runtime modules.
 
@@ -335,7 +333,7 @@ In the future, other entities will likely seek to distribute their own implement
 \subsection{WIT}
 \label{sec:oswit}
 
-Wasm Interface Type\footnote{https://component-model.bytecodealliance.org/design/wit.html}, or WIT, is a format to describe types and function definitions which can be used in a Wasm component.
+Wasm Interface Type\footnote{https://component-model.bytecodealliance.org/design/wit.html}, or WIT, is a language to describe types and function definitions which can be used in a Wasm component.
 Kinode OS uses a single WIT file to define the types shared across all processes and provide a number of functions.
 The functions fall into three categories:
 \begin{enumerate}
@@ -344,7 +342,9 @@ The functions fall into three categories:
     \item Message I/O
 \end{enumerate}
 
-WIT files are organized into worlds. All types and functions provided to Kinode processes are currently stored in one world labeled \verb|lib|.
+WIT files are organized into ``worlds''. All types and functions provided to Kinode processes are currently stored in one world labeled \verb|lib|.
+In a separate world, \verb|process|, a single function named \verb|init| is exported, which means that all Wasm apps that use the \verb|process| world must implement that function.
+It is the entry point by which the Kinode kernel starts executing a process.
 
 \subsubsection{WIT Types}
 \label{sec:oswittypes}
@@ -355,6 +355,13 @@ Some types in kinode.wit are omitted for brevity or because they are discussed l
 \begin{figure}[H]
     \centering
     \begin{lstlisting}
+    // JSON is passed over WASM boundary as a string.
+    type json = string;
+
+    type node-id = string;
+
+    type context = list<u8>;
+
     record process-id {
         process-name: string,
         package-name: string,
@@ -438,7 +445,7 @@ When \verb|init| returns, the process will cease execution.
 \subsection{Microkernel}
 \label{sec:osmicrokernel}
 
-Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{https://wiki.osdev.org/Microkernel} which is responsible for five things:
+Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{A microkernel architecture is ideal for a ``Wasm OS'' because it allows a maximal amount of system logic to live in Wasm itself, allowing system code to experience all the safety and conveniences afforded to userspace processes. See https://wiki.osdev.org/Microkernel} which is responsible for five things:
 \begin{enumerate}
     \item Using a Wasm runtime
     \footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
@@ -456,6 +463,11 @@ Private processes, as enforced by the kernel, require that the message source ho
 See the discussion of capabilities in Section~\ref{sec:oscapabilities} for details on their use and how capabilities apply to processes running a remote node.
 
 As of this writing, the kernel runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
+
+The kernel is responsible for maintaining backwards compatibility.
+If a process was written for an older version of the kernel (which is determined by the version number of the WIT file it implements), newer kernels must store that WIT version and match it to the process.
+If data structures in the WIT file change between versions, the kernel is responsible for translating between formats.
+This kind of upgrade is possible but unlikely once the kernel reaches version 1.0.
 
 \subsection{Message Passing}
 \label{sec:osmessagepassing}
@@ -491,7 +503,7 @@ A message has a single source \verb|address| and a single target \verb|address|.
 Messages are produced and consumed by Kinode processes.
 
 If the node identity indicated in the target \verb|address| matches that of the local kernel or is simply the string \verb|our|, the message is routed directly through the kernel to the target (assuming the source has the capability to message the target or the target is public).
-Otherwise, the message is routed through the networking runtime module, \verb|net:distro:sys| to the remote node indicated.
+Otherwise, the message is routed through the networking runtime module, \verb|net:distro:sys|, to the remote node indicated.
 
 Ordering of messages between a given source and a given target is enforced by both kernel and networking protocol.
 Messages are not otherwise ordered, meaning that if process A sends messages 1, 2, 3 to process B, and process B sends messages 4, 5, 6 to A, no guarantees are enforced other than that process B will receive messages 1, 2, 3 in that order and process A will receive 4, 5, 6 in that order.
@@ -512,18 +524,27 @@ A request is outstanding if:
 \end{enumerate}
 Every request that expects a response must set a timeout value, measured in seconds.
 The kernel is responsible for returning a timeout error to a request which expects a response and does not get matched to one within the number of seconds declared.
+\footnote{Timeouts must be viewed as a lower bound, as in, the kernel will not return a timeout error for at least X seconds.
+Depending on the implementation of the kernel, timeouts may occur at any time after X seconds have passed.}
 
 The offline error type is only returned by \verb|net:distro:sys|.
 It may be returned if the node that a request targets is definitively unreachable.
 This may occur if a direct node's networking information in KNS is invalid, an indirect node has no routers, a node refuses all networking protocol connections / does not comport to protocol, or any other such immediate error.
 In practice, ``offline'' and ``timeout'' can usually be treated the same way: by a combination of alerting the program user and retrying the message.
 
-\subsection{Capability-Based Security}
+Protocols for retrying a message, particularly to a remote process, are left to userspace.
+Different applications are best served by different retry strategies:
+a one-off message may be awaited in a blocking fashion, surfacing an error to the sender's UI.
+A message that's part of a large data transfer may not expect a response at all, instead relying on the final message in the transfer to await a response.
+The networking protocol's role as a general-purpose messaging system means that it must support all of these use cases and more.
+
+\subsection{Capabilities-Based Security}
 \label{sec:oscapabilities}
 
-Kinode OS uses a capability-based security model\footnote{TODO: add capabilities link}
-to enable sensible control of power between both userspace processes and runtime modules.
-Security between programs is directly related to the sovereignty goals of the OS: a user must be able to install a program without needing to evaluate its source code or trust its developer.
+Kinode OS uses capabilities\footnote{Capabilities are "unforgeable tokens of authority", validated by the kernel, that allow processes to acquire privileges both at the runtime and userspace level.
+See the paper "Capability Myths Demolished" for a good introduction to the topic.}
+to enable sensible security between both userspace processes and runtime modules.
+Security between programs is directly related to the sovereignty goals of the OS: a user must be able to install a program without needing to evaluate its source code or blindly trust its developer.
 Wasm programs are sandboxed, but have access to powerful tools including networking, memory, CPU, and disk space, not to mention the possible secrets they contain (consider a wallet program).
 Not only must these tools be granted to programs on a case-by-case basis, but without some form of control between sandboxed programs, the sandbox becomes pointless, as any power or secret knowledge granted to a given program could be accessed by other programs!
 
@@ -539,15 +560,15 @@ Not only must these tools be granted to programs on a case-by-case basis, but wi
     \label{fig:WIT Types 3}
 \end{figure}
 
-If a process is in possession of a capability, it may send it to another process.
-Capabilities are signed by the local kernel's \verb|~net-key| to  them into unforgeable tokens of authority. %missing verb between to and them
+Capabilities are signed by the local kernel's \verb|~net-key| to convert them into unforgeable tokens of authority.
 Processes don't need to concern themselves with verifying signatures.
 Instead, the kernel filters out local capabilities which are not properly signed.
+If a process is in possession of a capability, it may send it to another process.
 Remote capabilities–capabilities created by a different kernel–are not verified.
 Why not?
-If an invalid capability is created and passed in a message, the holder will be alerted to its invalid nature if/when the holder tries to use it.
+If an invalid remote capability is created and passed in a message, the holder will be alerted to its invalid nature if/when the holder tries to use it.
 
-As described in the Package Manager section, Section~\ref{sec:packagemanager}, software written on Kinode OS will often benefit from declaring a set of capabilities desired at the time of install.
+As elaborated on in Section~\ref{sec:packagemanager}, which describes a package manager for Kinode, software written on Kinode OS will often benefit from declaring a set of capabilities desired at the time of install.
 Many of the built-in runtime modules distributed with the OS, including the kernel itself, have a capabilities protocol.
 The kernel's capabilities protocol is part of the OS specification because it applies to every process and is the bedrock security model of the OS.
 It is also very simple:
@@ -559,9 +580,8 @@ It is also very simple:
 \end{enumerate}
 
 Note that remote processes are not filtered by messaging capabilities.
-Because other kernels can spoof such information as process names, it does not make sense to distribute what we may call ``system capabilities'' through the network.
-``Userspace capabilities'', ones created and checked-against in userspace by processes, can reasonably be distributed remotely.
-Instead of using messaging capabilities to filter remote processes, a process instead may decide whether or not it accepts messages from remote sources in general, which in practice simply means it gives its messaging capability to \verb|net:distro:sys|.
+Because other kernels can spoof such information as process names, it does not make sense to filter by process name for a remote message.
+Instead of using messaging capabilities to filter remote processes, a process instead may decide whether or not it accepts messages from remote sources in general, and then filter by the identity of the source node which cannot be spoofed.
 
 \subsection{System Primitives}
 \label{sec:osprimitives}
@@ -569,26 +589,26 @@ Instead of using messaging capabilities to filter remote processes, a process in
 Kinode OS manages four primitives via runtime modules:
 
 \begin{enumerate}
-    \item Networking/Identity: sending encrypted messages between nodes using permanent cryptographic identities.
+    \item Networking: sending encrypted messages between nodes using permanent cryptographic identities.
     \item Data Persistence: writing to disk with the option to use remote backup systems.
     \item Global Consensus State: integrating with blockchains to read data and write transactions.
     \item Web: HTTP client and server.
 \end{enumerate}
 
-The common thread between these items is the requirement for I/O.
+The commonality between these four items is the requirement for I/O.
 Therefore, they cannot be built as userspace Wasm processes.
-Instead, they are written as runtime modules: chunks of code at the same native level of the runtime and specially registered as processes in the kernel, which itself is a runtime module.
+Instead they are written as runtime modules: chunks of code at the same native level of the runtime and specially registered as processes in the kernel, which itself is a runtime module.
 
 Networking, data persistence, blockchain access, and HTTP read/write are all presented to userspace processes as a request-response API between a runtime module and the process using the primitive.
 See Fig.~\ref{fig:runtime modules list} for a full list of the process IDs which present these primitives.
 The API for a given runtime module included in the \verb|distro| package is part of the set of interfaces grouped within the Kinode OS versioning system.
-The OS uses semantic versioning to indicate breaking and non-breaking changes to these APIs, the kernel, the KNS/kimap onchain protocols, and the networking protocol.
-This is covered further in the discussion of Backwards Compatibility in Section~\ref{sec:osbackwardscompat}.
+The OS uses a single semantic versioning number to indicate breaking and non-breaking changes to these APIs, the kernel, the KNS/kimap onchain protocols, and the networking protocol.
+This is covered further in the discussion of backwards compatibility in Section~\ref{sec:osbackwardscompat}.
 
 A few not-strictly-necessary but useful I/O primitives are also presented as APIs via runtime modules.
 These are: a terminal, a timer, and the advanced data persistence options of SQlite, a key-value store, and a virtual filesystem.
 
-Kinode OS can aquire new primitives via \textit{extensions}, covered in Section~\ref{sec:osextensions}.
+Kinode OS can expose new primitives at the runtime level via \textit{extensions}, covered in Section~\ref{sec:osextensions}.
 
 \subsection{Example Process}
 \label{sec:osexampleprocess}
@@ -637,9 +657,8 @@ This section describes a number of runtime modules of critical importance.
 The OS ships with \verb|vfs:distro:sys|, a module which presents a standard filesystem API accessible to all processes with the capability to message it.
 Directories and files created in the VFS are saved on the host machine's filesystem.
 All I/O is mediated by the VFS, allowing processes to abstract away management of filesystem resources.
-The capability system also allocates total space available to a given process, allowing the node operator to distribute resources in a granular fashion.
 
-All processes that wish to persist data locally between boots will use either the VFS or another runtime module that writes to disk, which may be an extension or one of the default-distribution's SQLite or KV-Store modules.
+All processes that wish to persist data locally between boots will use either the VFS or another runtime module that writes to disk, which may be an extension or one of the default-distribution's SQLite or key-value store modules.
 
 \subsubsection{Networking}
 \label{sec:osnetworking}
@@ -657,7 +676,7 @@ The networking protocol itself will not be fully specified here, as it is still 
 
 \begin{itemize}
     \item The protocol uses exclusively information available onchain, including IP addresses, ports, and router nodes, to faciliate message-passing.
-    See the description of KNS for more on this.
+    See the description of KNS in Section~\ref{sec:kns}.
     \item Direct nodes publish their routing information onchain.
     Indirect nodes publish a set of routers who faciliate message-passing for them.
     This is analogous to STUN+TURN in WebRTC.
@@ -665,11 +684,12 @@ The networking protocol itself will not be fully specified here, as it is still 
     \item Networking may occur across many underlying transport protocols.
     The specification of KNS in the kimap allows for a node identity to publicize the port to be used for each transport protocol that node supports.
     The runtime is responsible for implementing each protocol that a node broadcasts.
-    In practice, nodes will use TCP for direct communication and routers will support a variety of protocols used by special-purpose nodes (such as mobile devices or nodes running in-browser).
+    In practice, nodes will mostly use TCP for direct communication and routers will support a variety of protocols used by special-purpose nodes (such as mobile devices or nodes running in-browser).
     \item Messages are end-to-end encrypted using a Noise protocol
     \footnote{http://www.noiseprotocol.org/noise.html}
     where each node has a static public key in their Ed25519 key published onchain, the cipher function is ChaChaPoly, and hash function is BLAKE2s.
     The XX pattern is used for handshakes.
+    \footnote{This is described in Noise as ``Noise\_XX\_25519\_ChaChaPoly\_BLAKE2s''.}
     \item Message-passing in a networked context aims to be as similar as possible to the local context.
     However, the offline and timeout error-cases together cover the inescapable realities of networking.
     \item There are no ACKs at the Kinode protocol level: if the underlying transport protocol confirms delivery, failure to do so can become an offline error.
@@ -698,9 +718,9 @@ Wasm is an excellent compilation target for processes.
 Processes are naturally sandboxed and cross-platform.
 However, there are also costs associated with Wasm.
 For example, not all libraries can be compiled to Wasm and hardware support for accelerators like GPUs is currently lacking.
-Extensions supplement and compliment Kinode processes, removing these constraints, while maintaining the advantages associated with Kinode, e.g., the request/response system.
+Extensions supplement and compliment Kinode processes, removing these constraints, while maintaining the advantages associated with kernel-provided services, e.g., the request/response system.
 
-Extensions are WebSocket clients, written in any language and run natively alongside Kinode, that connect to a paired Kinode process.
+Extensions are simply WebSocket clients, written in any language and run natively alongside Kinode OS, that connect to a paired process.
 The paired process serves as the interface between the extension and the rest of the Kinode system.
 
 Extensions can be written in any language and can use any library, since an extension is just a native program that can connect to Kinode as a WebSocket client and that implements a certain protocol.
@@ -713,15 +733,26 @@ Therefore only sophisticated users should be expected to run extensions, since t
 \subsection{Backwards Compatibility}
 \label{sec:osbackwardscompat}
 
+Once the OS reaches version 1.0, no backwards-incompatible change will be allowed in a subsequent version.
+The surface area presented by the OS for the purpose of backwards-compatibility is defined as:
+\begin{itemize}
+    \item The networking protocol
+    \item The request-response API for each runtime module listed in Figure~\ref{fig:runtime modules list}
+    \item kinode.wit and the kernel-level implementation of the host functions
+    \item The on-disk footprint of runtime modules that use disk, along with the encrypted keyfile used by the OS to store the networking key and JSON Web Token used for authenticating of node-served frontends.
+\end{itemize}
+
+A number of userspace packages included in the reference distribution must also be backwards-compatible due to the inconvenience created by breaking changes.
+This includes \verb|app_store:sys|, \verb|homepage:sys|, and \verb|terminal:sys|.
+
 \section{Package Manager}
 \label{sec:packagemanager}
 
 Like KNS, the Kinode Package Manager is a protocol deployed on kimap.
 It is another protocol critical to the operation of Kinode OS.
-As described in the Kinode OS Section~\ref{sec:os}, the userspace presented by the OS is comprised of processes, which are bundled into packages.
+As described in Section~\ref{sec:os}, the userspace presented by the OS is comprised of processes, which are bundled into packages.
 There is no kernel-level method for managing the packages installed in a node.
 Rather, userspace programs with the required capabilities must save packages in the virtual filesystem and prompt the kernel to start running certain processes.
-The kernel has no built-in concept of a ``package'': all of the logic related to packages is in userspace.
 
 If a process has the necessary capabilities, they may create requests to and receive responses from \verb|kernel:distro:sys| like any other process.
 The kernel specifies a request type that includes commands relevant to managing processes.
@@ -729,11 +760,11 @@ Programs that wish to ``install'' and ``uninstall'' processes merely submit thes
 These programs must also have capabilities to access the virtual filesystem, such that they can create new top-level directories formatted in such a way that the kernel can access compiled \verb|.wasm| files that contain a single process.
 
 By convention, packages are stored in a \verb|.zip| file with the full name of the package \verb|<package_name>:<publisher_node_id>|, e.g., for a chat app \verb|chat| published by \verb|template.os|, the full name of the package is \verb|chat:template.os|.
-The top level of the zipped directory contains a \verb|metadata.json| file, a \verb|pkg| directory, and optionally a directory for the source code of each process defined in the \verb|pkg| directory.
+The top level of the zipped directory contains a \verb|pkg| directory and optionally a directory for the source code of each process defined in the \verb|pkg| directory.
 The \verb|pkg| directory defines processes by
 \begin{enumerate}
     \item Containing a \verb|.wasm| file, the name of which matches the process name
-    \item Optionally declaring the process in a file named \verb|manifest.json|, which defines the processes in the package that should be run upon installation.
+    \item Optionally declaring the process in a file named \verb|manifest.json|, which defines the processes in the package that should be run upon installation and when a node with this package installed is first booted.
 \end{enumerate}
 
 \verb|pkg| may also contain a \verb|scripts.json| file which defines a list of processes that can be run as scripts.
@@ -757,9 +788,9 @@ The definition of a package (interchangeably called an ``app'') in this protocol
 The publisher name of a package is the parent-parent entry.
 The package name is the last path item in the parent entry.
 
-A \verb|~metadata-hash| entry must contain 32 bytes corresponding to a SHA-256 hash of the \verb|metadata.json| file used to install a package.
+A \verb|~metadata-hash| entry must contain 32 big-endian bytes corresponding to a SHA-256 hash of the \verb|metadata.json| file used to install a package.
 
-A \verb|metadata-uri| entry may contain a UTF-8 string[TODO confirm this]: a Uniform Resource Identifier indicating where the metadata file can be found (with hash matching \verb|~metadata-hash|).
+A \verb|metadata-uri| entry must contain a UTF-8 string: a Uniform Resource Identifier (URI) indicating where the metadata file can be found (which, when hashed, matches \verb|~metadata-hash|).
 
 \begin{figure}[H]
     \centering
@@ -816,7 +847,8 @@ If these requirements are met, a user may use \verb|metadata.json| to gather inf
                 "publisher": "template.os",
                 "mirrors": [
                     "mirror-node-1.os",
-                    "mirror-node-2.os"
+                    "mirror-node-2.os",
+                    "https://my-site.com/my-package.zip"
                 ],
                 "code_hashes": {
                     "0.1.0": "abc"
@@ -832,22 +864,21 @@ If these requirements are met, a user may use \verb|metadata.json| to gather inf
 
 The structure of \verb|metadata.json| is designed to match that of the ERC-721 metadata spec such that packages can be ERC-721 NFTs.
 
-The \verb|mirrors| field is an array of strings that should be node identities.
-These nodes are where the zipped package are available for download.
-Mirrors must configure themselves to host a package using their App Store program.
+The \verb|mirrors| field is an array of strings that should either be KNS node identities or URIs that resolve to the zipped package.
+Mirror nodes must configure themselves to host a package using their App Store program.
 
 Note that the top-level \verb|name| field and \verb|package_name| in \verb|properties| need not match. The former may be a descritive user-facing name while the latter must match the actual package name to be used by the OS.
 
 All fields are required but may be left empty other than \verb|package_name| and \verb|publisher|, which are required to have values.
 
-If \verb|current_version|, \verb|code_hashes|, or \verb|mirrors| are left empty, users will be unable to download the package.
+If \verb|current_version|, \verb|code_hashes|, or \verb|mirrors| are left empty, users will likely be unable to download the package, because a downloaded package is verified by hashing the zipped file and comparing it to the desired version's entry in \verb|code_hashes|.
 
 \subsection{Package Manifest}
 \label{sec:packagemanagermanifest}
 
 In the \verb|pkg| directory of a package, a developer may write a manifest to programmatically define how a package should be installed and save it as \verb|manifest.json|.
 If this file is not present, the package will not be installable.
-The manifest is a JSON array where each element is a description of a process that must be instantiated upon install.
+The manifest is a JSON array where each element is a description of a process that must be instantiated upon install and subsequent boots of the node.
 
 \begin{figure}[H]
     \centering
@@ -887,21 +918,21 @@ The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify pa
 The app store also uses \$KINO to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization. [TODO explain]
 
-[TODO provide spec for manifest.json and scripts.json]
-
+[TODO provide spec for scripts.json]
+%
 %
 %
 %
 \section{Kit}
 
-Kit is the development toolkit for Kinode.
+Kit is the CLI (command-line interface) development toolkit for Kinode.
 It provides a variety of tools, including but not limited to:
 \begin{itemize}
-\item \verb|new| Creates templates
-\item \verb|build| Builds packages, compiling processes
-\item \verb|start-package| Installs and starts built packages
-\item \verb|boot-fake-node| Runs ``fake'' temporary development nodes
-\item \verb|run-tests| Runs user-defined tests on a network of ``fake'' nodes
+\item \verb|new|: Creates packages from templates
+\item \verb|build|: Builds packages by compiling processes within
+\item \verb|start-package|: Installs and starts a built package
+\item \verb|boot-fake-node|: Runs ``fake'' temporary development nodes
+\item \verb|run-tests|: Runs user-defined tests on a network of ``fake'' nodes
 \end{itemize}
 
 Kit aims to provide developers with every tool required to go from idea to finished project.
@@ -921,13 +952,13 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 %
 %
 %
-\section{KiMap Advanced}
+\section{Kimap Advanced}
 \label{sec:kimapadvanced}
 
-The basic functionality of KiMap is to provide a global coordination point for all nodes in the Kinode network, but it does not stop at enhancing off chain network coordination.
-KiMap is built to implement use cases that call for arbitrary on-chain enabling constraints.
-By combining many standards related to smart contract accounts, KiMap allows users to express stateful systems that respond to arbitrary conditions.
-The following elements are the core of KiMap's advanced features:
+The basic functionality of kimap is to provide a global coordination point for all nodes in the Kinode network, but it does not stop at enhancing off chain network coordination.
+Kimap is built to implement use cases that call for arbitrary on-chain enabling constraints.
+By combining many standards related to smart contract accounts, kimap allows users to express stateful systems that respond to arbitrary conditions.
+The following elements are the core of kimap's advanced features:
 
 \begin{itemize}
 \item Counterfactual addresses for every name key.
@@ -971,7 +1002,7 @@ This also serves as a good example of the kind of custom logic a namespace may i
 \subsection{Data Keys}
 \label{sec:terminalnodes}
 
-Data keys are meant to support name keys in the KiMap. They may be created by any name key by prepending the label being created with a \verb|~|.
+Data keys are meant to support name keys in the kimap. They may be created by any name key by prepending the label being created with a \verb|~|.
 
 Entries of this variety \textbf{may not} mint sub-entries, hence the prefix: one can use \verb|~my-data.hello.os| to store data while minting \verb|my-data.hello.os| in order to mint sub-entries beneath it, should one desire to do so.
 
@@ -1030,15 +1061,15 @@ as described below.
 
 \subsection{Kinode Fallback Modules and Hierarchical Module Installation}
 
-In accordance with the ERC-7579 standard as it pertains to fallback modules, the KiMap will empower holders
+In accordance with the ERC-7579 standard as it pertains to fallback modules, the kimap will empower holders
 to write arbitrary behavior into their subsection of the namespace.
 In this way, they can provide on chain methods for interacting with their nodes, upgrading their functionality
 from just being a smart contract account to being a first class smart contract capable of expressing any type of
 logic they decide.
 
-Furthermore, KiMap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers
+Furthermore, kimap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers
 for any sub node in its hierarchy. These fallback handlers may be specified to be immutable, such that the
-sub nodes would not be able to remove them from their account. Through this mechanism, KiMap allows for
+sub nodes would not be able to remove them from their account. Through this mechanism, kimap allows for
 arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion.
 
 Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node,
