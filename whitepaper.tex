@@ -39,8 +39,8 @@ Corporations or other entities can provide services in a permissionless, protoco
 This node-based cloud computing model resolves the impedance mismatch between onchain protocols and web services.
 Developers can write apps in any programming language that compiles to Wasm and easily distribute them to nodes.
 
-The Kinode platform includes several components which will be described in this whitepaper: a virtual machine, an onchain global namespace, a PKI (Public-Key Infrastructure), a utility token for governing and assigning value to that namespace, a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
-All of these aspects work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
+The Kinode platform includes several components which will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for governing and assigning value to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
+All of these components work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
 \keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
 \end{abstract}
@@ -101,10 +101,7 @@ The goal of the Kinode Hyperstructure
 is to present a permissionless substrate for computing.
 Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does ``everything else''.
 In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and the long-term governance structure for those components.
-%
-%
-%
-%
+
 \section{Kimap}
 \label{sec:kimap}
 
@@ -188,10 +185,7 @@ E.g., only entries containing \verb|~net-key| are used by the KNS (Kinode Name S
 Entries \verb|baz.kino| and \verb|package.baz.kino| have no data keys to describe their status in the KNS, and so the ``domain'' analogy breaks down for them.
 The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of KNS itself, as a protocol operating on kimap, is described in Section~\ref{sec:kns}, as is the specification of the Kinode Package Manager, Section~\ref{sec:packagemanager}, both of which make an appearance in this example.
-%
-%
-%
-%
+
 \section{KNS: Kinode Name System}
 \label{sec:kns}
 
@@ -919,10 +913,7 @@ The app store also uses \$KINO to enable ranking and filtering of available apps
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization. [TODO explain]
 
 [TODO provide spec for scripts.json]
-%
-%
-%
-%
+
 \section{Kit}
 
 Kit is the CLI (command-line interface) development toolkit for Kinode.
@@ -949,9 +940,6 @@ However, \verb|kit connect| allows remote development as long as developers have
 Here, \verb|connect| uses \verb|ssh| tunneling to send the \verb|kit| request securely to the remote machine.
 As such, developers can work on remote Kinode's with the same ease that \verb|kit| affords for local development, but security is not compromised for users.
 
-%
-%
-%
 \section{Kimap Advanced}
 \label{sec:kimapadvanced}
 
@@ -1077,108 +1065,6 @@ rich functionality would be impossible to achieve. A node that wanted to partici
 token into an arbitrary smary contract for that system would prevent it from participating in another system,
 or exposing additional functionality for other purposes.
 
-\section{Kinode DAO}
-\label{sec:dao}
-
-In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Kinode is presented as an inverted triangle with kimap+KINO and Kinode OS above Kinode DAO.
-Seated at the bottom, the DAO is responsible for:
-\begin{enumerate}
-    \item Initially distributing the kimap namespace.
-    \item Incentivizing the use of the namespace until it becomes self-perpetuating.
-    \item Voting on other proposals to improve Kinode in a backwards-compatible way over time.
-    \item Funding ongoing development of Kinode OS.
-    \item Maintaining the OS, which must adapt to developments in computing.
-\end{enumerate}
-
-\subsection{veKINO Token}
-\label{sec:daovekino}
-
-Binding \$KINO mints an equivalent amount of \$veKINO to the address which performs the binding.
-\$veKINO is a non-transferable vote-escrow token used by Kinode DAO to execute governance proposals.
-This is not an empty role–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
-
-Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
-For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
-
-While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLZ purchasers and to prevent abuse.
-
-\subsubsection{Creating Proposals}
-\label{sec:daoproposals}
-
-[TODO]
-
-\subsubsection{Voting and Rewards}
-\label{sec:daovoting}
-
-[TODO]
-
-\subsubsection{Delegation}
-\label{sec:daodelegation}
-
-% I think we may need to change this part if it required that users maintain hot keys to sign their votes
-% Is there a way around that? Maybe we can require the offchain vote utility to use their node's networking key
-% to prove they actually voted in this manner? that key, by default, is a hot key.
-% Does that have enough security when it comes to votes?
-% If not, we may be better off making a system that affords users the possibility of signing their vote
-% with a wallet of their choice, for instance a hardware wallet, while allowing users who delegate their
-% votes to do so without signing anything.
-Rather than complicate the namespace and voting mechanisms with built-in onchain delegation, Kinode governance leverages the power of personal nodes to enable offchain vote delegation.
-Users who wish to delegate their vote to another member may run software in their Kinode voting app to simply match the behavior of that other namespace entry onchain.
-This allows users to be rewarded for participation while retaining full control of their vote.
-The DAO (and possibly large voting entities) also has the ability to run paymaster server(s) to allow for free governance participation in this way.
-Users may perform a one-time approval to execute votes through a paymaster leveraging account abstraction for “free” voting.
-
-\subsection{Governance Structure}
-\label{sec:daogovernance}
-
-\subsection{TLZ Management}
-\label{sec:daotldmanagement}
-
-The most important role of the DAO is to steward the kimap namespace until it can stand on its own.
-Every nascent network requires sustained effort to aquire network effects–the creation of Kinode OS can be considered the beginning of the DAO's efforts to increase the value of the Kinode namespace.
-
-At some point, ownership of the kimap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
-Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
-In practice, though, there should be many hundreds or thousands of namespace owners.
-Reasonable behavior by owners will be modulated by two things:
-\begin{enumerate}
-    \item The ability of sub-entry owners to move to other areas of the namespace.
-    \item A \textbf{strong} natural preference by users to use sub-entries controlled by immutable smart contracts.
-\end{enumerate}
-
-Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, Kinode DAO will have succeeded in the first phase of its role.
-From that point on, the DAO will continue to steward development of the OS and likely still manage significant parts of the namespace itself.
-
-\subsubsection{TLZ Auctions}
-\label{sec:daotldauctions}
-
-Initial namespace distribution will almost certainly take the form of auctions, in which the DAO executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
-Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.
-\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
-TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
-
-\subsubsection{Profitability}
-\label{sec:daoprofit}
-
-By auctioning off and otherwise selling namespace, particularly top-level namespace, the DAO may generate revenue.
-Revenue earned by the DAO will be applied to the treasury which funds rewards for governance participation and initiatives to further increase the value of the namespace.
-
-\subsection{Default-distro App: Governance Portal}
-\label{sec:daoportal}
-
-Conveniently, the DAO will package a Governance Portal app alonside App Store (and other utilities) in its distribution of Kinode OS.
-The app will serve as a central point where a node identity can create, vote on, and review proposals.
-Since \$veKINO may be held in the token-bound account attached to every namespace entry (and thus node identity) its use within an instantion of a node is quite natural.
-
-Auctions and other DAO-led onchain activities will also be accessible through the built-in Governance Portal.
-
-\subsection{Other Duties}
-\label{sec:daoduties}
-
-The DAO may perform other work to increase the value of the namespace and improve the functionality of the OS, such as developing more kimap protocols like KNS and the package manager.
-It may also take actions to incentivize use of kimap and \$KINO together.
-
 \section{KINO Token}
 \label{sec:kino}
 
@@ -1187,7 +1073,6 @@ It may also take actions to incentivize use of kimap and \$KINO together.
 \item Assignment of relative value in the global namespace and
 \item Namespace and protocol governance.
 \end{enumerate}
-The token operates alongside the kimap contract–``What you guys are referring to as KINO, is in fact, kimap/KINO, or as I've recently taken to calling it, kimap plus KINO.''%TODO: just flagging this as meta discussion
 
 \subsection{Binding to kimap Namespace}
 \label{sec:kinobind}
@@ -1316,16 +1201,108 @@ It is not required that a protocol apply itself to the entire kimap.
 Instead, a protocol may define itself as only being valid within a single top-level domain, a subset of top-level zones, or even a subset of entries at some arbitrary level of nesting.
 This may prove to be an ideal way to run protocols in a future where kimap is very large and indexing the entire map is more difficult than indexing a subset of it.
 
+\section{Kinode DAO}
+\label{sec:dao}
+
+In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Kinode is presented as an inverted triangle with kimap+KINO and Kinode OS above Kinode DAO.
+Seated at the bottom, the DAO is responsible for:
+\begin{enumerate}
+    \item Initially distributing the kimap namespace and stewarding it towards full permissionlessness via ossification at the TLZ level.
+    \item Incentivizing the use of the namespace until it becomes self-perpetuating.
+    \item Voting on proposals to improve Kinode in a backwards-compatible way over time, while ensuring that adoption of the offchain software remains aligned with growth of the onchain protocol.
+\end{enumerate}
+
+\subsection{veKINO Token}
+\label{sec:daovekino}
+
+Binding \$KINO mints an equivalent amount of \$veKINO to the address which performs the binding.
+\$veKINO is a non-transferable vote-escrow token used by Kinode DAO to execute governance proposals.
+This is not an empty role–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
+
+Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
+For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
+There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
+
+While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLZ purchasers and to prevent abuse.
+
+\subsubsection{Creating Proposals}
+\label{sec:daoproposals}
+
+[TODO]
+
+\subsubsection{Voting and Rewards}
+\label{sec:daovoting}
+
+[TODO]
+
+\subsubsection{Delegation}
+\label{sec:daodelegation}
+
+% I think we may need to change this part if it required that users maintain hot keys to sign their votes
+% Is there a way around that? Maybe we can require the offchain vote utility to use their node's networking key
+% to prove they actually voted in this manner? that key, by default, is a hot key.
+% Does that have enough security when it comes to votes?
+% If not, we may be better off making a system that affords users the possibility of signing their vote
+% with a wallet of their choice, for instance a hardware wallet, while allowing users who delegate their
+% votes to do so without signing anything.
+Rather than complicate the namespace and voting mechanisms with built-in onchain delegation, Kinode governance leverages the power of personal nodes to enable offchain vote delegation.
+Users who wish to delegate their vote to another member may run software in their Kinode voting app to simply match the behavior of that other namespace entry onchain.
+This allows users to be rewarded for participation while retaining full control of their vote.
+The DAO (and possibly large voting entities) also has the ability to run paymaster server(s) to allow for free governance participation in this way.
+Users may perform a one-time approval to execute votes through a paymaster leveraging account abstraction for “free” voting.
+
+\subsection{Governance Structure}
+\label{sec:daogovernance}
+
+\subsection{TLZ Management}
+\label{sec:daotldmanagement}
+
+The most important role of the DAO is to steward the kimap namespace until it can stand on its own.
+Every nascent network requires sustained effort to aquire network effects–the creation of Kinode OS can be considered the beginning of the DAO's efforts to increase the value of the Kinode namespace.
+
+At some point, ownership of the kimap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
+Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
+In practice, though, there should be many hundreds or thousands of namespace owners.
+Reasonable behavior by owners will be modulated by two things:
+\begin{enumerate}
+    \item The ability of sub-entry owners to move to other areas of the namespace.
+    \item A \textbf{strong} natural preference by users to use sub-entries controlled by immutable smart contracts.
+\end{enumerate}
+
+Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, Kinode DAO will have succeeded in the first phase of its role.
+From that point on, the DAO will continue to steward development of the OS and likely still manage significant parts of the namespace itself.
+
+\subsubsection{TLZ Auctions}
+\label{sec:daotldauctions}
+
+Initial namespace distribution will almost certainly take the form of auctions, in which the DAO executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
+Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.
+\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
+TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
+
+\subsubsection{Profitability}
+\label{sec:daoprofit}
+
+By auctioning off and otherwise selling namespace, particularly top-level namespace, the DAO may generate revenue.
+Revenue earned by the DAO will be applied to the treasury which funds rewards for governance participation and initiatives to further increase the value of the namespace.
+
+\subsection{Default-distro App: Governance Portal}
+\label{sec:daoportal}
+
+Conveniently, the DAO will package a Governance Portal app alonside App Store (and other utilities) in its distribution of Kinode OS.
+The app will serve as a central point where a node identity can create, vote on, and review proposals.
+Since \$veKINO may be held in the token-bound account attached to every namespace entry (and thus node identity) its use within a node is quite natural.
+
+Auctions and other DAO-led onchain activities will also be accessible through the built-in Governance Portal.
+
+\subsection{Other Duties}
+\label{sec:daoduties}
+
+The DAO may perform other work to increase the value of the namespace and improve the functionality of the OS, such as developing more kimap protocols like KNS and the package manager.
+It may also take actions to incentivize use of kimap and \$KINO together.
+
 \section{A Kinode Future}
 \label{sec:future}
-
-The primary success metric for Kinode is the number of protocols operating on the network.
-A Kinode protocol can include an onchain element, whether it is a protocol inside kimap or otherwise.
-A Kinode protocol will always include an offchain peer-to-peer element: a software package that one can run on their node.
-
-The secondary success metric for Kinode is the number of nodes online in the network.
-Nodes can be run anywhere: by a user in their home, in a data center, or on a mobile device.
-Nodes will execute the Kinode OS specification, but be virtualized by a diversity of runtimes optimized for different environments.
 
 In a Kinode future, the web as we know it today is replaced by a tapestry of permissionless protocols that combine the sovereignty of peer-to-peer with the power of industrial-scale computing.
 Via runtime extensions and controlled namespaces, today's first-party platforms will transform into modularized protocols where users tap into centrally-operated services à la carte.
@@ -1336,6 +1313,8 @@ A small group of programmers will specify their design, create an implementation
 They may choose to enable future upgrades by decentralizing the governance of their specification with a DAO and token, or simply allow its permissionless use forever in a final state.
 Switching between protocols will be a trivially easy process for users.
 The monopoly of ossified web protocols will be obliterated by Kinode's user-node architecture, which allows for the operation of ``transformer'' protocols that enable vampire-attacks on any existing protocol with no technical knowhow on the side of the user.
+Nodes can run anywhere: by a user in their home, in a data center, or on a mobile device.
+Nodes will execute the Kinode OS specification, but be virtualized by a diversity of runtimes optimized for different environments.
 
 Mainstream technology will continue to evolve rapidly at both the hardware and software level. New programming languages and new chips will emerge that continue to improve on performance and security.
 Kinode is a beneficiary of this innovation, and at the same time, it unleashes the potential of new computing capabilities while maintaining the sovereignty of the end user.
