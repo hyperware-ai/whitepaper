@@ -89,7 +89,7 @@ Until we provide a proper platform for such operations, ``Web3'' will simply nev
     \begin{tikzpicture}
     \draw (0,3) node[fill=yellow!80!black]{$kimap+\$KINO$}
     -- (4,3) node[fill=yellow!80!black]{$Kinode OS$}
-    -- (2,0) node[fill=yellow!80!black]{$Kinode DAO$}
+    -- (2,0) node[fill=yellow!80!black]{$Kinode Governance$}
     -- cycle;
     \end{tikzpicture}
     \caption{Architecture of Kinode.}
@@ -106,7 +106,7 @@ In this paper, we present an operating system, an onchain global namespace, a va
 \label{sec:kimap}
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for peer-to-peer developers.
-Discoverability can present both social barriers (finding a new user on a game or chat) and technical obstacles (node software aquiring networking information for particular username).
+Discoverability can present both social barriers (finding a new user on a game or chat) and technical obstacles (automatically aquiring networking information for a particular username).
 Many solutions have been designed to address this problem, but so far, the ``devex'' (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
 Why is this?
 \begin{enumerate}
@@ -131,7 +131,6 @@ A brief description:
 
 \begin{enumerate}
     \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen).
-    \item Keys are derived using a minimally modified version of the namehash algorithm tailored to support the distinction between name keys and value keys.
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
     \item Every name-key is an ERC-721 NFT (non-fungible token),
@@ -142,6 +141,7 @@ A brief description:
 \end{enumerate}
 
 For a complete specification, see Advanced Kimap in Section~\ref{sec:kimapadvanced}, which goes into detail regarding token bound accounts, sub-entry management, the use of data keys, and protocol extensibility.
+For a description of the value-assignment mechanism that overlaps kimap, see Section~\ref{sec:kino} for the KINO utility token.
 
 \subsection{Example Kimap Entries}
 
@@ -518,8 +518,7 @@ A request is outstanding if:
 \end{enumerate}
 Every request that expects a response must set a timeout value, measured in seconds.
 The kernel is responsible for returning a timeout error to a request which expects a response and does not get matched to one within the number of seconds declared.
-\footnote{Timeouts must be viewed as a lower bound, as in, the kernel will not return a timeout error for at least X seconds.
-Depending on the implementation of the kernel, timeouts may occur at any time after X seconds have passed.}
+\footnote{Timeouts must be viewed as a lower bound, as in, the kernel will not return a timeout error for at least X seconds. The upper bound cannot be guaranteed.}
 
 The offline error type is only returned by \verb|net:distro:sys|.
 It may be returned if the node that a request targets is definitively unreachable.
@@ -943,89 +942,89 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 \section{Kimap Advanced}
 \label{sec:kimapadvanced}
 
-The basic functionality of kimap is to provide a global coordination point for all nodes in the Kinode network, but it does not stop at enhancing off chain network coordination.
-Kimap is built to implement use cases that call for arbitrary on-chain enabling constraints.
-By combining many standards related to smart contract accounts, kimap allows users to express stateful systems that respond to arbitrary conditions.
-The following elements are the core of kimap's advanced features:
+As described in Section~\ref{sec:kimap}, kimap is an onchain hierarchical key-value store.
+Each entry is an ERC-721 NFT.
+Entries within kimap may store data in their memory slot within the map.
+Each entry may also be minted as an ERC-6551 token-bound account.
+Perhaps most importantly, entries control their own sub-entries.
 
-\begin{itemize}
-\item Counterfactual addresses for every name key.
-\item ERC-6551 token-bound accounts.
-\item ERC-7579 modular smart contract accounts.
-\item A Kinode specific standard for fallback modules and installation practices.
-\item Hierarchical governance over module installation throughout subsections of the kimap.
-\end{itemize}
+Combining these properties allows for the creation of advanced permissioning systems within kimap, allowing the namespace as a whole to become a tapestry of sub-namespaces, each with unique properties.
+For example, the process by which KNS integrates with existing onchain identity primitives (described in Section~\ref{sec:knsotherprimitives}):
+An entry is deployed with custom logic (using cross-chain messaging protocols if necessary) that restricts sub-entry creation to only wallets with the matching onchain asset for the sub-entry they are posting a transaction to mint.
+
+\subsection{Top-Level Zones}
+
+In data structure terminology, kimap is a tree, and thus has a "root" node.
+The root node is not particularly interesting, and sits immutable, with no custom logic, upon protocol deployment.
+And, given that a tree can be recursively defined, any entry deeper in the tree can be arbitrarily treated as a "root" node for the tree beneath it.
+This intuition of recursive trees is important for understanding both ``how'' and ``why'' entries ``govern'' the entries beneath them using custom contract logic.
+Once understood, it's easy to see how any protocol on top of kimap can thrive within even a deeply-nested namespace entry and create an entire namespace of its own within.
+
+However, there's a gap that must first be crossed: how do entries immediately beneath the root node come into existence, such that the first layers of custom logic, and potentially infinite subsequent layers, can be applied?
+
+These entries immediately beneath the root node are called Top-Level Zones (TLZs).
+A fair analogy can be made to Top-Level Domains in the Internet's Domain Name System.
+And like DNS TLDs, the creation of new TLZs in kimap must be permissioned in some way.
+Uncontrolled proliferation of entries at the top level would lead to name-squatting, a lack of reasonable schelling points, and disincentivize the desired composition of rulesets stacked at various levels of depth within the map: all issues demonstrated by the history of similar namespaces.
+Unlike DNS, though, TLZs in kimap must be distributed in a fair manner and in such a way that overall control of namespace is totally decentralized.
+Of course, ownership of a TLZ is also permissionless once acquired, leaving no central authority in control of namespace operation.
+The existence of immutable and relatively ungoverned TLZs also guarantees free expression for protocols within at least those areas of the namespace.
+
+We have designed a multi-phase process for TLZ distribution, described in Section~\ref{sec:daotlzmanagement}.
+
+A given TLZ can be owned by a contract which implements rent logic, requiring regular payments for control over a sub-entry.
+Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
+We anticipate and welcome these experimental outcomes.
+A number of TLZs will be transferred to immutable contracts at launch to perform various system roles and integrate with existing onchain identity primitives.
+The \verb|os| TLD, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
+To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
 
 \subsection{Name Keys}
 
-Entries at the top-level of kimap are called Top-Level Zones (TLZs).
-
-Minting of new TLZs in kimap is permissioned.
-Top-level entries are valuable, because they produce new namespaces that can be applied to new protocols, entities, or individuals.
-Allowing new TLZs to be created freely would lead to name-squatting and other perils clearly demonstrated by the history of similar namespaces. %TODO: such as? And what are the "other perils"
-Instead, the distribution of TLZs over time is one of the key responsibilities of Kinode's governance apparatus, described in the Kinode DAO discussion in Section~\ref{sec:dao}.
-
-Since every entry in the namespace can be owned by a contract, different control logic can be reliably implemented at the ownership level.
-At first launch of kimap, a few selected TLZs will be transferred to immutable contracts. %TODO: by the Kinode DAO?
-
-This property enables arbitrarily complex logic governing sub-namespaces of kimap.
-A given namespace can be owned by a contract which implements rent logic, requiring regular payments for control over a sub-entry.
-Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
-We anticipate and welcome these experimental outcomes.
-
-Why create a new namespace, given that others exist with established network effects?
-Primarily, because Kinode OS needs it.
-The goal of the OS is to create a fully-integrated programming environment, and existing namespace options are simply not designed to enable this.
-This does not mean the namespace must operate in isolation–see the section on \hyperref[sec:extensibility]{extensibility} for a description of how other namespaces may be integrated with kimap.
-
-Name keys are the primary keys in kimap.
-They determine ownership of nodes in the namespace and the ability to both create sub nodes beneath them, and enscription of data into data keys beneath them.
-It is the name keys which are tokenized as ERC-721 NFTs and bound to modular smart accounts at counterfactual addresses.
-
-As part of Kinode DAO's responsibilities in guaranteeing the utility and reliability of the protocol, certain namespaces will be given over to immutable contracts at launch.
-The \verb|os| TLD, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
-To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
-This also serves as a good example of the kind of custom logic a namespace may implement.
+Name keys determine ownership of entries in the namespace and the ability to both create sub-entries and inscribe data into data keys. Sub-entries are just name keys directly beneath the parent name key, so, unless contract logic in a higher parent entry has disallowed it, the name key \verb|hello.os| may create sub-entries like \verb|sub1.hello.os| and \verb|sub2.hello.os|.
+Name keys are tokenized as ERC-721 NFTs and bound to modular smart accounts at counterfactual addresses.
+The usual properties of NFTs apply to name keys: they may be transferred, wrapped, and composed with onchain protocols that operate on ERC-721s.
 
 \subsection{Data Keys}
-\label{sec:terminalnodes}
 
 Data keys are meant to support name keys in the kimap. They may be created by any name key by prepending the label being created with a \verb|~|.
 
 Entries of this variety \textbf{may not} mint sub-entries, hence the prefix: one can use \verb|~my-data.hello.os| to store data while minting \verb|my-data.hello.os| in order to mint sub-entries beneath it, should one desire to do so.
 
-Data is stored as bytes inside the contract map.
-The owner of a namespace entry is the only address that can modify the data stored at that entry.
+Data at a data key is stored as bytes inside the contract map.
+The owner of the parent name key is the only address that can modify the data stored at that slot.
 The interpretation of stored bytes is the responsibility of the protocol reading and writing from that entry.
+
 Data can be mutable or immutable.
-All data is public.
-Protocols that wish to operate on private data may store hashes at namespace entries, or alternatively operate within the end-to-end encrypted Kinode networking protocol.
+
+All data is public. Protocols that wish to operate on private data may store hashes at namespace entries, operate offchain within the end-to-end encrypted Kinode networking protocol, or ideally use a combination of both: kimap for public signaling and dispersion of schelling points, peer-to-peer messaging for data exchange.
 
 \subsection{Extensibility}
 \label{sec:extensibility}
 
-Kimap is designed to be generic and extensible.
-Protocols such as KNS and the Kinode Package Manager extend kimap by interpreting the data stored at certain keys in a particular way.
-A specific description of how this works can be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
+Kimap is designed to be extensible.
+Protocols such as Kinode Name System and the package manager extend kimap by interpreting the data stored at certain keys in a particular way.
+A specific description of how these protocols atop kimap specify themselves may be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
 
-In the general case, a protocol specifies itself on kimap by declaring a set of \verb|~|-prefixed keys which are interpreted a certain way and endow certain properties to their parent key.
-For example, a motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 motd string for the parent key, which could be a node identity in the KNS.
-If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
+In the general case, a protocol specifies itself on kimap by declaring a set of data keys which are interpreted a certain way and endow certain properties to their parent name key.
+For example, a simple motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 string message from the parent key, which could be a node identity in the KNS.
+If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key (mutably, one would hope) \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
 
-Extension of kimap is permissionless: any protocol can operate on the keys and data stored in the map.
+Extension of kimap is totally permissionless: any protocol can operate on the keys and data stored in the map.
 Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
 If an entry label is already in use by a popular protocol, developers creating a new protocol would be advised to either match the data format in current use for that entry label, or ensure non-overlap by prefixing/postfixing the entry label with a custom value.
 For example, if the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.kino|.
 
 Another strategy for avoiding conflicts is to subdivide the namespace by storing a protocol's data entries at a nested path beneath the relevant entry.
-If the key \verb|howdy.kino| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.kino| rather than directly below.
+A different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.kino| rather than directly below.
 
 \subsection{Counterfactual Addresses For Kinode Smart Accounts}
 
 A counterfactual address is an smart contract address that may be known before code is deployed into its storage on the blockchain.
-Ethereum enables this aspect with the create2 opcode, which deploys code to an address deterministically generated given the contract address calling the opcode, the initialization bytecode for the contract to be created, and a salt.
-Since each factor is known ahead of time for any given node in the kimap, then in a sense every kinode that may exist in the future already does.
-Every name key in kimap will have a corresponding counterfactual address for its smart contract account.
+Ethereum enables counterfactual address creation with the create2 opcode, which deploys code to an address deterministically generated given the contract address calling the opcode, the initialization bytecode for the contract to be created, and a salt.
+Since each of these factors is known ahead of time for any given entry, every name key in kimap has a corresponding counterfactual address for its smart contract account.
+This property comes in very handy when designing protocols that operate on token-bound accounts.
+A developer can instruct a user to create a sub-entry for their node identity and have already deposited assets in the wallet that will be created as a result.
 
 \subsection{ERC-6551 Token-Bound Accounts}
 
@@ -1033,7 +1032,7 @@ The smart contract accounts that are deployed to these addresses are ERC-6551 co
 This means the kimap's address and the token id of the name key that owns the smart contract account will be appended to the immutable bytecode of the account.
 Therefore, the smart contract account will be unbreakably linked to the owner of the token in the kimap.
 This enables the ownership of a given node on the network to be given according to any logic that operates on ERC-721 tokens.
-Anything and everything associated with the account can be transferre to a new owner at any time.
+Anything and everything associated with the account can be transferred to a new owner at any time.
 
 \subsection{ERC-7579 Modular Smart Contract Accounts}
 
@@ -1042,8 +1041,7 @@ This means Kinode accounts will have access to a wide range of plugins created b
 Users will be able to install and uninstall plugins from the broader ecosystem at will.
 However, there are two aspects that will be unique to Kinode. The first is that the root validator of the account
 will be immutably linked according to the ERC-6551 token bound owner of the kimap's ERC-721 token.
-Other validation modules are able to be installed, but the root validator, with power over all other validators,
-will always be the owner of the token bound account.
+Other validation modules are able to be installed, but the root validator, with power over all other validators, will always be the owner of the token bound account.
 Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace,
 as described below.
 
@@ -1055,44 +1053,61 @@ In this way, they can provide on chain methods for interacting with their nodes,
 from just being a smart contract account to being a first class smart contract capable of expressing any type of
 logic they decide.
 
-Furthermore, kimap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers
-for any sub node in its hierarchy. These fallback handlers may be specified to be immutable, such that the
-sub nodes would not be able to remove them from their account. Through this mechanism, kimap allows for
-arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion.
+Furthermore, kimap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers for any sub node in its hierarchy.
+These fallback handlers may be specified to be immutable, such that the sub nodes would not be able to remove them from their account.
+Through this mechanism, kimap allows for arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion.
 
-Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node,
-rich functionality would be impossible to achieve. A node that wanted to participate in one system by depositing its
-token into an arbitrary smary contract for that system would prevent it from participating in another system,
-or exposing additional functionality for other purposes.
+Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node, rich functionality would be impossible to achieve.
+A node that wanted to participate in one system by depositing its token into an arbitrary smart contract for that system would prevent it from participating in another system, or exposing additional functionality for other purposes.
+
+\subsection{Review}
+\label{sec:kimapreview}
+
+A quick review of kimap's architecture:
+
+\begin{enumerate}
+    \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen).
+    \item A key (also called an entry) may be one of two types, a name-key or a data-key.
+    \item Every name-key is an ERC-721 NFT with an ERC-6551 token-bound account.
+        \subitem Name-keys may create sub-entries directly beneath themselves
+        \subitem Name-keys may inscribe data in data-keys directly beneath themselves.
+    \item A data-key is controlled by its parent name-key and points to bytes stored in contract memory.
+    \item All keys can be declared either mutable or immutable.
+    \item An owner of a key can apply rules to the path structure beneath that key.
+    \item Various protocols will run on top of kimap by inspecting specific name-keys and their data entries, and parsing those entries in various ways.
+    \item The top level keys are called Top-Level Zones or TLZs.
+        \subitem TLZ minting will be governed in a decentralized manner.
+        \subitem Once created, a TLZ may define custom rules for its sub-entries.
+        \subitem TLZs will produce the tapestry of namespace governance schemes that allow kimap to be used for a wide variety of protocols.
+\end{enumerate}
+
+All that remains for a full understanding of kimap's utility is the role of the KINO token, which operates in lockstep with the kimap namespace.
 
 \section{KINO Token}
 \label{sec:kino}
 
-\$KINO is a utility token designed to fill two roles in the Kinode network:
-\begin{enumerate}
-\item Assignment of relative value in the global namespace and
-\item Namespace and protocol governance.
-\end{enumerate}
+\$KINO is a utility token designed to fill two roles in the Kinode network: assignment of relative value in the global namespace and namespace/protocol governance.
 
-\subsection{Binding to kimap Namespace}
+\subsection{Binding}
 \label{sec:kinobind}
 
 A token holder may choose to \textit{bind} \$KINO to an entry in kimap.
-To bind \$KINO, a token holder submits a transaction to the kimap contract specifying the amount of \$KINO to bind and the target entry.
-Data-storing entries (prefixed with \verb|~|) cannot be a target for binding.
+To bind \$KINO, a token holder submits a transaction to the kimap contract specifying the amount of \$KINO to bind, the duration of the bind, and the target entry.
+
+The duration of a bind is specified in blocks and has a minimum value of around 7 days.
+
+Data keys (prefixed with \verb|~|) cannot be a target for binding.
 Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
 
 Binding is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
-Every protocol built on kimap can automatically benefit from the binding of \$KINO to keys to create a rankable listing data structure and market for user attention.
-Binding may also beget protocol rewards, which are assigned to the owner of the namespace entry, \textbf{not} the address which owns the bound tokens.
-This mechanism allows protocols on kimap to encourage and incentivize users to bind tokens to entries that are not their own.
+Every protocol built on kimap can automatically benefit from the binding of \$KINO to keys to create a listing data structure which can be sorted, filtered, and act as a market for user attention.
 
 \subsection{Unbinding}
 \label{sec:kinounbind}
 
-\$KINO can be unbound from a kimap entry at any time by the address which initially bound it.
 Unbinding is performed via a transaction to the kimap contract specifying the amount of \$KINO to unbind and the target entry.
-Note that multiple addresses can bind to the same kimap entry at any given time, meaning that various addresses may hold a claim to unbind \$KINO from an entry. Since the total amount of \$KINO bound to an entry will always be exactly equal to the sum of the claims by all addresses, the order of binding and unbinding operations is not contentious.
+Note that multiple addresses can bind to the same kimap entry at any given time, meaning that various addresses may hold a claim to unbind \$KINO from an entry.
+Since the total amount of \$KINO bound to an entry will always be exactly equal to the sum of the claims by all addresses, the order of binding and unbinding operations is not contentious.
 
 \subsection{Discussion}
 \label{sec:kinodiscussion}
@@ -1104,43 +1119,47 @@ Consider the operation of a web search engine.
 First, content is crawled and indexed.
 In the indexing process, semantic and relative value is assigned to a given piece of content.
 These weights are then used during a given search to provide a ranked set of content objects which best match the search query.
-Kimap combined with \$KINO is not itself a search engine, but it does provide the substrate to operate search engines and similar mechanisms in a decentralized way.
-The entries in the map are content, and bound \$KINO is a weight-primitive which applies a topology to that content.
+Kimap combined with \$KINO is not itself a search engine, but it does provide the substrate to operate such mechanisms in a decentralized way.
+The entries in the map are content and bound \$KINO is a weight-primitive which applies a topology to that content.
 
 This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
 A ``provider'' can be considered any party which places entries in the global namespace.
 Providers near-universally seek to optimize for visibility, which is a zero-sum competition with other providers.
-A ``user'' can be considered any ``set of eyes'' on the namespace (though not necessarily human eyes), which providers compete over.
+A ``user'' can be considered any ``set of eyes'' on the namespace (not necessarily human eyes), which providers compete over.
 Historically, both providers within and the operator of a centralized directory object have been incentivized to abuse the attention of users.
 Additionally, operators have been incentivized to unfairly extract from providers, devising schemes such as placing a competitor's entries above a provider unless a special fee is paid.
 Providers abuse attention in a similar manner by bribing operators to weight their content higher in areas where it's not actually relevant to the user.
 
 These inefficiencies appear unavoidable in the modern web.
 The kimap architecture combined with a single weighting mechanism publicly shared between users and providers presents an alternative in which all parties are forced to compete fairly.
-Users, too, are empowered to reward and punish entries in the global namespace.
-Because \textit{any address} can bind to \textit{any namespace entry}, the ability of a single provider to spend tokens on their irrelevant or otherwise spam-like entry is washed out by the broader ability of users to reward valued content by binding to it.
+Users, too, are empowered to reward entries in the global namespace.
+Because \textit{any address} can bind to \textit{any namespace entry}, the ability of a single provider to spend tokens on their irrelevant or otherwise spam-like entry is generally washed out by the broader ability of users to reward valued content by binding to it.
 
 Meanwhile, the ``operator'' role is neutralized.
 Kinode DAO is responsible for maintaining the namespace but has no control over the operation of a namespace entry held by another party or the binding/unbinding operations.
 The DAO is also naturally incentivized to increase the value of \$KINO by not interfering with its use as a weighting mechanism.
 Any ``thumb on the scale'' by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
 
-Because it is generic, the kimap+KINO substrate does not include a built-in algorithm to execute ``search'' or any other ranking strategy on its weights and values.
+The kimap+KINO substrate does not include a built-in algorithm to execute ``search'' or any other ranking strategy on its weights and values.
 There is no single algorithm that will apply to the entire kimap.
 Algorithms will instead be written for specific protocols running on kimap.
 These will have access to \$KINO bindings as one tool in determining quality rankings, and many will also take into account other factors.
 At the time of this writing, it is impossible to predict the specifics of algorithms that will enter popular use for evaluating protocols on kimap.
 
-Now, we must discuss two known risks facing kimap+KINO.
+\begin{center}
+\noindent\rule{8cm}{0.4pt}
+\end{center}
+
+Now, we must discuss two risks facing kimap+KINO.
 One may note that the onchain primitives described in this paper are remarkably simple.
 Binding and unbinding tokens does not require any game theory or MEV protection properties.
 Registering and mutating namespace entries is also not subject to adversarial conditions, since the ability to do so is only granted to an entry's owner.
-\footnote{However, that does not mean the same is true for contracts that utilize the protocol.
+\footnote{That does not mean the same is true for contracts that utilize the protocol.
 Kimap and KINO are designed to be modular–as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace, generate yield, and many other activities.
 These contracts must be designed carefully to avoid failure modes common to onchain protocols.
 For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and ``steal'' the name.
-A simple solution is to have the user commit to a hash of their desired name such as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{ENS does}.}
-As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{audits pending at the time of this writing}.
+A simple solution is to have the user commit to a hash of their desired name as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{in ENS}.}
+As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{Audits pending at the time of this writing.}.
 Instead, the risks presented are a combination of social and game-theoretic regarding the adoption of both kimap and \$KINO for their intended use.
 
 The first risk is that kimap does not inspire developers to built on it.
@@ -1157,12 +1176,14 @@ Kimap algorithms will undoubtedly, in many cases, take factors other than just t
 If another digital asset, token or otherwise, began to dominate these algorithms, it would have a negative impact on the value of \$KINO.
 This outcome is protected against by effectively distributing ownership of \$KINO between many different kinds of users.
 If users, providers, and the operator (the DAO) are all incentivized via protocol ownership, \$KINO will remain an extremely powerful Schelling point for its intended purpose.
+Tight integration in the OS itself will also mitigate this risk.
+Protocols such as KNS and the package manager already integrate with \$KINO and future development of protocols at the OS and core distribution level will use \$KINO.
 
 \subsection{Rewards}
 \label{sec:kinorewards}
 
-Why would a user, or anyone for that matter, bind tokens to a namespace entry?
-Two broad categories of reasoning, ``natural'' utility and ``augmented'' value, combine to justify the binding action.
+What inspires binding tokens to a namespace entry?
+Two broad categories of reasoning, ``natural utility'' and ``augmented value'', combine to justify the binding action.
 
 \subsubsection{Natural Utility}
 \label{sec:kinoutility}
@@ -1170,16 +1191,16 @@ Two broad categories of reasoning, ``natural'' utility and ``augmented'' value, 
 Binding tokens offers an automatic value to the owner of the bound namespace by enhancing their property's relative value and ranking in the various algorithms running on the namespace.
 For this reason, owners of a namespace entry will be naturally incentivized to bind their tokens to their namespace.
 This will manifest itself differently across different protocols running on kimap.
-In the Kinode Name System, tokens bound to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others.
-The mere social incentive to connect value to an identity namespace entry will likely inspire significant amounts of binding.
+In the Kinode Name System, tokens bound to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others that may be built in userspace or even directly into the OS.
+The mere social incentive to connect value to an identity will likely inspire binding.
 We expect this dynamic to play out not just for KNS entries, but also for a number of other social or social-adjacent protocols that naturally fit into the kimap architecture.
 
 \subsubsection{Augmented Value}
 \label{sec:kinoaugmentedvalue}
 
 Yield is not an inherent aspect of Kinode's onchain footprint.
-As noted above, the onchain Kinode protocol is simple.
-More complex elements such as onchain yield are expected to be built on top of kimap+KINO.
+As noted above, the binding protocol is quite simple.
+More complex elements such as onchain yield, however, are likely to be built by others on top of kimap+KINO.
 
 One way this is likely to occur is through yield mechanisms designed to reward users for binding \$KINO to a specific namespace entry. Other possibilities for augmented binding value are protocol-specific airdrops, profit distribution schemes, and protocols which enable users to earn value through binding some amount of tokens and then providing a service offchain (for example, a compute-provider network that provides completions-as-a-service using a particular large language model, which requires providers to bind a certain number of tokens to their own node identity through a contract in order to produce a reputational slashing mechanism).
 
@@ -1201,23 +1222,30 @@ It is not required that a protocol apply itself to the entire kimap.
 Instead, a protocol may define itself as only being valid within a single top-level domain, a subset of top-level zones, or even a subset of entries at some arbitrary level of nesting.
 This may prove to be an ideal way to run protocols in a future where kimap is very large and indexing the entire map is more difficult than indexing a subset of it.
 
-\section{Kinode DAO}
-\label{sec:dao}
+\section{Kinode Governance}
+\label{sec:governance}
 
-In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Kinode is presented as an inverted triangle with kimap+KINO and Kinode OS above Kinode DAO.
-Seated at the bottom, the DAO is responsible for:
+In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Kinode is presented as an inverted triangle with kimap+KINO and Kinode OS above Kinode Governance.
+Seated at the base of the protocol, Kinode's governance mechanism is responsible for:
 \begin{enumerate}
     \item Initially distributing the kimap namespace and stewarding it towards full permissionlessness via ossification at the TLZ level.
-    \item Incentivizing the use of the namespace until it becomes self-perpetuating.
-    \item Voting on proposals to improve Kinode in a backwards-compatible way over time, while ensuring that adoption of the offchain software remains aligned with growth of the onchain protocol.
+    \item Incentivizing use of the namespace until it becomes self-perpetuating.
+    \item Voting on proposals to improve Kinode OS in a backwards-compatible way over time, while ensuring that adoption of the offchain software remains aligned with growth of the onchain protocol.
 \end{enumerate}
 
 \subsection{veKINO Token}
 \label{sec:daovekino}
 
+To achieve decentralized governance, our mechanism takes the form of a DAO with a voting token.
+This token is acquired via use of the protocol itself: by binding \$KINO.
+
 Binding \$KINO mints an equivalent amount of \$veKINO to the address which performs the binding.
 \$veKINO is a non-transferable vote-escrow token used by Kinode DAO to execute governance proposals.
-This is not an empty role–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
+
+As noted in Section~\ref{sec:kinobind}, binding \$KINO occurs for a set time period.
+The bind duration produces a decay curve which determines the voting power of \$veKINO created from binding.
+
+Governance is not an empty role in Kinode–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
@@ -1225,44 +1253,16 @@ There is no governance necessary if a protocol is truly immutable and permission
 
 While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLZ purchasers and to prevent abuse.
 
-\subsubsection{Creating Proposals}
-\label{sec:daoproposals}
-
-[TODO]
-
-\subsubsection{Voting and Rewards}
-\label{sec:daovoting}
-
-[TODO]
-
-\subsubsection{Delegation}
-\label{sec:daodelegation}
-
-% I think we may need to change this part if it required that users maintain hot keys to sign their votes
-% Is there a way around that? Maybe we can require the offchain vote utility to use their node's networking key
-% to prove they actually voted in this manner? that key, by default, is a hot key.
-% Does that have enough security when it comes to votes?
-% If not, we may be better off making a system that affords users the possibility of signing their vote
-% with a wallet of their choice, for instance a hardware wallet, while allowing users who delegate their
-% votes to do so without signing anything.
-Rather than complicate the namespace and voting mechanisms with built-in onchain delegation, Kinode governance leverages the power of personal nodes to enable offchain vote delegation.
-Users who wish to delegate their vote to another member may run software in their Kinode voting app to simply match the behavior of that other namespace entry onchain.
-This allows users to be rewarded for participation while retaining full control of their vote.
-The DAO (and possibly large voting entities) also has the ability to run paymaster server(s) to allow for free governance participation in this way.
-Users may perform a one-time approval to execute votes through a paymaster leveraging account abstraction for “free” voting.
-
-\subsection{Governance Structure}
-\label{sec:daogovernance}
-
 \subsection{TLZ Management}
-\label{sec:daotldmanagement}
+\label{sec:daotlzmanagement}
 
-The most important role of the DAO is to steward the kimap namespace until it can stand on its own.
-Every nascent network requires sustained effort to aquire network effects–the creation of Kinode OS can be considered the beginning of the DAO's efforts to increase the value of the Kinode namespace.
+The most important role of the governance mechanism is to steward the kimap namespace until it can stand on its own.
+\footnote{Note that each TLZ can create its own form of governance, and we hope to see a diversity of approaches. The Kinode governance mechanism does not dictate how any portion of the namespace operates.}
+Every nascent network requires sustained effort to aquire network effects–the development of Kinode OS can be considered the beginning of Kinode DAO's efforts to increase the value of the Kinode namespace.
 
 At some point, ownership of the kimap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
 Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
-In practice, though, there should be many hundreds or thousands of namespace owners.
+In practice, though, there should be many hundreds of TLZ owners.
 Reasonable behavior by owners will be modulated by two things:
 \begin{enumerate}
     \item The ability of sub-entry owners to move to other areas of the namespace.
@@ -1275,16 +1275,56 @@ From that point on, the DAO will continue to steward development of the OS and l
 \subsubsection{TLZ Auctions}
 \label{sec:daotldauctions}
 
-Initial namespace distribution will almost certainly take the form of auctions, in which the DAO executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
+Initial namespace distribution will take the form of auctions, in which the DAO executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
 Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.
 \footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
 TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
 
-\subsubsection{Profitability}
-\label{sec:daoprofit}
-
 By auctioning off and otherwise selling namespace, particularly top-level namespace, the DAO may generate revenue.
 Revenue earned by the DAO will be applied to the treasury which funds rewards for governance participation and initiatives to further increase the value of the namespace.
+
+\subsection{Progressive Decentralization}
+\label{sec:daodecentralization}
+
+Through 3 phases, Kinode governance will transition from a small team of developers to a fully dencentralized protocol.
+
+In phase 1, a small set of TLZs will be selected for creation. These will be minted directly to contracts, including ones already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|kino|, ones associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
+
+During phase 1, more TLZs may be created and distributed.
+The \$KINO binding mechanism will be activated during this time.
+
+In phase 2, voting but not proposal creation with \$veKINO is enabled.
+In order to achieve distributed ownership of the namespace, the first \$veKINO vote will be to approve a list of TLZs to be auctioned off.
+Auctions will be priced in ETH which will seed a treasury controlled by \$veKINO voters.
+The exact format of the auction is to-be-determined: it will be onchain with permissionless participation.
+\footnote{The auction contract used in phase 2 will sell \textit{ownership} of a TLZ: the winner will have the asset transferred to their address.
+Phase 3 allows voters to approve any kind of auction contract, which may include styles of auction that do not transfer ownership, but rather implement some kind of rent mechanism.
+TLZs can also implement rent mechanisms of all sorts within their namespace, which is one of the many modes of TLZ governance we hope to see.}
+
+Phase 2 will last until EITHER:
+\begin{itemize}
+    \item the auctions have completed AND 1 year has passed.
+    \item the auctions have completed AND the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by \$veKINO voters.
+    This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
+\end{itemize}
+
+Phase 3 begins fully decentralized operation of the DAO.
+Proposals are activated, which combined with voting completes the governance mechanism.
+
+The vote-proposal system includes a precise set of actions
+\begin{itemize}
+    \item Approve/Deny new TLZ + auction contract for auction
+    \item Approve/Deny new Kinode Improvement Proposal (KIP)
+    \item Approve/Deny new Kinode Specification
+    \item Approve/Deny sending X amount of Y token from treasury to Z address
+\end{itemize}
+
+Proposals will be shared peer-to-peer in the Kinode network using a protocol to-be-determined, which will involve a mechanism to filter for meaningful proposals (itself using `kimap` and \$KINO for this purpose, naturally).
+
+Since Kinode Improvement Proposals (KIPs) affect (only) offchain software, they only exist to alter the agreed-upon specification of the operating system, which is written, hashed, and posted onchain.
+A successful KIP will result in a Specification vote.
+At the point of a successful specification change, all Kinode users are expected to run an implementation of the operating system that comports to the new specification.
+This will act as an effective schelling point for the network.
 
 \subsection{Default-distro App: Governance Portal}
 \label{sec:daoportal}
@@ -1293,13 +1333,14 @@ Conveniently, the DAO will package a Governance Portal app alonside App Store (a
 The app will serve as a central point where a node identity can create, vote on, and review proposals.
 Since \$veKINO may be held in the token-bound account attached to every namespace entry (and thus node identity) its use within a node is quite natural.
 
-Auctions and other DAO-led onchain activities will also be accessible through the built-in Governance Portal.
+Auctions and other onchain activities may also be accessible through the Governance Portal.
 
 \subsection{Other Duties}
 \label{sec:daoduties}
 
 The DAO may perform other work to increase the value of the namespace and improve the functionality of the OS, such as developing more kimap protocols like KNS and the package manager.
 It may also take actions to incentivize use of kimap and \$KINO together.
+Finally, funding and promotional materials for the OS will be proposed and approved by the DAO.
 
 \section{A Kinode Future}
 \label{sec:future}
