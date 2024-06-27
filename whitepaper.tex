@@ -133,9 +133,9 @@ A brief description:
     \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen).
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
-    \item Every name-key is an ERC-721 NFT (non-fungible token),
+    \item Every name-key is an ERC-721\footnote{https://eips.ethereum.org/EIPS/eip-721} NFT (non-fungible token),
     with a connected token bound account with a counterfactual address,
-    that is a smart contract account implemented according to the ERC-7579\footnote{https://erc7579.com/\#the-standard} standard.
+    that is a smart contract account implemented according to the ERC-7579\footnote{https://eips.ethereum.org/EIPS/eip-7579} standard.
     \item Every name-key may inscribe data in data-keys directly beneath it.
     \item All keys can be declared either mutable or immutable.
 \end{enumerate}
@@ -692,7 +692,24 @@ The networking protocol itself will not be fully specified here, as it is still 
 \subsubsection{HTTP Client \& Server}
 \label{sec:oshttp}
 
-[TODO describe]
+Web access is a critical part of many programs that run on Kinode.
+A built-in HTTP client module allows processes to ingest data from the web.
+The HTTP server module allows processes to serve data to the web, either statically by sending a payload to be served for a given path, or dynamically by requesting the server module to forward incoming HTTP requests to the process.
+Both modules present a request-response API (documented elsewhere).
+
+Most programs that present an interface to the node user do so through a combination of static and dynamic HTTP server path bindings.
+All paths bound by a process are prefixed with the \verb|process-id|, in order to remove the possibility of collisions or imposter resources.
+Further, paths may be bound as ``authenticated'', meaning that access will require a JSON Web Token (JWT) given via password login to the node.
+Once the token is acquired via login, a user may access any authenticated path served by processes on the node.
+
+This raises a subtle security issue: if a process serves an API allowing the user to perform various actions over HTTP (as is quite common), other processes running on the same node can easily access the API by serving a frontend JavaScript file of their own, which can fetch content from any authenticated path on the node.
+This circumvents the capability-based security model applied to inter-process communication and suddenly shifts the trust assumptions for all software installed on a node that acquires the capability to message the HTTP modules.
+
+Rather than allow this escalation of trust assumptions, the HTTP server provides a special mechanism to serve authenticated paths that are only accessible at a \textit{subdomain}.
+The security model of the browser is thus leveraged to generate a new JWT for the subdomain URL, required for access to the paths at the subdomain and disallowing client access from the base domain.
+Users may then login at the subdomain with the same password as the base node server and generate a new token in their browser.
+We call this model ``Secure Subdomains''.
+Processes that serve sensitive HTTP APIs for user interfaces are encouraged to use Secure Subdomains to properly sandbox these operations away from other software running on the user's node.
 
 \subsubsection{ETH RPC}
 \label{sec:oseth}
@@ -702,7 +719,11 @@ The networking protocol itself will not be fully specified here, as it is still 
 \subsubsection{SQLite, KV-Store}
 \label{sec:osdbs}
 
-[TODO describe]
+In addition to the VFS, the OS provides SQLite and key-value store runtime modules.
+These modules serve as high-performance disk storage options for processes that require persistence.
+Each module has a request-response API (documented elsewhere) exposing their respective operations.
+Both SQLite and KV-store structure requests such that processes with the default messaging capability may create and access only their own tables.
+Of course, processes may use other storage options designed in userspace or as runtime extensions.
 
 \subsection{Runtime Extensions}
 \label{sec:osextensions}
@@ -975,7 +996,7 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 As described in Section~\ref{sec:kimap}, kimap is an onchain hierarchical key-value store.
 Each entry is an ERC-721 NFT.
 Entries within kimap may store data in their memory slot within the map.
-Each entry may also be minted as an ERC-6551 token-bound account.
+Each entry may also be minted as an ERC-6551\footnote{https://eips.ethereum.org/EIPS/eip-6551} token-bound account.
 Perhaps most importantly, entries control their own sub-entries.
 
 Combining these properties allows for the creation of advanced permissioning systems within kimap, allowing the namespace as a whole to become a tapestry of sub-namespaces, each with unique properties.
@@ -1309,12 +1330,9 @@ The exact format of the auction is to-be-determined: it will be onchain with per
 Phase 3 allows voters to approve any kind of auction contract, which may include styles of auction that do not transfer ownership, but rather implement some kind of rent mechanism.
 TLZs can also implement rent mechanisms of all sorts within their namespace, which is one of the many modes of TLZ governance we hope to see.}
 
-Phase 2 will last until EITHER:
-\begin{itemize}
-    \item the auctions have completed AND 1 year has passed.
-    \item the auctions have completed AND the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by \$veKINO voters.
-    This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
-\end{itemize}
+Phase 2 will last until the auctions have completed and the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by \$veKINO voters.
+This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
+Development of the OS to the point of specification may take anywhere from 6 months to one year from the current Beta implementation.
 
 Phase 3 begins fully decentralized operation of the DAO.
 Proposals are activated, which combined with voting completes the governance mechanism.
