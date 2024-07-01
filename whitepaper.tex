@@ -713,8 +713,34 @@ Processes that serve sensitive HTTP APIs for user interfaces are encouraged to u
 
 \subsubsection{ETH RPC}
 \label{sec:oseth}
+The OS includes an Ethereum (and EVM-compatible chains) indexing runtime module, \verb|eth:distro:sys|, which provides read and write access to blockchain data. This module can connect directly to WebSocket RPC endpoints or relay through other Kinode nodes, forming a potential chain of relays.
 
-[TODO describe]
+The module implements standard Ethereum JSON-RPC API methods, supporting operations such as querying block data, retrieving account balances, estimating gas costs, and sending transactions. Processes interact with this module through a request-response API, typically using a \verb|Provider| struct that encapsulates chain-specific details and request handling.
+
+Optional \verb|.eth_providers| and \verb|.eth_access_settings| JSON files in the node's home folder may be used to configure the module. The former allows users to specify their preferred RPC endpoints, relay nodes, and chain-specific settings, and the latter controls whether other nodes may use this node as a provider with potential allow/deny lists. The configuration can also be modified at runtime through the module's API, enabling flexible provider management.
+
+The module supports both one-time requests and subscriptions, particularly useful for monitoring real-time events specific log entries or kimap note keys. Subscriptions are managed through unique identifiers, allowing processes to filter and unsubscribe from event streams as needed.
+
+\verb|eth:distro:sys| also integrates with Kinode-specific functionalities, such as querying the kimap contract, which is central to Kinode's naming and identity system. This allows processes to interact with Kinode-specific on-chain data seamlessly.
+
+\begin{verbatim}
+let node = namehash("node.foo.os");
+let (tba, owner, note) = provider.kimap_get(&node)?;
+\end{verbatim}
+
+The module acts as a relay and subscription manager for Ethereum JSON-RPC requests and responses. Processes may use helper functions and structs to format requests according to the Ethereum JSON-RPC specification\footnote{\url{https://ethereum.github.io/execution-apis/api-documentation/}}.
+
+\verb|eth:distro:sys| handles maintenance of subscriptions, managing provider connections, and facilitating the routing of Ethereum data between Kinode instances, allowing processes to have direct control over their Ethereum interactions while benefiting from the module's network management capabilities, including the ability to relay requests through other nodes when direct RPC access is unavailable or not yet configured.
+
+This design facilitates the development of decentralized applications that can efficiently interact with global blockchain networks, even in constrained peer-to-peer environments. It allows for unique scaling possibilities:
+
+\begin{itemize}
+\item Applications can default to public endpoints while allowing users to easily switch to their own nodes.
+\item Nodes without direct RPC access can relay through peers, distributing network load.
+\item Multi-chain applications can be built with a unified interface, simplifying development across different EVM-compatible networks.
+\end{itemize}
+
+By providing this flexible and powerful interface to Ethereum and other EVM chains, Kinode OS enables developers to create robust blockchain-integrated applications while giving users control over their blockchain access points.
 
 \subsubsection{SQLite, KV-Store}
 \label{sec:osdbs}
