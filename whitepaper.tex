@@ -147,7 +147,7 @@ For a description of the value-assignment mechanism that overlaps kimap, see Sec
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     os
         foo
             ~ip
@@ -168,7 +168,7 @@ For a description of the value-assignment mechanism that overlaps kimap, see Sec
         bob
             ~routers
             ~net-key
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Example kimap.}
     \label{fig:example kimap}
 \end{figure}
@@ -348,7 +348,7 @@ Some types in kinode.wit are omitted for brevity or because they are discussed l
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     // JSON is passed over WASM boundary as a string.
     type json = string;
 
@@ -369,7 +369,7 @@ Some types in kinode.wit are omitted for brevity or because they are discussed l
         mime: option<string>,
         bytes: list<u8>,
     }
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Basic types in kinode.wit}
     \label{fig:WIT Types 1}
 \end{figure}
@@ -386,7 +386,7 @@ The Wasm Component model allows these functions to be called by processes.
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     // self-configuration
     print-to-terminal()
     set-on-exit()
@@ -408,7 +408,7 @@ The Wasm Component model allows these functions to be called by processes.
     send-requests()
     send-response()
     send-and-await-response()
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Host functions in kinode.wit}
     \label{fig:WIT Functions}
 \end{figure}
@@ -421,12 +421,12 @@ The process format enforced by kinode.wit is remarkably simple: it imports the t
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     world process {
         include lib;
         export init: func(our: string);
     }
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Process world in kinode.wit}
     \label{fig:Process world}
 \end{figure}
@@ -471,7 +471,7 @@ A message has a single source \verb|address| and a single target \verb|address|.
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     record request {
         inherit: bool,
         expects-response: option<u64>,
@@ -489,7 +489,7 @@ A message has a single source \verb|address| and a single target \verb|address|.
         request(request),
         response(tuple<response, option<context>>),
     }
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Message type in kinode.wit}
     \label{fig:WIT Types 2}
 \end{figure}
@@ -543,12 +543,12 @@ Not only must these tools be granted to programs on a case-by-case basis, but wi
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     record capability {
         issuer: address,
         params: json,
     }
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Capability type in kinode.wit}
     \label{fig:WIT Types 3}
 \end{figure}
@@ -609,7 +609,7 @@ Kinode OS can expose new primitives at the runtime level via \textit{extensions}
 Now that the OS has been described in the abstract, and before we dive in to the specific designs of various runtime modules, it may be helpful to provide a code sample showing what a process actually looks like.
 
 \begin{figure}[H]
-\begin{lstlisting}
+\begin{verbatim}
 wit_bindgen::generate!({
     path: "wit",
     world: "process-v0",
@@ -629,7 +629,7 @@ impl Guest for Component {
         );
     }
 }
-\end{lstlisting}
+\end{verbatim}
     \caption{A process implemented in Rust}
     \label{fig:example process}
 \end{figure}
@@ -834,7 +834,7 @@ A \verb|metadata-uri| entry must contain a UTF-8 string: a Uniform Resource Iden
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     os
         foo
             ~ip
@@ -856,7 +856,7 @@ A \verb|metadata-uri| entry must contain a UTF-8 string: a Uniform Resource Iden
                 boozle
                     ~metadata-hash
                     ~metadata-uri
-    \end{lstlisting}
+    \end{verbatim}
     \caption{Example kimap with multiple packages present.}
     \label{fig:example kimap with packages}
 \end{figure}
@@ -876,7 +876,7 @@ If these requirements are met, a user may use \verb|metadata.json| to gather inf
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
         {
             "name": "template",
             "description": "a description of the package",
@@ -897,7 +897,7 @@ If these requirements are met, a user may use \verb|metadata.json| to gather inf
             "external_url": "a URL to a project website",
             "animation_url": "a URL to an animation file"
         }
-    \end{lstlisting}
+    \end{verbatim}
     \caption{A metadata file.}
     \label{fig:example metadata.json}
 \end{figure}
@@ -922,7 +922,7 @@ The manifest is a JSON array where each element is a description of a process th
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
         [
             {
                 "process_name": "chess",
@@ -941,7 +941,7 @@ The manifest is a JSON array where each element is a description of a process th
                 "public": true
             }
         ]
-    \end{lstlisting}
+    \end{verbatim}
     \caption{A manifest file.}
     \label{fig:example manifest.json}
 \end{figure}
