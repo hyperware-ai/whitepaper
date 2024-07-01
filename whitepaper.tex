@@ -612,7 +612,7 @@ Now that the OS has been described in the abstract, and before we dive in to the
 \begin{lstlisting}
 wit_bindgen::generate!({
     path: "wit",
-    world: "process",
+    world: "process-v0",
 });
 
 struct Component;
@@ -973,6 +973,8 @@ It provides a variety of tools, including but not limited to:
 \item \verb|build|: Builds packages by compiling processes within
 \item \verb|start-package|: Installs and starts a built package
 \item \verb|boot-fake-node|: Runs ``fake'' temporary development nodes
+\item \verb|boot-real-node|: Runs a node with a given ``home'' directory
+\item \verb|chain|: Starts a local chain with kimap contracts for development
 \item \verb|run-tests|: Runs user-defined tests on a network of ``fake'' nodes
 \end{itemize}
 
