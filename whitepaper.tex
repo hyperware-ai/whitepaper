@@ -28,7 +28,6 @@ Nicholas B Ludwig \and
 James Foley \and
 Markus Vaas
 }
-% need this not to get "no institute given"
 \institute{Sybil Technologies AG}
 %
 \maketitle % typeset the header of the contribution
@@ -205,12 +204,12 @@ The definition of a node identity in the KNS protocol is any kimap entry that ha
     \item \begin{enumerate}
         \item A \verb|~routers| sub-entry OR
         \item An \verb|~ip| sub-entry AND at least one of:
-        	\begin{enumerate}
-        	\item \verb|~tcp-port| sub-entry
-        	\item \verb|~udp-port| sub-entry
-        	\item \verb|~ws-port| sub-entry
-        	\item \verb|~wt-port| sub-entry
-        	\end{enumerate}
+            \begin{enumerate}
+                \item \verb|~tcp-port| sub-entry
+                \item \verb|~udp-port| sub-entry
+                \item \verb|~ws-port| sub-entry
+                \item \verb|~wt-port| sub-entry
+            \end{enumerate}
         \end{enumerate}
 \end{enumerate}
 
@@ -238,10 +237,10 @@ Otherwise it is interpreted as an IPv6 address.
 Lastly, the bytes at any of the following port entries must be 2 big-endian bytes corresponding to a 16-bit unsigned integer:
 
 \begin{enumerate}
-\item \verb|~tcp-port| sub-entry
-\item \verb|~udp-port| sub-entry
-\item \verb|~ws-port| sub-entry
-\item \verb|~wt-port| sub-entry
+	\item \verb|~tcp-port| sub-entry
+	\item \verb|~udp-port| sub-entry
+	\item \verb|~ws-port| sub-entry
+	\item \verb|~wt-port| sub-entry
 \end{enumerate}
 
 These integers are translated to port numbers.
@@ -350,7 +349,7 @@ Some types in kinode.wit are omitted for brevity or because they are discussed l
 \begin{figure}[H]
     \centering
     \begin{verbatim}
-    // JSON is passed over WASM boundary as a string.
+    // JSON is passed over Wasm boundary as a string.
     type json = string;
 
     type node-id = string;
@@ -440,7 +439,7 @@ When \verb|init| returns, the process will cease execution.
 \subsection{Microkernel}
 \label{sec:osmicrokernel}
 
-Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{A microkernel architecture is ideal for a ``Wasm OS'' because it allows a maximal amount of system logic to live in Wasm itself, allowing system code to experience all the safety and conveniences afforded to userspace processes. See https://wiki.osdev.org/Microkernel} which is responsible for five things:
+Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{A microkernel architecture is ideal for a ``Wasm OS'' because it allows a maximal amount of system logic to live in Wasm itself, allowing system code to experience all the safety and conveniences afforded to userspace processes. See \href{https://wiki.osdev.org/Microkernel}{https://wiki.osdev.org/Microkernel}} which is responsible for five things:
 \begin{enumerate}
     \item Using a Wasm runtime
     \footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
@@ -535,8 +534,8 @@ The networking protocol's role as a general-purpose messaging system means that 
 \subsection{Capabilities-Based Security}
 \label{sec:oscapabilities}
 
-Kinode OS uses capabilities\footnote{Capabilities are "unforgeable tokens of authority", validated by the kernel, that allow processes to acquire privileges both at the runtime and userspace level.
-See the paper "Capability Myths Demolished" for a good introduction to the topic.}
+Kinode OS uses capabilities\footnote{Capabilities are ``unforgeable tokens of authority'', validated by the kernel, that allow processes to acquire privileges both at the runtime and userspace level.
+See the paper ``Capability Myths Demolished'' for a good introduction to the topic.}
 to enable sensible security between both userspace processes and runtime modules.
 Security between programs is directly related to the sovereignty goals of the OS: a user must be able to install a program without needing to evaluate its source code or blindly trust its developer.
 Wasm programs are sandboxed, but have access to powerful tools including networking, memory, CPU, and disk space, not to mention the possible secrets they contain (consider a wallet program).
@@ -736,9 +735,9 @@ The module acts as a relay and subscription manager for Ethereum JSON-RPC reques
 This design facilitates the development of decentralized applications that can efficiently interact with global blockchain networks, even in constrained peer-to-peer environments. It allows for unique scaling possibilities:
 
 \begin{itemize}
-\item Applications can default to public endpoints while allowing users to easily switch to their own nodes.
-\item Nodes without direct RPC access can relay through peers, distributing network load.
-\item Multi-chain applications can be built with a unified interface, simplifying development across different EVM-compatible networks.
+	\item Applications can default to public endpoints while allowing users to easily switch to their own nodes.
+	\item Nodes without direct RPC access can relay through peers, distributing network load.
+	\item Multi-chain applications can be built with a unified interface, simplifying development across different EVM-compatible networks.
 \end{itemize}
 
 By providing this flexible and powerful interface to Ethereum and other EVM chains, Kinode OS enables developers to create robust blockchain-integrated applications while giving users control over their blockchain access points.
@@ -954,15 +953,12 @@ The manifest contains an array of objects, each of which corresponds to a proces
 
 \verb|process_name| sets the name of the process and \verb|process_wasm_path| allows the developer to specify the path to the WebAssembly binary file for the process, relative to the \verb|pkg| directory.
 
-The \verb|on_exit| field sets the behavior of the process when it exits:
-
-There are three possible behaviors.
-
-- 1. \verb|"None"| - The process is not restarted and nothing happens.
-
-- 2. \verb|"Restart"| - The process is restarted immediately.
-
-- 3. \verb|"Requests"| - The process is not restarted, and a list of requests set by the process are fired off. These requests have the \verb|source| and \verb|capabilities| of the exiting process.
+The \verb|on_exit| field sets the behavior of the process when it exits. There are three possible behaviors:
+\begin{enumerate}
+    \item \verb|"None"| - The process is not restarted and nothing happens.
+	\item \verb|"Restart"| - The process is restarted immediately.
+	\item \verb|"Requests"| - The process is not restarted, and a list of requests set by the process are fired off. These requests have the \verb|source| and \verb|capabilities| of the exiting process.
+\end{enumerate}
 
 Documentation and examples of this behavior, along with some subtleties regarding process crashes, can be found in the Kinode Book\footnote{https://book.kinode.org}.
 
@@ -988,6 +984,11 @@ The app store also uses \$KINO to enable ranking and filtering of available apps
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization.
 In the case of an app store, this manifests as copycat apps, low-effort scams, and a lack of discoverability for even very popular and widely-installed apps.
 Binding \$KINO to packages published in kimap allows users to (a) only display apps that have a certain amount of value assigned to them, filtering out discarded tests and spam, and (b) have a metric to compare apps against one another, allowing one to compare two similarly-named apps and easily see which is more widely adopted in the peer-to-peer network.
+Binding \$KINO to packages published in kimap allows users to
+\begin{enumerate}
+	\item Only display apps that have a certain amount of value assigned to them, filtering out discarded tests and spam, and
+	\item Have a metric to compare apps against one another, allowing one to compare two similarly-named apps and easily see which is more widely adopted in the peer-to-peer network.
+\end{enumerate}
 This basic filter-and-sort mechanism repeats itself across all protocols in kimap.
 Since each node in the network can directly index and apply algorithms to the namespace, different implementations of software can filter-and-sort using different paramters customized to user preference and use-case.
 
@@ -996,13 +997,13 @@ Since each node in the network can directly index and apply algorithms to the na
 Kit is the CLI (command-line interface) development toolkit for Kinode.
 It provides a variety of tools, including but not limited to:
 \begin{itemize}
-\item \verb|new|: Creates packages from templates
-\item \verb|build|: Builds packages by compiling processes within
-\item \verb|start-package|: Installs and starts a built package
-\item \verb|boot-fake-node|: Runs ``fake'' temporary development nodes
-\item \verb|boot-real-node|: Runs a node with a given ``home'' directory
-\item \verb|chain|: Starts a local chain with kimap contracts for development
-\item \verb|run-tests|: Runs user-defined tests on a network of ``fake'' nodes
+	\item \verb|new|: Creates packages from templates
+	\item \verb|build|: Builds packages by compiling processes within
+	\item \verb|start-package|: Installs and starts a built package
+	\item \verb|boot-fake-node|: Runs ``fake'' temporary development nodes
+	\item \verb|boot-real-node|: Runs a node with a given ``home'' directory
+	\item \verb|chain|: Starts a local chain with kimap contracts for development
+	\item \verb|run-tests|: Runs user-defined tests on a network of ``fake'' nodes
 \end{itemize}
 
 Kit aims to provide developers with every tool required to go from idea to finished project.
@@ -1149,16 +1150,20 @@ A quick review of kimap's architecture:
     \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen).
     \item A key (also called an entry) may be one of two types, a name-key or a data-key.
     \item Every name-key is an ERC-721 NFT with an ERC-6551 token-bound account.
-        \subitem Name-keys may create sub-entries directly beneath themselves
-        \subitem Name-keys may inscribe data in data-keys directly beneath themselves.
+        \begin{enumerate}
+            \item Name-keys may create sub-entries directly beneath themselves
+            \item Name-keys may inscribe data in data-keys directly beneath themselves.
+        \end{enumerate}
     \item A data-key is controlled by its parent name-key and points to bytes stored in contract memory.
     \item All keys can be declared either mutable or immutable.
     \item An owner of a key can apply rules to the path structure beneath that key.
     \item Various protocols will run on top of kimap by inspecting specific name-keys and their data entries, and parsing those entries in various ways.
     \item The top level keys are called Top-Level Zones or TLZs.
-        \subitem TLZ minting will be governed in a decentralized manner.
-        \subitem Once created, a TLZ may define custom rules for its sub-entries.
-        \subitem TLZs will produce the tapestry of namespace governance schemes that allow kimap to be used for a wide variety of protocols.
+        \begin{enumerate}
+            \item TLZ minting will be governed in a decentralized manner.
+            \item Once created, a TLZ may define custom rules for its sub-entries.
+            \item TLZs will produce the tapestry of namespace governance schemes that allow kimap to be used for a wide variety of protocols.
+        \end{enumerate}
 \end{enumerate}
 
 All that remains for a full understanding of kimap's utility is the role of the KINO token, which operates in lockstep with the kimap namespace.
