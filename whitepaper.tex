@@ -39,7 +39,6 @@ Users can run their own services at both the interface and backend level.
 Corporations or other entities can provide services in a permissionless, protocolized manner.
 This node-based cloud computing model resolves the impedance mismatch between onchain protocols and web services.
 Developers can write apps in any programming language that compiles to Wasm and easily distribute them to nodes.
-
 The Kinode platform includes several components which will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for governing and assigning value to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
 All of these components work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
@@ -1217,7 +1216,7 @@ Because \textit{any address} can bind to \textit{any namespace entry}, the abili
 
 Meanwhile, the ``operator'' role is neutralized.
 Kinode DAO is responsible for maintaining the namespace but has no control over the operation of a namespace entry held by another party or the binding/unbinding operations.
-The DAO is also naturally incentivized to increase the value of \$KINO by not interfering with its use as a weighting mechanism.
+The DAO is incentivized not to interfere with the utility of \$KINO as a weighting mechanism.
 Any ``thumb on the scale'' by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
 
 The kimap+KINO substrate does not include a built-in algorithm to execute ``search'' or any other ranking strategy on its weights and values.
@@ -1247,11 +1246,11 @@ Protocols such as KNS and the package manager already integrate with \$KINO and 
 
 What inspires binding tokens to a namespace entry?
 
-Binding tokens offers an automatic value to the owner of the bound namespace by enhancing their property's relative value and ranking in the various algorithms running on the namespace.
+Binding tokens offers utility to the owner of the bound namespace by enhancing their property's ranking in various algorithms running on the namespace.
 For this reason, owners of a namespace entry will be naturally incentivized to bind their tokens to their namespace.
 This will manifest itself differently across different protocols running on kimap.
 In the Kinode Name System, tokens bound to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others that may be built in userspace or even directly into the OS.
-The mere social incentive to connect value to an identity will likely inspire binding.
+The mere social incentive to connect utility to an identity will likely inspire binding.
 We expect this dynamic to play out not just for KNS entries, but also for a number of other social or social-adjacent protocols that naturally fit into the kimap architecture.
 
 \subsection{Current and Future Uses}
@@ -1291,16 +1290,16 @@ Governance is not an empty role in Kinode–unlike purely onchain protocols, whi
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and has a significant governance burden which must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
+There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
 
-While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects will likely be added to the protocol on a regular basis to keep pace with the fast-moving world of software. The namespace also requires active governance in order to extract fair value from TLZ purchasers and to prevent abuse.
+While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects can be added to the protocol to keep pace with the fast-moving world of software.
 
 \subsection{TLZ Management}
 \label{sec:daotlzmanagement}
 
 The most important role of the governance mechanism is to steward the kimap namespace until it can stand on its own.
 \footnote{Note that each TLZ can create its own form of governance, and we hope to see a diversity of approaches. The Kinode governance mechanism does not dictate how any portion of the namespace operates.}
-Every nascent network requires sustained effort to aquire network effects–the development of Kinode OS can be considered the beginning of Kinode DAO's efforts to increase the value of the Kinode namespace.
+Every nascent network requires sustained effort to aquire network effects–the development of Kinode OS can be considered the beginning of Kinode DAO's efforts to increase the utility of the Kinode namespace.
 
 At some point, ownership of the kimap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
 Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
@@ -1312,7 +1311,7 @@ Reasonable behavior by owners will be modulated by two things:
 \end{enumerate}
 
 Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, Kinode DAO will have succeeded in the first phase of its role.
-From that point on, the DAO will continue to steward development of the OS and likely still manage significant parts of the namespace itself.
+From that point on, the DAO will continue to contribute to the development of all open-source components of the software
 
 \subsubsection{TLZ Auctions}
 \label{sec:daotldauctions}
@@ -1323,7 +1322,7 @@ Auctions can take many forms, such as English or Dutch, and many smart contract 
 TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
 
 By auctioning off and otherwise selling namespace, particularly top-level namespace, the DAO may generate revenue.
-Revenue earned by the DAO will be applied to the treasury which funds rewards for governance participation and initiatives to further increase the value of the namespace.
+Revenue earned by the DAO will be applied to the treasury which funds rewards for governance participation and initiatives to further increase the utility of the namespace.
 
 \subsection{Progressive Decentralization}
 \label{sec:daodecentralization}
@@ -1377,7 +1376,7 @@ Auctions and other onchain activities may also be accessible through the Governa
 \subsection{Other Duties}
 \label{sec:daoduties}
 
-The DAO may perform other work to increase the value of the namespace and improve the functionality of the OS, such as developing more kimap protocols like KNS and the package manager.
+The DAO may perform other work to increase the utility of the namespace and improve the functionality of the OS, such as developing more kimap protocols like KNS and the package manager.
 It may also take actions to incentivize use of kimap and \$KINO together.
 Finally, funding and promotional materials for the OS will be proposed and approved by the DAO.
 
