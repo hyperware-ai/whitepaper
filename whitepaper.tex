@@ -1236,7 +1236,7 @@ Registering and mutating namespace entries is also not subject to adversarial co
 Kimap and KINO are designed to be modular–as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace and other such things.
 These contracts must be designed carefully to avoid failure modes common to onchain protocols.
 For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and ``steal'' the name.
-A simple solution is to have the user commit to a hash of their desired name as \url{https://docs.ens.domains/registry/eth\#commit-reveal}{in ENS}.}
+A simple solution is to have the user commit to a hash of their desired name as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{in ENS}.}
 As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{Audits pending at the time of this writing.}.
 
 It is possible for algorithms operating on kimap to use other weight systems, even including a binding/unbinding system deployed by someone else that uses an entirely different token.
