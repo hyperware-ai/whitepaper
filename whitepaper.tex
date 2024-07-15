@@ -133,13 +133,13 @@ A brief description:
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
     \item Every name-key is an ERC-721\footnote{https://eips.ethereum.org/EIPS/eip-721} NFT (non-fungible token),
-    with a connected token bound account with a counterfactual address,
+    with a connected token-bound account with a counterfactual address,
     that is a smart contract account implemented according to the ERC-7579\footnote{https://eips.ethereum.org/EIPS/eip-7579} standard.
     \item Every name-key may inscribe data in data-keys directly beneath it.
     \item All keys can be declared either mutable or immutable.
 \end{enumerate}
 
-For a complete specification, see Advanced Kimap in Section~\ref{sec:kimapadvanced}, which goes into detail regarding token bound accounts, sub-entry management, the use of data keys, and protocol extensibility.
+For a complete specification, see Advanced Kimap in Section~\ref{sec:kimapadvanced}, which goes into detail regarding token-bound accounts, sub-entry management, the use of data keys, and protocol extensibility.
 For a description of the value-assignment mechanism that overlaps kimap, see Section~\ref{sec:kino} for the KINO utility token.
 
 \subsection{Example Kimap Entries}
@@ -1107,7 +1107,7 @@ A developer can instruct a user to create a sub-entry for their node identity an
 
 \subsection{ERC-6551 Token-Bound Accounts}
 
-The smart contract accounts that are deployed to these addresses are ERC-6551 compliant token bound accounts.
+The smart contract accounts that are deployed to these addresses are ERC-6551 compliant token-bound accounts.
 This means the kimap's address and the token id of the name key that owns the smart contract account will be appended to the immutable bytecode of the account.
 Therefore, the smart contract account will be unbreakably linked to the owner of the token in the kimap.
 This enables the ownership of a given node on the network to be given according to any logic that operates on ERC-721 tokens.
@@ -1119,8 +1119,8 @@ The smart contract account implementation will be a ERC-7579 compliant minimal, 
 This means Kinode accounts will have access to a wide range of plugins created by various account vendors.
 Users will be able to install and uninstall plugins from the broader ecosystem at will.
 However, there are two aspects that will be unique to Kinode. The first is that the root validator of the account
-will be immutably linked according to the ERC-6551 token bound owner of the kimap's ERC-721 token.
-Other validation modules are able to be installed, but the root validator, with power over all other validators, will always be the owner of the token bound account.
+will be immutably linked according to the ERC-6551 token-bound owner of the kimap's ERC-721 token.
+Other validation modules are able to be installed, but the root validator, with power over all other validators, will always be the owner of the token-bound account.
 Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace,
 as described below.
 
@@ -1199,7 +1199,7 @@ First, content is crawled and indexed.
 In the indexing process, semantic and relative value is assigned to a given piece of content.
 These weights are then used during a given search to provide a ranked set of content objects which best match the search query.
 Kimap combined with KINO is not itself a search engine, but it does provide the substrate to operate such mechanisms in a decentralized way.
-The entries in the map are content and bound KINO is a weight-primitive which applies a topology to that content.
+The entries in the map are content and registered KINO is a weight-primitive which applies a topology to that content.
 
 This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
 A ``provider'' can be considered any party which places entries in the global namespace.
@@ -1236,7 +1236,7 @@ A simple solution is to have the user commit to a hash of their desired name as 
 As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{Audits pending at the time of this writing.}.
 
 It is possible for algorithms operating on kimap to use other weight systems, even including a registration system deployed by someone else that uses an entirely different token.
-Kimap algorithms will undoubtedly, in many cases, take factors other than just the amount of KINO bound into account when ranking and filtering entries.
+Kimap algorithms will undoubtedly, in many cases, take factors other than just the amount of KINO registered into account when ranking and filtering entries.
 If users, providers, and the operator (the Kinode protocol) are all incentivized via protocol ownership, KINO will remain an extremely powerful Schelling point for its intended purpose.
 Protocols such as KNS and the package manager already integrate with KINO and future development of protocols at the OS and core distribution level will use KINO.
 
@@ -1246,10 +1246,10 @@ Protocols such as KNS and the package manager already integrate with KINO and fu
 
 What inspires locking tokens to a namespace entry?
 
-Registration of tokens offers utility to the owner of the bound namespace by enhancing their property's ranking in various algorithms running on the namespace.
+Registration of tokens offers utility to the owner of the attached namespace by enhancing their property's ranking in various algorithms running on the namespace.
 For this reason, owners of a namespace entry will be naturally incentivized to register their tokens on their own namespace.
 This will manifest itself differently across different protocols running on kimap.
-In the Kinode Name System, tokens bound to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others that may be built in userspace or even directly into the OS.
+In the Kinode Name System, tokens attached to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others that may be built in userspace or even directly into the OS.
 The mere social incentive to connect utility to an identity will likely inspire registration.
 We expect this dynamic to play out not just for KNS entries, but also for a number of other social or social-adjacent protocols that naturally fit into the kimap architecture.
 
