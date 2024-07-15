@@ -53,7 +53,7 @@ All of these components work in lockstep to solve the problems that have heretof
 \label{sec:overview}
 
 Cryptocurrency, specifically smart contract blockchains, have triggered a nascent revolution in permissionless protocols: software in which all can participate and none can can shut down.
-But progress towards a fully decentralized, permissionless internet has stagnated even as specific niches like decentralized finance (DeFi) flourish.
+But progress towards a fully decentralized, permissionless internet has stagnated even as specific niches like decentralized finance flourish.
 We believe that this progress is constrained less by blockchain speed and throughput than by an underdeveloped offchain computing substrate.
 
 Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.
@@ -72,7 +72,7 @@ a signed message from an individual, or an API published by an entity acting as 
 Blockchain transactions are similarly unnecessary for actions undertaken between trusted parties, which, in fact, comprise a large portion of online communication.
 It turns out that the category of networked operations that \textit{do not} require global consensus is much larger than the category of those that do benefit from being transactions.
 
-Some protocols, like many in DeFi, function perfectly fine with no user interaction outside their onchain transaction protocol.
+Some protocols, like many in decentralized finance, function perfectly fine with no user interaction outside their onchain transaction protocol.
 The user interface for such a protocol is merely a wrapper over the smart contract deployed onchain.
 There is a vast landscape of possible protocols, however, which do not fit entirely into the purely-onchain paradigm.
 Forcing these protocols into this model has led to countless failures.
@@ -86,7 +86,7 @@ Until we provide a proper platform for such operations, ``Web3'' will simply nev
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}
-    \draw (0,3) node[fill=yellow!80!black]{$kimap+\$KINO$}
+    \draw (0,3) node[fill=yellow!80!black]{$kimap+KINO$}
     -- (4,3) node[fill=yellow!80!black]{$Kinode OS$}
     -- (2,0) node[fill=yellow!80!black]{$Kinode Governance$}
     -- cycle;
@@ -319,7 +319,7 @@ In the future, other entities will likely seek to distribute their own implement
     sqlite:distro:sys
     vfs:distro:sys
     \end{lstlisting}
-    \caption{The full list of runtime modules in the OS distribution maintained by Kinode DAO as of this writing.}
+    \caption{The full list of runtime modules in the OS distribution maintained by core developers as of this writing.}
     \label{fig:runtime modules list}
 \end{figure}
 
@@ -455,7 +455,7 @@ Public processes can be messaged by any other process.
 Private processes, as enforced by the kernel, require that the message source holds their messaging capability.
 See the discussion of capabilities in Section~\ref{sec:oscapabilities} for details on their use and how capabilities apply to processes running a remote node.
 
-As of this writing, the kernel runtime module in Kinode DAO's implementation of the OS fits into about 2,700 lines of Rust.
+As of this writing, the kernel runtime module in our reference implementation of the OS fits into about 2,700 lines of Rust.
 
 The kernel is responsible for maintaining backwards compatibility.
 If a process was written for an older version of the kernel (which is determined by the version number of the WIT file it implements), newer kernels must store that WIT version and match it to the process.
@@ -811,7 +811,7 @@ Scripts are merely processes that, by convention, can be executed from the syste
 
 It is important to note that all of the above logic exists outside of the kernel and runtime.
 A package's directory, metadata, and manifest are all interpreted by userspace code and boiled down to a series of kernel commands including \verb|InitializeProcess|, \verb|RunProcess|, and \verb|KillProcess|.
-Of course, Kinode OS would not be very useful without this logic, and so the distribution maintained by Kinode DAO comes with a combination app store and package manager called \verb|app_store:sys|.
+Of course, Kinode OS would not be very useful without this logic, and so the distribution maintained by core developers comes with a combination app store and package manager called \verb|app_store:sys|.
 Note that the publisher name, \verb|sys|, is not a node identity.
 The publisher value in a package name is not enforced by the kernel.
 It is accepted uncritically, and it is again the responsibility of the userspace package manager to assert a valid publisher if desired.
@@ -819,7 +819,7 @@ It is accepted uncritically, and it is again the responsibility of the userspace
 \subsection{Specification}
 \label{sec:packagemanagerspec}
 
-The userspace app store/package manager maintained by Kinode DAO uses an onchain protocol running on kimap to enable app discoverability and ranking.
+The userspace app store/package manager maintained by core developers uses an onchain protocol running on kimap to enable app discoverability and ranking.
 The definition of a package (interchangeably called an ``app'') in this protocol is any kimap entry which has both of the following sub-entries:
 
 \verb|~metadata-hash|, \verb|~metadata-uri|.
@@ -975,14 +975,14 @@ The shorthand version of a kernel-mediated messaging capability is simply the st
 \subsection{Default-distro App: App Store}
 \label{sec:appstore}
 
-As noted, Kinode DAO's distribution of the OS comes with an app store.
+As noted, the current distribution of the OS comes with an app store.
 This package is named \verb|app_store:sys|.
 The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify packages onchain, manages the installation of packages using kernel commands, and presents a web UI for a node operator to browse, install, and manage packages (generally labeled as ``apps'' in the frontend).
 
-The app store also uses \$KINO to enable ranking and filtering of available apps.
+The app store also uses KINO to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization.
 In the case of an app store, this manifests as copycat apps, low-effort scams, and a lack of discoverability for even very popular and widely-installed apps.
-Registering \$KINO (see Section~\ref{sec:kinoregister}) with namespace entries that are packages published in kimap allows users to
+Registering KINO (see Section~\ref{sec:kinoregister}) with namespace entries that are packages published in kimap allows users to
 \begin{enumerate}
 	\item Only display apps that have a certain amount of value assigned to them, filtering out discarded tests and spam, and
 	\item Have a metric to compare apps against one another, allowing one to compare two similarly-named apps and easily see which is more widely adopted in the peer-to-peer network.
@@ -1169,23 +1169,23 @@ All that remains for a full understanding of kimap's utility is the role of the 
 \section{KINO Token}
 \label{sec:kino}
 
-\$KINO is a utility token designed to fill two roles in the Kinode network: assignment of relative value in the global namespace and namespace/protocol governance.
+KINO is a utility token designed to fill two roles in the Kinode network: assignment of relative value in the global namespace and namespace/protocol governance.
 
 \subsection{Registration}
 \label{sec:kinoregister}
 
-A token holder may choose to \textit{register} \$KINO with an entry in kimap.
-To register \$KINO, a token holder submits a transaction to the kimap contract specifying the amount of \$KINO to register, the duration of the registration, and the target entry.
+A token holder may choose to \textit{register} KINO with an entry in kimap.
+To register KINO, a token holder submits a transaction to the kimap contract specifying the amount of KINO to register, the duration of the registration, and the target entry.
 
 The duration of a registration is specified in blocks and will have a minimum value of around 7 days.
 
 Data keys (prefixed with \verb|~|) cannot be a target for registration.
 Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
 
-Registration of \$KINO is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
-Every protocol built on kimap can automatically benefit from the registration of \$KINO to keys to create a listing data structure which can be sorted, filtered, and act as a market for user attention.
+Registration of KINO is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
+Every protocol built on kimap can automatically benefit from the registration of KINO to keys to create a listing data structure which can be sorted, filtered, and act as a market for user attention.
 
-Note that multiple addresses can register tokens to the same kimap entry at any given time, and the holder of \$KINO does not need to own a kimap entry in order to register tokens on it.
+Note that multiple addresses can register tokens to the same kimap entry at any given time, and the holder of KINO does not need to own a kimap entry in order to register tokens on it.
 Registered tokens are locked for the duration of the registration and automatically returned to the registering address at the end of this period.
 
 \subsection{Discussion}
@@ -1198,8 +1198,8 @@ Consider the operation of a web search engine.
 First, content is crawled and indexed.
 In the indexing process, semantic and relative value is assigned to a given piece of content.
 These weights are then used during a given search to provide a ranked set of content objects which best match the search query.
-Kimap combined with \$KINO is not itself a search engine, but it does provide the substrate to operate such mechanisms in a decentralized way.
-The entries in the map are content and bound \$KINO is a weight-primitive which applies a topology to that content.
+Kimap combined with KINO is not itself a search engine, but it does provide the substrate to operate such mechanisms in a decentralized way.
+The entries in the map are content and bound KINO is a weight-primitive which applies a topology to that content.
 
 This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
 A ``provider'' can be considered any party which places entries in the global namespace.
@@ -1216,13 +1216,13 @@ Because \textit{any address} can register on \textit{any namespace entry}, the a
 
 Meanwhile, the ``operator'' role is neutralized.
 Kinode's constrained governance mechanism is responsible for maintaining the namespace but has no control over the operation of a namespace entry held by another party or the registration operation.
-The protocol is incentivized not to interfere with the utility of \$KINO as a weighting mechanism.
+The protocol is incentivized not to interfere with the utility of KINO as a weighting mechanism.
 Any ``thumb on the scale'' by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
 
 The kimap+KINO substrate does not include a built-in algorithm to execute ``search'' or any other ranking strategy on its weights and values.
 There is no single algorithm that will apply to the entire kimap.
 Algorithms will instead be written for specific protocols running on kimap.
-These will have access to \$KINO ``weights'' as one tool in determining quality rankings, and many will also take into account other factors.
+These will have access to KINO ``weights'' as one tool in determining quality rankings, and many will also take into account other factors.
 At the time of this writing, it is impossible to predict the specifics of algorithms that will enter popular use for evaluating protocols on kimap.
 
 One may note that the onchain primitives described in this paper are remarkably simple.
@@ -1236,9 +1236,9 @@ A simple solution is to have the user commit to a hash of their desired name as 
 As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{Audits pending at the time of this writing.}.
 
 It is possible for algorithms operating on kimap to use other weight systems, even including a registration system deployed by someone else that uses an entirely different token.
-Kimap algorithms will undoubtedly, in many cases, take factors other than just the amount of \$KINO bound into account when ranking and filtering entries.
-If users, providers, and the operator (the DAO) are all incentivized via protocol ownership, \$KINO will remain an extremely powerful Schelling point for its intended purpose.
-Protocols such as KNS and the package manager already integrate with \$KINO and future development of protocols at the OS and core distribution level will use \$KINO.
+Kimap algorithms will undoubtedly, in many cases, take factors other than just the amount of KINO bound into account when ranking and filtering entries.
+If users, providers, and the operator (the Kinode protocol) are all incentivized via protocol ownership, KINO will remain an extremely powerful Schelling point for its intended purpose.
+Protocols such as KNS and the package manager already integrate with KINO and future development of protocols at the OS and core distribution level will use KINO.
 
 \begin{center}
 \noindent\rule{8cm}{0.4pt}
@@ -1256,7 +1256,7 @@ We expect this dynamic to play out not just for KNS entries, but also for a numb
 \subsection{Current and Future Uses}
 \label{sec:kinouses}
 
-\$KINO is currently used by both KNS and the Kinode package manager protocol to address spam, provide a ranking/sorting system, and enable value accrual.
+KINO is currently used by both KNS and the Kinode package manager protocol to address spam, provide a ranking/sorting system, and enable value accrual.
 
 One interesting option available to protocols on kimap not demonstrated by the protocols in this paper is the ability to discriminate between top-level zones.
 It is not required that a protocol apply itself to the entire kimap.
@@ -1274,17 +1274,18 @@ Seated at the base of the protocol, Kinode's governance mechanism is responsible
     \item Voting on proposals to improve Kinode OS in a backwards-compatible way over time, while ensuring that adoption of the offchain software remains aligned with growth of the onchain protocol.
 \end{enumerate}
 
-\subsection{veKINO Token}
-\label{sec:daovekino}
+\subsection{Voting}
+\label{sec:voting}
 
-To achieve decentralized governance, our mechanism takes the form of a DAO with a voting token.
-This token is acquired via use of the protocol itself: by registration of \$KINO.
+To achieve decentralized governance, the onchain namespace and KINO weighting protocol generate voting power as a side effect of token registration.
+The address performing registration selects which address receives this voting power, allowing for delegation schemes.
 
-Registering \$KINO mints an equivalent amount of \$veKINO to the address which performs the registration.
-\$veKINO is a non-transferable vote-escrow token used by Kinode DAO to execute governance proposals.
+As noted in Section~\ref{sec:kinoregister}, registration of KINO occurs for a set time period.
+The lock duration produces a decay curve which determines the voting power created from registration.
 
-As noted in Section~\ref{sec:kinoregister}, registration of \$KINO occurs for a set time period.
-The lock duration produces a decay curve which determines the voting power of \$veKINO created from registration.
+The voting strength of a given address is therefore calculated by iterating across all the registration actions that address has been indicated as receiving voting power for, dividing the number of tokens using the decay curve applied to that registration, then summing the total.
+Since this is a computationally intensive operation, the voting power is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
+Votes may be shared peer-to-peer and bundled into proofs submitted in bulk.
 
 Governance is not an empty role in Kinode–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
 
@@ -1292,7 +1293,7 @@ Decentralized finance protocols generally benefit from maximal immutability: onc
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
 There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
 
-While the DAO will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects can be added to the protocol to keep pace with the fast-moving world of software.
+While the governance protocol will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects can be added to the protocol to keep pace with the fast-moving world of software.
 
 \subsection{TLZ Management}
 \label{sec:daotlzmanagement}
@@ -1311,53 +1312,53 @@ Reasonable behavior by owners will be modulated by two things:
 \end{enumerate}
 
 Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, Kinode DAO will have succeeded in the first phase of its role.
-From that point on, the DAO will continue to contribute to the development of all open-source components of the software
+From that point on, core developers will continue to contribute to the development of all open-source components of the software.
 
 \subsubsection{TLZ Auctions}
 \label{sec:daotldauctions}
 
-Initial namespace distribution will take the form of auctions, in which the DAO executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
+Initial namespace distribution will take the form of auctions, in which the governance mechanism executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
 Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.
 \footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
 TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
 
-By auctioning off and otherwise selling namespace, particularly top-level namespace, the DAO may generate revenue.
-Revenue earned by the DAO will be applied to the treasury which funds rewards for governance participation and initiatives to further increase the utility of the namespace.
+By auctioning off and otherwise selling namespace, particularly top-level namespace, the governance mechanism may generate revenue.
+Revenue earned this way may be directed anywhere, depending on the auction implementation approved in a new TLZ proposal, perhaps as further reward for governance participation or initiatives to further increase the utility of the namespace.
 
 \subsection{Progressive Decentralization}
 \label{sec:daodecentralization}
 
-Through 3 phases, Kinode governance will transition from a small team of developers to a fully dencentralized protocol.
+Through 3 phases, Kinode governance will transition from a small team of core developers to a fully dencentralized protocol.
 
 In phase 1, a small set of TLZs will be selected for creation. These will be minted directly to contracts, including ones already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|kino|, ones associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
 
 During phase 1, more TLZs may be created and distributed.
-The \$KINO registration mechanism will be activated during this time.
+The KINO registration mechanism will be activated during this time.
 
-In phase 2, voting but not proposal creation with \$veKINO is enabled.
-In order to achieve distributed ownership of the namespace, the first \$veKINO vote will be to approve a list of TLZs to be auctioned off.
+In phase 2, voting is enabled, but proposal creation is permissioned.
+In order to achieve distributed ownership of the namespace, the first proposal will be to approve a list of TLZs to be auctioned off.
 Auctions will seed a treasury controlled in a trusted role during phase 1 and later delegated to an adminstrator or possibly burned, depending on governance decisions.
 The exact format of the auction is to-be-determined: it will be onchain with permissionless participation.
 \footnote{The auction contract used in phase 2 will sell \textit{ownership} of a TLZ: the winner will have the asset transferred to their address.
 Phase 3 allows voters to approve any kind of auction contract, which may include styles of auction that do not transfer ownership, but rather implement some kind of rent mechanism.
 TLZs can also implement rent mechanisms of all sorts within their namespace, which is one of the many modes of TLZ governance we hope to see.}
 
-Phase 2 will last until the auctions have completed and the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by \$veKINO voters.
+Phase 2 will last until the auctions have completed and the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by voters.
 This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
 Development of the OS to the point of specification may take anywhere from 6 months to one year from the current Beta implementation.
 
-Phase 3 begins fully decentralized operation of the DAO.
+Phase 3 begins fully decentralized operation of the protocol.
 Proposals are activated, which combined with voting completes the governance mechanism.
 
 The vote-proposal system includes a precise set of actions
 \begin{itemize}
-    \item Approve/Deny new TLZ + auction contract for auction
+    \item Approve/Deny new TLZ + auction contract to be used for auction
+    \footnote{Note that the specific implementation of auction can be determined by voters, which not only decides the aunction style but also parameters such as what currency the auction is conducted in and where the proceeds are sent.}
     \item Approve/Deny new Kinode Improvement Proposal (KIP)
     \item Approve/Deny new Kinode Specification
-    \item Approve/Deny sending X amount of Y token from treasury to Z address
 \end{itemize}
 
-Proposals will be shared peer-to-peer in the Kinode network using a protocol to-be-determined, which will involve a mechanism to filter for meaningful proposals (itself using `kimap` and \$KINO for this purpose, naturally).
+Proposals will be shared peer-to-peer in the Kinode network using a protocol to-be-determined, which will involve a mechanism to filter for meaningful proposals (itself using `kimap` and KINO for this purpose, naturally).
 
 Since Kinode Improvement Proposals (KIPs) affect (only) offchain software, they only exist to alter the agreed-upon specification of the operating system, which is written, hashed, and posted onchain.
 A successful KIP will result in a Specification vote.
@@ -1367,18 +1368,28 @@ This will act as an effective schelling point for the network.
 \subsection{Default-distro App: Governance Portal}
 \label{sec:daoportal}
 
-Conveniently, the DAO will package a Governance Portal app alonside App Store (and other utilities) in its distribution of Kinode OS.
+A Governance Portal app alonside App Store (and other utilities) in the reference distribution of Kinode OS.
 The app will serve as a central point where a node identity can create, vote on, and review proposals.
-Since \$veKINO may be held in the token-bound account attached to every namespace entry (and thus node identity) its use within a node is quite natural.
+As mentioned in Section~\ref{sec:voting}, the voting power of a given address is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
+Functionality for this will be included in the Governance Portal along with a peer-to-peer protocol for sharing signed votes and bundling them into proofs.
 
 Auctions and other onchain activities may also be accessible through the Governance Portal.
 
 \subsection{Other Duties}
 \label{sec:daoduties}
 
-The DAO may perform other work to increase the utility of the namespace and improve the functionality of the OS, such as developing more kimap protocols like KNS and the package manager.
-It may also take actions to incentivize use of kimap and \$KINO together.
-Finally, funding and promotional materials for the OS will be proposed and approved by the DAO.
+The governance protocol may perform other work to increase the utility of the namespace and improve the functionality of the operating system, such as developing more kimap protocols like KNS and the package manager.
+It may also take actions to incentivize use of kimap and KINO together.
+
+One significant possibility for the onchain namespace protocol involves scaling and expansion.
+The initial deployment will take place on a single blockchain, but both volume of transactions and support for composition with other onchain protocols may inspire expansion to multiple other chains.
+Horizontal scaling of this kind is achievable by minting a namespace entry (possibly a new TLZ) that points to a smart contract on another blockchain.
+The indicated deployment of kimap would use that namespace entry as its "root node" (which is simply \verb|0x0| on the primary deployment).
+Such decisions will be made by the governance protocol, which will be the owner of the root node.
+
+Finally, funding and promotional materials for the OS may be proposed and approved by the governance protocol.
+
+\clearpage
 
 \section{A Kinode Future}
 \label{sec:future}
