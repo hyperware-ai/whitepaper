@@ -1339,6 +1339,7 @@ In phase 2, voting is enabled, but proposal creation is permissioned.
 In order to achieve distributed ownership of the namespace, the first proposal will be to approve a list of TLZs to be auctioned off.
 Auctions will seed a treasury controlled in a trusted role during phase 1 and later delegated to an adminstrator or possibly burned, depending on governance decisions.
 The exact format of the auction is to-be-determined: it will be onchain with permissionless participation.
+Auctions during phase 2 will direct proceeds to a treasury funding core development.
 \footnote{The auction contract used in phase 2 will sell \textit{ownership} of a TLZ: the winner will have the asset transferred to their address.
 Phase 3 allows voters to approve any kind of auction contract, which may include styles of auction that do not transfer ownership, but rather implement some kind of rent mechanism.
 TLZs can also implement rent mechanisms of all sorts within their namespace, which is one of the many modes of TLZ governance we hope to see.}
@@ -1349,11 +1350,14 @@ Development of the OS to the point of specification may take anywhere from 6 mon
 
 Phase 3 begins fully decentralized operation of the protocol.
 Proposals are activated, which combined with voting completes the governance mechanism.
+Auctions in phase 3, rather than directing proceeds to a treasury, will direct KINO tokens to a burn address.
+Auction participants will compete to burn the largest amount of tokens to win the auction.
+In a similar sense that EIP-1559 directs gas fees to a burn rather than funding a treasury, auctions burning tokens allows the protocol to maintain neutrality.\footnote{https://eips.ethereum.org/EIPS/eip-1559}
 
-The vote-proposal system includes a precise set of actions
+The vote-proposal system includes a precise set of actions:
 \begin{itemize}
     \item Approve/Deny new TLZ + auction contract to be used for auction
-    \footnote{Note that the specific implementation of auction can be determined by voters, which not only decides the aunction style but also parameters such as what currency the auction is conducted in and where the proceeds are sent.}
+    \footnote{Note that the specific implementation of auction can be determined by voters, which decides the auction style.}
     \item Approve/Deny new Kinode Improvement Proposal (KIP)
     \item Approve/Deny new Kinode Specification
 \end{itemize}
@@ -1386,8 +1390,6 @@ The initial deployment will take place on a single blockchain, but both volume o
 Horizontal scaling of this kind is achievable by minting a namespace entry (possibly a new TLZ) that points to a smart contract on another blockchain.
 The indicated deployment of kimap would use that namespace entry as its "root node" (which is simply \verb|0x0| on the primary deployment).
 Such decisions will be made by the governance protocol, which will be the owner of the root node.
-
-Finally, funding and promotional materials for the OS may be proposed and approved by the governance protocol.
 
 \clearpage
 
