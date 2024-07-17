@@ -20,7 +20,7 @@
 %
 \title{Kinode: A General-Purpose Sovereign Cloud Computer (DRAFT, PRIVATE)}
 %
-\titlerunning{Kinode – DRAFT, PRIVATE}
+\titlerunning{Kinode \textemdash~DRAFT, PRIVATE}
 %
 \author{
 Benjamin McCormick \and
@@ -38,7 +38,7 @@ Users can run their own services at both the interface and backend level.
 Corporations or other entities can provide services in a permissionless, protocolized manner.
 This node-based cloud computing model resolves the impedance mismatch between onchain protocols and web services.
 Developers can write apps in any programming language that compiles to Wasm and easily distribute them to nodes.
-The Kinode platform includes several components which will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for governing and assigning value to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
+The Kinode platform includes several components that will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for governing and assigning value to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
 All of these components work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
 \keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
@@ -56,8 +56,7 @@ Cryptocurrency, specifically smart contract blockchains, have triggered a nascen
 But progress towards a fully decentralized, permissionless internet has stagnated even as specific niches like decentralized finance flourish.
 We believe that this progress is constrained less by blockchain speed and throughput than by an underdeveloped offchain computing substrate.
 
-Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.
-\footnote{The Bitcoin whitepaper https://bitcoin.org/bitcoin.pdf describes using a distributed ledger to prevent double-spend of Bitcoin, and subsequent cryptocurrency projects generalized this to a blockchain preventing double-spend of arbitrary digital assets.}
+Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.\footnote{\href{https://bitcoin.org/bitcoin.pdf}{The Bitcoin whitepaper} describes using a distributed ledger to prevent double-spend of Bitcoin, and subsequent cryptocurrency projects generalized this to a blockchain preventing double-spend of arbitrary digital assets.}
 The mechanism to achieve this, now well-proven, expanded to turing-complete VMs, and replicated dozens of times, is simple: signed transactions validated by a decentralized validator set and deposited into an append-only distributed ledger.
 
 But what operations \textit{actually benefit} from an onchain transaction?
@@ -74,7 +73,7 @@ It turns out that the category of networked operations that \textit{do not} requ
 
 Some protocols, like many in decentralized finance, function perfectly fine with no user interaction outside their onchain transaction protocol.
 The user interface for such a protocol is merely a wrapper over the smart contract deployed onchain.
-There is a vast landscape of possible protocols, however, which do not fit entirely into the purely-onchain paradigm.
+There is a vast landscape of possible protocols, however, that do not fit entirely into the purely-onchain paradigm.
 Forcing these protocols into this model has led to countless failures.
 
 Some believe that merely increasing transaction throughput by a few orders of magnitude (no small task) can resolve the issue by allowing transactions to be cheaply verified, even when they are not strictly necessary.
@@ -95,10 +94,9 @@ Until we provide a proper platform for such operations, ``Web3'' will simply nev
     \label{fig:triangle}
 \end{figure}
 
-The goal of the Kinode Hyperstructure
-\footnote{https://jacob.energy/hyperstructures.html}
+The goal of the Kinode Hyperstructure\footnote{\url{https://jacob.energy/hyperstructures.html}}
 is to present a permissionless substrate for computing.
-Smart contract blockchains provide access to global consensus state for provenance over digital assets–Kinode does ``everything else''.
+Smart contract blockchains provide access to global consensus state for provenance over digital assets\textemdash Kinode does ``everything else''.
 In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and the long-term governance structure for those components.
 
 \section{Kimap}
@@ -119,8 +117,7 @@ Why is this?
     \subitem Any ``missing piece'' required to complete handshakes or source peers will result in unreliability and re-centralization.
 \end{enumerate}
 
-Kimap is an onchain key-value store inspired by dmap
-\footnote{https://github.com/dapphub/dmap}
+Kimap is an onchain key-value store inspired by dmap\footnote{\url{https://github.com/dapphub/dmap}}
 , a minimalist onchain path-formatted key-value store.
 It serves as the base-level shared global state that all nodes use to share critical signaling data with the entire network.
 Like dmap, kimap is organized as a hierarchical path system and has mutable and immutable keys.
@@ -129,12 +126,12 @@ Several aspects of the minimal map implementation are customized for the ``names
 A brief description:
 
 \begin{enumerate}
-    \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen).
+    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase), - (hyphen).
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
-    \item Every name-key is an ERC-721\footnote{https://eips.ethereum.org/EIPS/eip-721} NFT (non-fungible token),
+    \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token),
     with a connected token-bound account with a counterfactual address,
-    that is a smart contract account implemented according to the ERC-7579\footnote{https://eips.ethereum.org/EIPS/eip-7579} standard.
+    that is a smart contract account implemented according to the ERC-7579\footnote{\url{https://eips.ethereum.org/EIPS/eip-7579}} standard.
     \item Every name-key may inscribe data in data-keys directly beneath it.
     \item All keys can be declared either mutable or immutable.
 \end{enumerate}
@@ -250,7 +247,7 @@ Ports between 8000-8999 are usually saved for HTTP server use.
 \label{sec:knsindexing}
 
 Events emitted by kimap are used to index map data.
-Kinode OS provides all the primitives required to index effectively in a userspace application, and the default distribution of the OS includes a process which indexes kimap for the purpose of reporting KNS data to the networking protocol module.
+Kinode OS provides all the primitives required to index effectively in a userspace application, and the default distribution of the OS includes a process that indexes kimap for the purpose of reporting KNS data to the networking protocol module.
 
 \subsection{Adding Other Onchain Identity Primitives}
 \label{sec:knsotherprimitives}
@@ -277,32 +274,30 @@ This section discusses the architecture of Kinode OS.
 For a more ``hands-on'' description of the OS, including detailed programming examples and documentation, go to \href{https://book.kinode.org/}{book.kinode.org}.
 
 Kinode OS is a process virtual machine run to operate a ``node'' on the Kinode network.
-At its core, the virtual machine wraps around a Wasm runtime
-\footnote{Wasm is specified at https://webassembly.github.io/spec. Kinode uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
-which executes all userspace code.
+At its core, the virtual machine wraps around a Wasm runtime\footnote{Wasm is specified at \url{https://webassembly.github.io/spec}. Kinode uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
+that executes all userspace code.
 After a node identity is registered onchain in the KNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the kimap during registration.
 Once this has been done, if the networking details (routers, IP, etc) are properly read from the kimap and matched by the runtime, that node is now ``online''.
 Other nodes can interact with the booted node through the Kinode networking protocol by reading its KNS node identity and using the data stored there.
 
 The runtime is as simple as possible, with a maximal amount of logic ejected to userspace.
-In the future, Kinode will benefit from ``client diversity'' as does a traditional blockchain: many implementations of the virtual machine
-\footnote{The Wasm runtime is by a wide margin the most complex aspect of the OS, and at least a dozen such runtimes exist today, written in multiple languages.
+In the future, Kinode will benefit from ``client diversity'' as does a traditional blockchain: many implementations of the virtual machine\footnote{The Wasm runtime is by a wide margin the most complex aspect of the OS, and at least a dozen such runtimes exist today, written in multiple languages.
 This bodes well for future Kinode client diversity.}
 will make the network more resilient to potential bugs and decentralize the development process, leading to productive ossification of core features, stability, and long-term strength.
 
 While all packaged into a single executable, the OS can productively be described in 3 parts: a \textit{runtime}, a set of \textit{runtime modules}, and \textit{userspace}.
 The ``kernel'' frequently referred to in this paper is in fact just a runtime module.
 
-The runtime is a ``native'' (to whatever architecture it targets, which may be Unix, a browser, hardware...) program that manages node booting (including onchain registration) and (generally asynchronously or in parallel) executes the runtime modules.
+The runtime is a ``native'' (to whatever architecture it targets, e.g., Unix, a browser, hardware, \ldots) program that manages node booting (including onchain registration) and (generally asynchronously or in parallel) executes the runtime modules.
 Runtime modules are blocks of code written at the same level of abstraction as the runtime itself, but designed to resemble userspace processes.
 These modules are registered in the kernel \textit{as} processes, meaning that they can be messaged by userspace in the system-wide request-response protocol and secured via capabilities.
 Finally, userspace is comprised of all non-runtime-module processes executed virtually by the kernel.
-Userspace processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{https://component-model.bytecodealliance.org/}.
+Userspace processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{\url{https://component-model.bytecodealliance.org}}.
 They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of ``system calls'' afforded to userspace processes by the kernel.
 
 The reference implementation is currently written in Rust, as are all the runtime modules.
 It also comes with a number of pre-installed userspace packages that perform critical tasks.
-In the future, other entities will likely seek to distribute their own implementations which may contain different pre-installed packages or even different runtime modules.
+In the future, other entities will likely seek to distribute their own implementations that may contain different pre-installed packages or even different runtime modules.
 
 \begin{figure}
     \centering
@@ -326,7 +321,7 @@ In the future, other entities will likely seek to distribute their own implement
 \subsection{WIT}
 \label{sec:oswit}
 
-Wasm Interface Type\footnote{https://component-model.bytecodealliance.org/design/wit.html}, or WIT, is a language to describe types and function definitions which can be used in a Wasm component.
+Wasm Interface Type\footnote{\url{https://component-model.bytecodealliance.org/design/wit.html}}, or WIT, is a language to describe types and function definitions that can be used in a Wasm component.
 Kinode OS uses a single WIT file to define the types shared across all processes and provide a number of functions.
 The functions fall into three categories:
 \begin{enumerate}
@@ -335,9 +330,10 @@ The functions fall into three categories:
     \item Message I/O
 \end{enumerate}
 
-WIT files are organized into ``worlds''. All types and functions provided to Kinode processes are currently stored in one world labeled \verb|lib|.
+WIT files are organized into ``worlds''.
+All types and functions provided to Kinode processes are currently stored in one world labeled \verb|lib|.
 In a separate world, \verb|process|, a single function named \verb|init| is exported, which means that all Wasm apps that use the \verb|process| world must implement that function.
-It is the entry point by which the Kinode kernel starts executing a process.
+The Kinode kernel starts executing a process by calling the process's \verb|init|.
 
 \subsubsection{WIT Types}
 \label{sec:oswittypes}
@@ -415,8 +411,7 @@ The Wasm Component model allows these functions to be called by processes.
 \subsubsection{WIT Process Format}
 \label{sec:oswitprocess}
 
-The process format enforced by kinode.wit is remarkably simple: it imports the types and functions defined in the main library world, and requires processes to implement a single function: \verb|init|.
-\footnote{This does not preclude processes from implementing other functions.}
+The process format enforced by kinode.wit is remarkably simple: it imports the types and functions defined in the main library world, and requires processes to implement a single function: \verb|init|.\footnote{This does not preclude processes from implementing other functions.}
 
 \begin{figure}[H]
     \centering
@@ -432,17 +427,15 @@ The process format enforced by kinode.wit is remarkably simple: it imports the t
 
 \verb|init| serves as the entry point for a process.
 The kernel begins execution of a process by calling \verb|init|.
-When \verb|init| returns, the process will cease execution.
-\footnote{All processes are single-threaded. To perform parallel computation, one can spawn child processes.}
+When \verb|init| returns, the process will cease execution.\footnote{All processes are single-threaded. To perform parallel computation, one can spawn child processes.}
 
 \subsection{Microkernel}
 \label{sec:osmicrokernel}
 
-Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{A microkernel architecture is ideal for a ``Wasm OS'' because it allows a maximal amount of system logic to live in Wasm itself, allowing system code to experience all the safety and conveniences afforded to userspace processes. See \href{https://wiki.osdev.org/Microkernel}{https://wiki.osdev.org/Microkernel}} which is responsible for five things:
+Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{A microkernel architecture is ideal for a ``Wasm OS'' because it allows a maximal amount of system logic to live in Wasm itself, allowing system code to experience all the safety and conveniences afforded to userspace processes. See \url{https://wiki.osdev.org/Microkernel}} which is responsible for five things:
 \begin{enumerate}
-    \item Using a Wasm runtime
-    \footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
-    to execute compiled processes which implement the Kinode WIT standard, where execution includes managing their memory usage.
+    \item Using a Wasm runtime\footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
+    to execute compiled processes that implement the Kinode WIT standard, where execution includes managing their memory usage.
     \item Implementing the host functions, exposed to all processes, defined in Kinode WIT standard.
     \item Implementing the kernel API that allows processes with kernel-messaging capabilities to perform aspects of process management.
     \item Passing messages between all processes including to/from the kernel itself.
@@ -505,8 +498,7 @@ If process C sends message 7 to A, it may be received before 1, after 3, or some
 Message delivery is not guaranteed.
 If a message targets a local process, the target may crash or the kernel may suspend execution between message creation and delivery.
 Far more treacherous is delivery of messages to remote processes.
-Nodes may go offline, experience network congestion, or otherwise drop incoming messages.
-\footnote{Computer networking, being a fundamentally physical process, is impossible to effectively abstract over without failure modes, because the physical world imposes them.}
+Nodes may go offline, experience network congestion, or otherwise drop incoming messages.\footnote{Computer networking, being a fundamentally physical process, is impossible to effectively abstract over without failure modes because the physical world imposes them.}
 To this end, two error modes are baked into Kinode message passing: offline and timeout.
 
 Requests can be sent at any time, while responses must target a process that has a matching outstanding request.
@@ -516,8 +508,7 @@ A request is outstanding if:
     \item its timeout has not expired
 \end{enumerate}
 Every request that expects a response must set a timeout value, measured in seconds.
-The kernel is responsible for returning a timeout error to a request which expects a response and does not get matched to one within the number of seconds declared.
-\footnote{Timeouts must be viewed as a lower bound, as in, the kernel will not return a timeout error for at least X seconds. The upper bound cannot be guaranteed.}
+The kernel is responsible for returning a timeout error to a request that expects a response and does not get matched to one within the number of seconds declared.\footnote{Timeouts must be viewed as a lower bound, as in, the kernel will not return a timeout error for at least X seconds. The upper bound cannot be guaranteed.}
 
 The offline error type is only returned by \verb|net:distro:sys|.
 It may be returned if the node that a request targets is definitively unreachable.
@@ -554,9 +545,9 @@ Not only must these tools be granted to programs on a case-by-case basis, but wi
 
 Capabilities are signed by the local kernel's \verb|~net-key| to convert them into unforgeable tokens of authority.
 Processes don't need to concern themselves with verifying signatures.
-Instead, the kernel filters out local capabilities which are not properly signed.
+Instead, the kernel filters out local capabilities that are not properly signed.
 If a process is in possession of a capability, it may send it to another process.
-Remote capabilities–capabilities created by a different kernel–are not verified.
+Remote capabilities\textemdash capabilities created by a different kernel\textemdash are not verified.
 Why not?
 If an invalid remote capability is created and passed in a message, the holder will be alerted to its invalid nature if/when the holder tries to use it.
 
@@ -589,10 +580,10 @@ Kinode OS manages four primitives via runtime modules:
 
 The commonality between these four items is the requirement for I/O.
 Therefore, they cannot be built as userspace Wasm processes.
-Instead they are written as runtime modules: chunks of code at the same native level of the runtime and specially registered as processes in the kernel, which itself is a runtime module.
+Instead they are written as runtime modules: chunks of code at the same native level of the runtime and specially registered as processes in the kernel, which is itself a runtime module.
 
 Networking, data persistence, blockchain access, and HTTP read/write are all presented to userspace processes as a request-response API between a runtime module and the process using the primitive.
-See Fig.~\ref{fig:runtime modules list} for a full list of the process IDs which present these primitives.
+See Fig.~\ref{fig:runtime modules list} for a full list of the process IDs that present these primitives.
 The API for a given runtime module included in the \verb|distro| package is part of the set of interfaces grouped within the Kinode OS versioning system.
 The OS uses a single semantic versioning number to indicate breaking and non-breaking changes to these APIs, the kernel, the KNS/kimap onchain protocols, and the networking protocol.
 This is covered further in the discussion of backwards compatibility in Section~\ref{sec:osbackwardscompat}.
@@ -634,9 +625,8 @@ impl Guest for Component {
 \end{figure}
 
 By generating bindings from \verb|kinode.wit|, a process acquires a set of types and functions from the langauge in which it is written.
-The types and functions generated are often cumbersome to use directly due to their basic nature–in practice nearly all processes will use a library written for their particular langauge that smooths over the WIT interface and provides helper functions, type implementations, and so on.
-\footnote{ As of this writing, most processes have been written in Rust and an extensive library of this description has already been written, available at https://github.com/kinode-dao/process\_lib }
-To generate WIT bindings, it is merely required to import \verb|kinode.wit| and use the guest language's tooling, in the case of this example wit-bindgen\footnote{https://github.com/bytecodealliance/wit-bindgen} for Rust.
+The types and functions generated are often cumbersome to use directly due to their basic nature\textemdash in practice nearly all processes will use a library written for their particular langauge that smooths over the WIT interface and provides helper functions, type implementations, and so on.\footnote{ As of this writing, most processes have been written in Rust and an extensive library of this description has already been written, available at \url{https://github.com/kinode-dao/process\_lib} }
+To generate WIT bindings, it is merely required to import \verb|kinode.wit| and use the guest language's tooling, in the case of this example wit-bindgen\footnote{\url{https://github.com/bytecodealliance/wit-bindgen}} for Rust.
 
 \subsection{Selected Runtime Modules}
 \label{sec:osmodules}
@@ -646,7 +636,7 @@ This section describes a number of runtime modules of critical importance.
 \subsubsection{Virtual Filesystem}
 \label{sec:osvfs}
 
-The OS ships with \verb|vfs:distro:sys|, a module which presents a standard filesystem API accessible to all processes with the capability to message it.
+The OS ships with \verb|vfs:distro:sys|, a module that presents a standard filesystem API accessible to all processes with the capability to message it.
 Directories and files created in the VFS are saved on the host machine's filesystem.
 All I/O is mediated by the VFS, allowing processes to abstract away management of filesystem resources.
 
@@ -655,7 +645,7 @@ All processes that wish to persist data locally between boots will use either th
 \subsubsection{Networking}
 \label{sec:osnetworking}
 
-This runtime module is the part of the OS which implements the Kinode networking protocol.
+This runtime module is the part of the OS that implements the Kinode networking protocol.
 This module is somewhat special: in the kernel, messages with a \verb|target| that contains a node identity other than that of the kernel are all routed to \verb|net:distro:sys|.
 Once a message is passed to the networking module, it is routed to the target node using the information available in the Kinode Name System.
 For this reason, the networking module \textit{must} be made aware of the current onchain state of the KNS.
@@ -677,11 +667,9 @@ The networking protocol itself will not be fully specified here, as it is still 
     The specification of KNS in the kimap allows for a node identity to publicize the port to be used for each transport protocol that node supports.
     The runtime is responsible for implementing each protocol that a node broadcasts.
     In practice, nodes will mostly use TCP for direct communication and routers will support a variety of protocols used by special-purpose nodes (such as mobile devices or nodes running in-browser).
-    \item Messages are end-to-end encrypted using a Noise protocol
-    \footnote{http://www.noiseprotocol.org/noise.html}
+    \item Messages are end-to-end encrypted using a Noise protocol\footnote{\url{http://www.noiseprotocol.org/noise.html}}
     where each node has a static public key in their Ed25519 key published onchain, the cipher function is ChaChaPoly, and hash function is BLAKE2s.
-    The XX pattern is used for handshakes.
-    \footnote{This is described in Noise as ``Noise\_XX\_25519\_ChaChaPoly\_BLAKE2s''.}
+    The XX pattern is used for handshakes.\footnote{This is described in Noise as ``Noise\_XX\_25519\_ChaChaPoly\_BLAKE2s''.}
     \item Message-passing in a networked context aims to be as similar as possible to the local context.
     However, the offline and timeout error-cases together cover the inescapable realities of networking.
     \item There are no ACKs at the Kinode protocol level: if the underlying transport protocol confirms delivery, failure to do so can become an offline error.
@@ -820,7 +808,7 @@ It is accepted uncritically, and it is again the responsibility of the userspace
 \label{sec:packagemanagerspec}
 
 The userspace app store/package manager maintained by core developers uses an onchain protocol running on kimap to enable app discoverability and ranking.
-The definition of a package (interchangeably called an ``app'') in this protocol is any kimap entry which has both of the following sub-entries:
+The definition of a package (interchangeably called an ``app'') in this protocol is any kimap entry that has both of the following sub-entries:
 
 \verb|~metadata-hash|, \verb|~metadata-uri|.
 
@@ -959,7 +947,7 @@ The \verb|on_exit| field sets the behavior of the process when it exits. There a
 	\item \verb|"Requests"| - The process is not restarted, and a list of requests set by the process are fired off. These requests have the \verb|source| and \verb|capabilities| of the exiting process.
 \end{enumerate}
 
-Documentation and examples of this behavior, along with some subtleties regarding process crashes, can be found in the Kinode Book\footnote{https://book.kinode.org}.
+Documentation and examples of this behavior, along with some subtleties regarding process crashes, can be found in the Kinode Book\footnote{\url{https://book.kinode.org}}.
 
 The \verb|request_networking|, \verb|request_capabilities|, \verb|grant_capabilities|, and \verb|public| fields control the process's networking and capabilities, and whether or not the process should be publicly visible.
 \verb|request_networking| and \verb|public| are booleans that set, respectively, whether the process may communicate with other nodes and whether the process may be communicated with by other processes \textit{whether or not they have a messaging capability object for the process}.
@@ -1024,7 +1012,7 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 As described in Section~\ref{sec:kimap}, kimap is an onchain hierarchical key-value store.
 Each entry is an ERC-721 NFT.
 Entries within kimap may store data in their memory slot within the map.
-Each entry may also be minted as an ERC-6551\footnote{https://eips.ethereum.org/EIPS/eip-6551} token-bound account.
+Each entry may also be minted as an ERC-6551\footnote{\url{https://eips.ethereum.org/EIPS/eip-6551}} token-bound account.
 Perhaps most importantly, entries control their own sub-entries.
 
 Combining these properties allows for the creation of advanced permissioning systems within kimap, allowing the namespace as a whole to become a tapestry of sub-namespaces, each with unique properties.
@@ -1050,9 +1038,9 @@ Unlike DNS, though, TLZs in kimap must be distributed in a fair manner and in su
 Of course, ownership of a TLZ is also permissionless once acquired, leaving no central authority in control of namespace operation.
 The existence of immutable and relatively ungoverned TLZs also guarantees free expression for protocols within at least those areas of the namespace.
 
-We have designed a multi-phase process for TLZ distribution, described in Section~\ref{sec:daotlzmanagement}.
+We have designed a multi-phase process for TLZ distribution, described in Section~\ref{sec:tlzmanagement}.
 
-A given TLZ can be owned by a contract which implements rent logic, requiring regular payments for control over a sub-entry.
+A given TLZ can be owned by a contract that implements rent logic, requiring regular payments for control over a sub-entry.
 Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
 We anticipate and welcome these experimental outcomes.
 A number of TLZs will be transferred to immutable contracts at launch to perform various system roles and integrate with existing onchain identity primitives.
@@ -1086,7 +1074,7 @@ Kimap is designed to be extensible.
 Protocols such as Kinode Name System and the package manager extend kimap by interpreting the data stored at certain keys in a particular way.
 A specific description of how these protocols atop kimap specify themselves may be seen in Section~\ref{sec:kns} and Section~\ref{sec:packagemanager}, respectively.
 
-In the general case, a protocol specifies itself on kimap by declaring a set of data keys which are interpreted a certain way and endow certain properties to their parent name key.
+In the general case, a protocol specifies itself on kimap by declaring a set of data keys that are interpreted a certain way and endow certain properties to their parent name key.
 For example, a simple motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 string message from the parent key, which could be a node identity in the KNS.
 If the owner of the key \verb|howdy.kino| wishes to participate in this protocol, it simply mints the key (mutably, one would hope) \verb|~motd.howdy.kino| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
 
@@ -1163,7 +1151,7 @@ Smart account module inheritance may be limited to a single chain.
 A quick review of kimap's architecture:
 
 \begin{enumerate}
-    \item All keys are strings containing exclusively characters 0-9, a-z (lowercase), - (hyphen).
+    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase), - (hyphen).
     \item A key (also called an entry) may be one of two types, a name-key or a data-key.
     \item Every name-key is an ERC-721 NFT with an ERC-6551 token-bound account.
         \begin{enumerate}
@@ -1201,7 +1189,7 @@ Data keys (prefixed with \verb|~|) cannot be a target for registration.
 Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
 
 Registration of KINO is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
-Every protocol built on kimap can automatically benefit from the registration of KINO to keys to create a listing data structure which can be sorted, filtered, and act as a market for user attention.
+Every protocol built on kimap can automatically benefit from the registration of KINO to keys to create a listing data structure that can be sorted, filtered, and act as a market for user attention.
 
 Note that multiple addresses can register tokens to the same kimap entry at any given time, and the holder of KINO does not need to own a kimap entry in order to register tokens on it.
 Registered tokens are locked for the duration of the registration and automatically returned to the registering address at the end of this period.
@@ -1215,13 +1203,13 @@ However, this mass of bytes is near-useless without a \textit{weighting mechanis
 Consider the operation of a web search engine.
 First, content is crawled and indexed.
 In the indexing process, semantic and relative value is assigned to a given piece of content.
-These weights are then used during a given search to provide a ranked set of content objects which best match the search query.
+These weights are then used during a given search to provide a ranked set of content objects that best match the search query.
 Kimap combined with KINO is not itself a search engine, but it does provide the substrate to operate such mechanisms in a decentralized way.
-The entries in the map are content and registered KINO is a weight-primitive which applies a topology to that content.
+The entries in the map are content and registered KINO is a weight-primitive that applies a topology to that content.
 
 This substrate offers a significant improvement over its centralized counterpart in that incentives are aligned between users and providers.
-A ``provider'' can be considered any party which places entries in the global namespace.
-Providers near-universally seek to optimize for visibility, which is a zero-sum competition with other providers.
+A ``provider'' can be considered any party that places entries in the global namespace.
+Providers near-universally seek to optimize for visibility in a zero-sum competition with other providers.
 A ``user'' can be considered any ``set of eyes'' on the namespace (not necessarily human eyes), which providers compete over.
 Historically, both providers within and the operator of a centralized directory object have been incentivized to abuse the attention of users.
 Additionally, operators have been incentivized to unfairly extract from providers, devising schemes such as placing a competitor's entries above a provider unless a special fee is paid.
@@ -1245,9 +1233,8 @@ At the time of this writing, it is impossible to predict the specifics of algori
 
 One may note that the onchain primitives described in this paper are remarkably simple.
 Registering tokens does not require any game theory or MEV protection properties.
-Creating and mutating namespace entries is also not subject to adversarial conditions, since the ability to do so is only granted to an entry's owner.
-\footnote{That does not mean the same is true for contracts that utilize the protocol.
-Kimap and KINO are designed to be modular–as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace and other such things.
+Creating and mutating namespace entries is also not subject to adversarial conditions, since the ability to do so is only granted to an entry's owner.\footnote{That does not mean the same is true for contracts that utilize the protocol.
+Kimap and KINO are designed to be modular\textemdash as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace and other such things.
 These contracts must be designed carefully to avoid failure modes common to onchain protocols.
 For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and ``steal'' the name.
 A simple solution is to have the user commit to a hash of their desired name as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{in ENS}.}
@@ -1299,13 +1286,13 @@ To achieve decentralized governance, the onchain namespace and KINO weighting pr
 The address performing registration selects which address receives this voting power, allowing for delegation schemes.
 
 As noted in Section~\ref{sec:kinoregister}, registration of KINO occurs for a set time period.
-The lock duration produces a decay curve which determines the voting power created from registration.
+The lock duration produces a decay curve that determines the voting power created from registration.
 
 The voting strength of a given address is therefore calculated by iterating across all the registration actions that address has been indicated as receiving voting power for, dividing the number of tokens using the decay curve applied to that registration, then summing the total.
 Since this is a computationally intensive operation, the voting power is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
 Votes may be shared peer-to-peer and bundled into proofs submitted in bulk.
 
-Governance is not an empty role in Kinode–unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
+Governance is not an empty role in Kinode\textemdash unlike purely onchain protocols, which often fail to benefit from active governance, Kinode governance includes ongoing responsibilities over the namespace and protocol.
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
@@ -1314,10 +1301,9 @@ There is no governance necessary if a protocol is truly immutable and permission
 While the governance protocol will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects can be added to the protocol to keep pace with the fast-moving world of software.
 
 \subsection{TLZ Management}
-\label{sec:daotlzmanagement}
+\label{sec:tlzmanagement}
 
-The most important role of the governance mechanism is to steward the kimap namespace until it can stand on its own.
-\footnote{Note that each TLZ can create its own form of governance, and we hope to see a diversity of approaches. The Kinode governance mechanism does not dictate how any portion of the namespace operates.}
+The most important role of the governance mechanism is to steward the kimap namespace until it can stand on its own.\footnote{Note that each TLZ can create its own form of governance, and we hope to see a diversity of approaches. The Kinode governance mechanism does not dictate how any portion of the namespace operates.}
 
 At some point, ownership of the kimap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
 Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
@@ -1332,18 +1318,17 @@ Therefore, once enough top-level namespace entries are held by a diversity of im
 From that point on, core developers will continue to contribute to the development of all open-source components of the software.
 
 \subsubsection{TLZ Auctions}
-\label{sec:daotldauctions}
+\label{sec:tlzauctions}
 
 Initial namespace distribution will take the form of auctions, in which the governance mechanism executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
-Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.
-\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
+Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
 TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
 
 By auctioning off and otherwise selling namespace, particularly top-level namespace, the governance mechanism may generate revenue.
 Revenue earned this way may be directed anywhere, depending on the auction implementation approved in a new TLZ proposal, perhaps as further reward for governance participation or initiatives to further increase the utility of the namespace.
 
 \subsection{Progressive Decentralization}
-\label{sec:daodecentralization}
+\label{sec:decentralization}
 
 Through 3 phases, Kinode governance will transition from a small team of core developers to a fully dencentralized protocol.
 
@@ -1356,8 +1341,7 @@ In phase 2, voting is enabled, but proposal creation is permissioned.
 In order to achieve distributed ownership of the namespace, the first proposal will be to approve a list of TLZs to be auctioned off.
 Auctions will seed a treasury controlled in a trusted role during phase 1 and later delegated to an adminstrator or possibly burned, depending on governance decisions.
 The exact format of the auction is to-be-determined: it will be onchain with permissionless participation.
-Auctions during phase 2 will direct proceeds to a treasury funding core development.
-\footnote{The auction contract used in phase 2 will sell \textit{ownership} of a TLZ: the winner will have the asset transferred to their address.
+Auctions during phase 2 will direct proceeds to a treasury funding core development.\footnote{The auction contract used in phase 2 will sell \textit{ownership} of a TLZ: the winner will have the asset transferred to their address.
 Phase 3 allows voters to approve any kind of auction contract, which may include styles of auction that do not transfer ownership, but rather implement some kind of rent mechanism.
 TLZs can also implement rent mechanisms of all sorts within their namespace, which is one of the many modes of TLZ governance we hope to see.}
 
@@ -1369,17 +1353,16 @@ Phase 3 begins fully decentralized operation of the protocol.
 Proposals are activated, which combined with voting completes the governance mechanism.
 Auctions in phase 3, rather than directing proceeds to a treasury, will direct KINO tokens to a burn address.
 Auction participants will compete to burn the largest amount of tokens to win the auction.
-In a similar sense that EIP-1559 directs gas fees to a burn rather than funding a treasury, auctions burning tokens allows the protocol to maintain neutrality.\footnote{https://eips.ethereum.org/EIPS/eip-1559}
+In a similar sense that EIP-1559 directs gas fees to a burn rather than funding a treasury, auctions burning tokens allows the protocol to maintain neutrality.\footnote{\url{https://eips.ethereum.org/EIPS/eip-1559}}
 
 The vote-proposal system includes a precise set of actions:
 \begin{itemize}
-    \item Approve/Deny new TLZ + auction contract to be used for auction
-    \footnote{Note that the specific implementation of auction can be determined by voters, which decides the auction style.}
+    \item Approve/Deny new TLZ + auction contract to be used for auction\footnote{Note that the specific implementation of auction can be determined by voters, which decides the auction style.}
     \item Approve/Deny new Kinode Improvement Proposal (KIP)
     \item Approve/Deny new Kinode Specification
 \end{itemize}
 
-Proposals will be shared peer-to-peer in the Kinode network using a protocol to-be-determined, which will involve a mechanism to filter for meaningful proposals (itself using `kimap` and KINO for this purpose, naturally).
+Proposals will be shared peer-to-peer in the Kinode network using a protocol to-be-determined, which will involve a mechanism to filter for meaningful proposals (itself using kimap and KINO for this purpose, naturally).
 
 Since Kinode Improvement Proposals (KIPs) affect (only) offchain software, they only exist to alter the agreed-upon specification of the operating system, which is written, hashed, and posted onchain.
 A successful KIP will result in a Specification vote.
@@ -1387,17 +1370,17 @@ At the point of a successful specification change, all Kinode users are expected
 This will act as an effective schelling point for the network.
 
 \subsection{Default-distro App: Governance Portal}
-\label{sec:daoportal}
+\label{sec:govportal}
 
-A Governance Portal app alonside App Store (and other utilities) in the reference distribution of Kinode OS.
-The app will serve as a central point where a node identity can create, vote on, and review proposals.
+The reference distribution of Kinode OS will include a Governance Portal app, alongside the App Store and other utilites.
+The Governance Portal will serve as a central point where a node identity can create, vote on, and review proposals.
 As mentioned in Section~\ref{sec:voting}, the voting power of a given address is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
 Functionality for this will be included in the Governance Portal along with a peer-to-peer protocol for sharing signed votes and bundling them into proofs.
 
 Auctions and other onchain activities may also be accessible through the Governance Portal.
 
 \subsection{Other Duties}
-\label{sec:daoduties}
+\label{sec:govduties}
 
 The governance protocol may perform other work to increase the utility of the namespace and improve the functionality of the operating system, such as developing more kimap protocols like KNS and the package manager.
 It may also take actions to incentivize use of kimap and KINO together.
