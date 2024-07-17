@@ -1032,6 +1032,7 @@ For example, the process by which KNS integrates with existing onchain identity 
 An entry is deployed with custom logic (using cross-chain messaging protocols if necessary) that restricts sub-entry creation to only wallets with the matching onchain asset for the sub-entry they are posting a transaction to mint.
 
 \subsection{Top-Level Zones}
+\label{sec:tlz}
 
 In data structure terminology, kimap is a tree, and thus has a ``root'' node.
 The root node is not particularly interesting, and sits immutable, with no custom logic, upon protocol deployment.
@@ -1138,6 +1139,23 @@ Through this mechanism, kimap allows for arbitrary governance patterns to be exp
 
 Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node, rich functionality would be impossible to achieve.
 A node that wanted to participate in one system by depositing its token into an arbitrary smart contract for that system would prevent it from participating in another system, or exposing additional functionality for other purposes.
+
+\subsection{Scaling}
+
+The scaling properties of a kimap instance are limited by the blockchain on which it operates.
+We do not forsee this being an immediate concern as Ethereum Layer-2s can handle enough transaction throughput to support basic kimap usage for a large number of users.
+However, a Kinode-centric future will clearly require vastly more scale in terms of kimap operations per second–more than any single blockchain can support today.
+The scaling solution must therefore be horizontal: a network of independent kimap instances, each capable of handling a portion of the total state of the namespace.
+Thankfully this strategy dovetails with the single-chain kimap implementation.
+The kimap contract declares a single root node (see Section~\ref{sec:tlz}).
+The first instance of kimap simply declares the root node to be \verb|0x0|.
+Subsequent deployments may scale horizontally across multiple blockchains by deploying with a root node set to an existing namespace entry \textit{within} the ``main'' instance (or even a separate instance, in a nesting pattern).
+
+A subsequent deployment, therefore, has a ``pointer'' within the primary namespace and all entries are nested under the entry in the primary namespace.
+The ``pointer'' entry will likely post data keys such as \verb|~chain-id| and \verb|address| to direct to the subsequent deployment.
+This strategy will allow the namespace to easily scale across a variety of blockchains.
+Note that while the namespace information will work straightforwardly across deployments, the smart account functionality and hierarchical module installation will require more implementation work to work across chain boundaries if at all.
+Smart account module inheritance may be limited to a single chain.
 
 \subsection{Review}
 \label{sec:kimapreview}
@@ -1387,7 +1405,7 @@ It may also take actions to incentivize use of kimap and KINO together.
 One significant possibility for the onchain namespace protocol involves scaling and expansion.
 The initial deployment will take place on a single blockchain, but both volume of transactions and support for composition with other onchain protocols may inspire expansion to multiple other chains.
 Horizontal scaling of this kind is achievable by minting a namespace entry (possibly a new TLZ) that points to a smart contract on another blockchain.
-The indicated deployment of kimap would use that namespace entry as its "root node" (which is simply \verb|0x0| on the primary deployment).
+The indicated deployment of kimap would use that namespace entry as its ``root node'' (which is simply \verb|0x0| on the primary deployment).
 Such decisions will be made by the governance protocol, which will be the owner of the root node.
 
 \clearpage
