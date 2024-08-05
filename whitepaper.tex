@@ -226,9 +226,9 @@ Routers should themselves be direct nodes.
 If a string in the array is not a valid node identity, or it is a valid node identity but not a direct one, that router will not be used by the networking protocol.
 Further discussion of the networking protocol specification is presented in the Section~\ref{sec:osnetworking}.
 
-The bytes at an \verb|~ip| entry must be 16 big-endian bytes corresponding to a 128-bit unsigned integer.
-This integer is interpreted as an IPv4 address if it is <32-bit.
-Otherwise it is interpreted as an IPv6 address.
+The bytes at an \verb|~ip| entry must be either 4 or 16 big-endian bytes.
+A 4-byte entry represents a 32-bit unsigned integer and is interpreted as an IPv4 address.
+A 16-byte entry represents a 128-bit unsigned integer and is interpreted as an IPv6 address.
 
 Lastly, the bytes at any of the following port entries must be 2 big-endian bytes corresponding to a 16-bit unsigned integer:
 
