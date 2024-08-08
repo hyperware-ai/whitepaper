@@ -219,7 +219,8 @@ The data stored at \verb|~net-key| must be 32 bytes corresponding to an Ed25519 
 This is a node's signing key which is used across a variety of domains to verify ownership, including in the end-to-end encrypted networking protocol between nodes.
 The owner of a namespace entry/node identity may rotate this key at any time by posting a transaction to kimap mutating the data stored at \verb|~net-key|.
 
-The bytes at a \verb|~routers| entry must parse to an array of UTF-8 strings.
+The bytes at a \verb|~routers| entry must parse to an array of 32-byte values.
+Each 32-byte value should be a keccak256 namehash that resolves to a node identity.
 These strings should be node identities.
 Each node in the array is treated by other participants in the networking protocol as a router for the parent entry.
 Routers should themselves be direct nodes.
