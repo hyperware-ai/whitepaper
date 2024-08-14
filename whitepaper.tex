@@ -129,11 +129,12 @@ A brief description:
     \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase), - (hyphen).
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
-    \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token),
-    with a connected token-bound account with a counterfactual address,
-    that is a smart contract account implemented according to the ERC-7579\footnote{\url{https://eips.ethereum.org/EIPS/eip-7579}} standard.
+    \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token), with a connected token-bound account with a counterfactual address, implemented according to the ERC-6551\footnote{\url{https://ercs.ethereum.org/ERCS/erc-6551}} standard.
+    \item The implementation of the token-bound account may be set when a name-key is created.
+    \item If the parent entry of a name-key has a token-bound account implementation set (a ``gene''), then the name-key will automatically inherit this implementation.
+    7. Every name-key may inscribe data in data-keys directly beneath it.
     \item Every name-key may inscribe data in data-keys directly beneath it.
-    \item All keys can be declared either mutable or immutable.
+    \item A data-key may be mutable (a ``note'', prepended with \verb|~|) or immutable (a ``fact'', prepended with \verb|!|)
 \end{enumerate}
 
 For a complete specification, see Advanced Kimap in Section~\ref{sec:kimapadvanced}, which goes into detail regarding token-bound accounts, sub-entry management, the use of data keys, and protocol extensibility.
@@ -157,6 +158,8 @@ For a description of the value-assignment mechanism that overlaps kimap, see Sec
             package
                 ~metadata-hash
                 ~metadata-uri
+            !this-is-permanent
+            ~this-is-mutable
     eth
         alice
             ~routers
@@ -182,6 +185,11 @@ Entries \verb|baz.kino| and \verb|package.baz.kino| have no data keys to describ
 The design of kimap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of KNS itself, as a protocol operating on kimap, is described in Section~\ref{sec:kns}, as is the specification of the Kinode Package Manager, Section~\ref{sec:packagemanager}, both of which make an appearance in this example.
 
+Entries \verb|kino|, \verb|baz.kino|, and \verb|package.baz.kino| are \textit{all} NFTs, and \textit{all} have associated token-bound accounts.
+The owner address of a namespace entry (usually) has singular control of its token-bound account.
+However, a given account implementation may contain arbitrary logic, such as the ability for anyone to mint a sub-entry, or edit a ``note'' key underneath.
+A given namespace entry may also elect to set its account implementation as a ``gene'', meaning that \textit{all subsequently minted sub-entries will automatically use the same account implementation}.
+
 \section{KNS: Kinode Name System}
 \label{sec:kns}
 
@@ -196,22 +204,22 @@ Usually manipulated as strings in a process, a node identity is the first compon
 The definition of a node identity in the KNS protocol is any kimap entry that has:
 
 \begin{enumerate}
-    \item A \verb|~net-key| sub-entry AND
+    \item A \verb|~net-key| note AND
     \item \begin{enumerate}
-        \item A \verb|~routers| sub-entry OR
-        \item An \verb|~ip| sub-entry AND at least one of:
+        \item A \verb|~routers| note OR
+        \item An \verb|~ip| note AND at least one of:
             \begin{enumerate}
-                \item \verb|~tcp-port| sub-entry
-                \item \verb|~udp-port| sub-entry
-                \item \verb|~ws-port| sub-entry
-                \item \verb|~wt-port| sub-entry
+                \item \verb|~tcp-port| note
+                \item \verb|~udp-port| note
+                \item \verb|~ws-port| note
+                \item \verb|~wt-port| note
             \end{enumerate}
         \end{enumerate}
 \end{enumerate}
 
 A sample of this protocol can be seen in Fig.~\ref{fig:example kimap}.
 Two classes of nodes are defined: \textit{direct} and \textit{indirect}.
-Direct nodes are those that publish an \verb|~ip| and one or more of the \verb|port| sub-entries.
+Direct nodes are those that publish an \verb|~ip| and one or more of the \verb|port| notes.
 Indirect nodes are those that publish \verb|~routers|.
 The nature of direct and indirect nodes in networking is described in Section~\ref{sec:osnetworking}.
 
@@ -234,10 +242,10 @@ A 16-byte entry represents a 128-bit unsigned integer and is interpreted as an I
 Lastly, the bytes at any of the following port entries must be 2 big-endian bytes corresponding to a 16-bit unsigned integer:
 
 \begin{enumerate}
-	\item \verb|~tcp-port| sub-entry
-	\item \verb|~udp-port| sub-entry
-	\item \verb|~ws-port| sub-entry
-	\item \verb|~wt-port| sub-entry
+	\item \verb|~tcp-port| note
+	\item \verb|~udp-port| note
+	\item \verb|~ws-port| note
+	\item \verb|~wt-port| note
 \end{enumerate}
 
 These integers are translated to port numbers.
@@ -637,7 +645,7 @@ This section describes a number of runtime modules of critical importance.
 \subsubsection{Virtual Filesystem}
 \label{sec:osvfs}
 
-The OS ships with \verb|vfs:distro:sys|, a module that presents a standard filesystem API accessible to all processes with the capability to message it.
+The operating system ships with \verb|vfs:distro:sys|, a module that presents a standard filesystem API accessible to all processes with the capability to message it.
 Directories and files created in the VFS are saved on the host machine's filesystem.
 All I/O is mediated by the VFS, allowing processes to abstract away management of filesystem resources.
 
@@ -1011,10 +1019,15 @@ As such, developers can work on remote Kinode's with the same ease that \verb|ki
 \label{sec:kimapadvanced}
 
 As described in Section~\ref{sec:kimap}, kimap is an onchain hierarchical key-value store.
-Each entry is an ERC-721 NFT.
-Entries within kimap may store data in their memory slot within the map.
-Each entry may also be minted as an ERC-6551\footnote{\url{https://eips.ethereum.org/EIPS/eip-6551}} token-bound account.
-Perhaps most importantly, entries control their own sub-entries.
+Keys in the map come in three varieties: ``name'', ``note'', and ``fact''.
+
+Each name entry is an ERC-721 NFT.
+The entry NFT is minted with an ERC-6551\footnote{\url{https://eips.ethereum.org/EIPS/eip-6551}} token-bound account.
+This token-bound account, or TBA, is the only address which is permitted to create sub-entries beneath the associated name key.
+
+Note and fact entries within kimap may store data in their memory slot within the map.
+Notes are mutable, while facts are immutable once set.
+They may not have sub-entries.
 
 Combining these properties allows for the creation of advanced permissioning systems within kimap, allowing the namespace as a whole to become a tapestry of sub-namespaces, each with unique properties.
 For example, the process by which KNS integrates with existing onchain identity primitives (described in Section~\ref{sec:knsotherprimitives}):
@@ -1047,24 +1060,23 @@ We anticipate and welcome these experimental outcomes.
 A number of TLZs will be transferred to immutable contracts at launch to perform various system roles and integrate with existing onchain identity primitives.
 The \verb|os| TLD, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
 To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
+This character minimum is an example of custom logic that may be implemented at the TBA level for a given name entry.
 
 \subsection{Name Keys}
 
-Name keys determine ownership of entries in the namespace and the ability to both create sub-entries and inscribe data into data keys. Sub-entries are just name keys directly beneath the parent name key, so, unless contract logic in a higher parent entry has disallowed it, the name key \verb|hello.os| may create sub-entries like \verb|sub1.hello.os| and \verb|sub2.hello.os|.
-Name keys are tokenized as ERC-721 NFTs and bound to modular smart accounts at counterfactual addresses.
+Name keys determine ownership of entries in the namespace and the ability to both create sub-entries and inscribe data into data keys. Sub-entries are just name keys directly beneath the parent name key, so, unless contract logic in a higher parent entry has disallowed it, the name key \verb|hello.os| may freely create sub-entries like \verb|sub1.hello.os| and \verb|sub2.hello.os|.
+Name keys are tokenized as ERC-721 NFTs and bound to TBAs at counterfactual addresses.
 The usual properties of NFTs apply to name keys: they may be transferred, wrapped, and composed with onchain protocols that operate on ERC-721s.
 
 \subsection{Data Keys}
 
-Data keys are meant to support name keys in the kimap. They may be created by any name key by prepending the label being created with a \verb|~|.
+Data keys store content in the kimap. There are two flavors: mutable ``notes'', and immutable ``facts''.
 
 Entries of this variety \textbf{may not} mint sub-entries, hence the prefix: one can use \verb|~my-data.hello.os| to store data while minting \verb|my-data.hello.os| in order to mint sub-entries beneath it, should one desire to do so.
 
-Data at a data key is stored as bytes inside the contract map.
-The owner of the parent name key is the only address that can modify the data stored at that slot.
+The content of a note or fact is stored as bytes inside the contract map.
+The owner of the parent name key is the only address that can set/modify the data stored at that slot.
 The interpretation of stored bytes is the responsibility of the protocol reading and writing from that entry.
-
-Data can be mutable or immutable.
 
 All data is public. Protocols that wish to operate on private data may store hashes at namespace entries, operate offchain within the end-to-end encrypted Kinode networking protocol, or ideally use a combination of both: kimap for public signaling and dispersion of schelling points, peer-to-peer messaging for data exchange.
 
@@ -1098,36 +1110,36 @@ A developer can instruct a user to create a sub-entry for their node identity an
 \subsection{ERC-6551 Token-Bound Accounts}
 
 The smart contract accounts that are deployed to these addresses are ERC-6551 compliant token-bound accounts.
-This means the kimap's address and the token id of the name key that owns the smart contract account will be appended to the immutable bytecode of the account.
-Therefore, the smart contract account will be unbreakably linked to the owner of the token in the kimap.
-This enables the ownership of a given node on the network to be given according to any logic that operates on ERC-721 tokens.
-Anything and everything associated with the account can be transferred to a new owner at any time.
+This enables the ownership of a given node on the network to be managed according to any logic that operates on ERC-721 tokens.
+Anything and everything associated with the account can be transferred to a new owner.
 
-\subsection{ERC-7579 Modular Smart Contract Accounts}
+TODO way way more here
 
-The smart contract account implementation will be a ERC-7579 compliant minimal, modular smart account.
-This means Kinode accounts will have access to a wide range of plugins created by various account vendors.
-Users will be able to install and uninstall plugins from the broader ecosystem at will.
-However, there are two aspects that will be unique to Kinode. The first is that the root validator of the account
-will be immutably linked according to the ERC-6551 token-bound owner of the kimap's ERC-721 token.
-Other validation modules are able to be installed, but the root validator, with power over all other validators, will always be the owner of the token-bound account.
-Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace,
-as described below.
+% \subsection{ERC-7579 Modular Smart Contract Accounts}
 
-\subsection{Kinode Fallback Modules and Hierarchical Module Installation}
+% The smart contract account implementation will be a ERC-7579 compliant minimal, modular smart account.
+% This means Kinode accounts will have access to a wide range of plugins created by various account vendors.
+% Users will be able to install and uninstall plugins from the broader ecosystem at will.
+% However, there are two aspects that will be unique to Kinode. The first is that the root validator of the account
+% will be immutably linked according to the ERC-6551 token-bound owner of the kimap's ERC-721 token.
+% Other validation modules are able to be installed, but the root validator, with power over all other validators, will always be the owner of the token-bound account.
+% Second is how Kinode will leverage fallback handler modules in order to provide rich functionality in its namespace,
+% as described below.
 
-In accordance with the ERC-7579 standard as it pertains to fallback modules, the kimap will empower holders
-to write arbitrary behavior into their subsection of the namespace.
-In this way, they can provide on chain methods for interacting with their nodes, upgrading their functionality
-from just being a smart contract account to being a first class smart contract capable of expressing any type of
-logic they decide.
+% \subsection{Kinode Fallback Modules and Hierarchical Module Installation}
 
-Furthermore, kimap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers for any sub node in its hierarchy.
-These fallback handlers may be specified to be immutable, such that the sub nodes would not be able to remove them from their account.
-Through this mechanism, kimap allows for arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion.
+% In accordance with the ERC-7579 standard as it pertains to fallback modules, the kimap will empower holders
+% to write arbitrary behavior into their subsection of the namespace.
+% In this way, they can provide on chain methods for interacting with their nodes, upgrading their functionality
+% from just being a smart contract account to being a first class smart contract capable of expressing any type of
+% logic they decide.
 
-Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node, rich functionality would be impossible to achieve.
-A node that wanted to participate in one system by depositing its token into an arbitrary smart contract for that system would prevent it from participating in another system, or exposing additional functionality for other purposes.
+% Furthermore, kimap allows nodes to define hierarchical installation instructions of arbitrary fallback handlers for any sub node in its hierarchy.
+% These fallback handlers may be specified to be immutable, such that the sub nodes would not be able to remove them from their account.
+% Through this mechanism, kimap allows for arbitrary governance patterns to be expressed throughout the namespace in a very lightweight fashion.
+
+% Without the ability to attach behaviors arbitrarily to any given node at the smart contract account of that node, rich functionality would be impossible to achieve.
+% A node that wanted to participate in one system by depositing its token into an arbitrary smart contract for that system would prevent it from participating in another system, or exposing additional functionality for other purposes.
 
 \subsection{Scaling}
 
@@ -1141,7 +1153,7 @@ The first instance of kimap simply declares the root node to be \verb|0x0|.
 Subsequent deployments may scale horizontally across multiple blockchains by deploying with a root node set to an existing namespace entry \textit{within} the ``main'' instance (or even a separate instance, in a nesting pattern).
 
 A subsequent deployment, therefore, has a ``pointer'' within the primary namespace and all entries are nested under the entry in the primary namespace.
-The ``pointer'' entry will likely post data keys such as \verb|~chain-id| and \verb|address| to direct to the subsequent deployment.
+The ``pointer'' entry will likely post immutable facts such as \verb|!chain-id| and \verb|!address| to direct to the subsequent deployment.
 This strategy will allow the namespace to easily scale across a variety of blockchains.
 Note that while the namespace information will work straightforwardly across deployments, the smart account functionality and hierarchical module installation will require more implementation work to work across chain boundaries if at all.
 Smart account module inheritance may be limited to a single chain.
@@ -1160,8 +1172,8 @@ A quick review of kimap's architecture:
             \item Name-keys may inscribe data in data-keys directly beneath themselves.
         \end{enumerate}
     \item A data-key is controlled by its parent name-key and points to bytes stored in contract memory.
-    \item All keys can be declared either mutable or immutable.
-    \item An owner of a key can apply rules to the path structure beneath that key.
+    \item Data-keys are either ``notes'' (mutable) or ``facts'' (immutable).
+    \item An owner of a name-key can apply rules to the path structure beneath that key.
     \item Various protocols will run on top of kimap by inspecting specific name-keys and their data entries, and parsing those entries in various ways.
     \item The top level keys are called Top-Level Zones or TLZs.
         \begin{enumerate}
