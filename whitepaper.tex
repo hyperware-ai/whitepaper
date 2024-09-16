@@ -1113,7 +1113,16 @@ The smart contract accounts that are deployed to these addresses are ERC-6551 co
 This enables the ownership of a given node on the network to be managed according to any logic that operates on ERC-721 tokens.
 Anything and everything associated with the account can be transferred to a new owner.
 
-TODO way way more here
+Token-bound accounts are fully programmable ``smart accounts''.
+As a result, they can implement arbitrary logic to govern the assets within.
+They can also be used to control the sub-entries endowed to them by kimap's logic.
+By default, the token-bound account associated with a name entry will have the sole ability to create sub-entries beneath.
+This can be modified to expose a public mint function with arbitrary requirements, such as a minimum amount of KINO registered to the sub-entry.
+Such logic has already been implemented in various top-level zones to create public namespaces.
+
+When a name entry is created, the minter sets an implementation for the token-bound account.
+A name entry in kimap may set its \verb|gene| to a specific token-bound account implementation.
+This enforces that all subsequently created sub-entries will use the same implementation, overriding the implementation set by the minter.
 
 % \subsection{ERC-7579 Modular Smart Contract Accounts}
 
