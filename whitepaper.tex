@@ -25,8 +25,8 @@
 \author{
 Benjamin McCormick \and
 Nicholas B Ludwig \and
-James Foley \and
-Markus Vaas
+Markus Vaas \and
+James Foley
 }
 \institute{Sybil Technologies AG}
 %
@@ -1423,5 +1423,67 @@ Nodes will execute the Kinode OS specification, but be virtualized by a diversit
 
 Mainstream technology will continue to evolve rapidly at both the hardware and software level. New programming languages and new chips will emerge that continue to improve on performance and security.
 Kinode is a beneficiary of this innovation, and at the same time, it unleashes the potential of new computing capabilities while maintaining the sovereignty of the end user.
+
+
+\newpage
+\section{Appendix: 3 Ways to Use Kinode}
+
+Kinode enables ``sovereign computing'' by allowing anyone to run their own node and communicate directly peer-to-peer using protocols deployed on the network.
+However, making this sufficiently approachable for non-technical users has been a historically insurmountable challenge for countless instances of similarly decentralized software.
+We address this issue by supporting three user-level entrypoints into the Kinode network:
+\begin{enumerate}
+    \item Hosted Nodes
+    \item Desktop App
+    \item Self-Hosted Nodes
+\end{enumerate}
+
+These are presented in order of complexity for the end user, from least technical to most.
+We expect that most users will operate hosted nodes while developers and power users will self-host nodes.
+The desktop GUI version of Kinode will allow anyone with a computer to run a node for free, but have fundamental limitations regarding remote access (such as through a mobile app) and consistent uptime, which will likely be important for some protocols.
+
+\subsubsection{1. Hosted Nodes}
+
+The absolute easiest way to join the Kinode network is to access a node hosted by a professional service.
+We have already developed a framework for running such a service and intend to open-source the platform while partnering with ecosystem participants to offer a managed service.
+A user may access a hosted node via a web browser or a mobile app.
+Hosts may offer various forms of authentication and payment in exchange for access to the node.
+
+While allowing a host to manage one's node sacrifices some degree of total ownership over one's identity and data, this strategy still offers critical advantages over centralized web services.
+
+Firstly, the user only needs to trust a single entity—the host—rather than a separate entity for each service they use.
+
+Secondly, node hosts are always engaged in a game-theoretic competition with other hosts with users as the benefactors.
+If a host abuses their power, it is a trivial matter for users to move to another host, because each host offers the same fundamental functionality, defined by the Kinode OS specification.
+Even offering the ability to import and export an existing node is a feature enforced by this competition, in the sense that users will undoubtedly choose a host that offers this ability over one that does not.
+Game theory also ensures that hosts will be forced to compete on cost, driving the price of hosting to the minimum premium over raw compute resources.
+
+In fact, historical precedent indicates that hosting for such a service will almost certainly be free.
+Why?
+Developers of various value-accretive protocols will offer hosting as a loss-leader to attract users.
+In Kinode's case, hosts can easily offer a node with their software pre-installed, while users can onboard for free and later migrate their identity to a new host or a fully self-hosted setup.
+
+\subsubsection{2. Desktop App}
+
+As a second entrypoint into the Kinode network, we maintain a desktop application for easy install and execution like that of a regular program.
+All that it does is run a node and serve its web frontend as a standalone application.
+This is a simple way for users to run a node on their computer without needing to interact with the command line.
+
+The ability to package Kinode as a traditional app was a design goal from the beginning of the project and inspired features such as indirect nodes described in Section~\ref{sec:knsspec}.
+Users do not need to perform any advanced system configuration to robustly run a node from their laptop or desktop computer.
+
+Nodes run in this fashion will inherently lack support for remote access and regular uptime.
+Since using Kinode-powered mobile apps will be a core user experience, most long-term users will be driven to either find a hosting solution or self-host.
+The same holds true for running protocols that require a node to regularly perform actions or receive messages on the network: the uptime characteristics of a desktop app are not appropriate for such tasks.
+However, the desktop app will be ideal for testing out Kinode as a casual user.
+
+\subsubsection{3. Self-Host a Node}
+
+Running a node on a home server or VPS instance offers the most control over one's identity and data.
+It is also a somewhat technical process that involves navigating a command line interface and performing system administration tasks like installing a web server, managing a firewall, and configuring DNS.
+Only a small fraction of users will ever choose to self-host, but for developers and power users (who, for example, may want to provide services like RPC access or compute resources to other nodes) it will always be the best option.
+Self-hosting Kinode is similar in complexity to operating a full node for a blockchain and has the same uptime considerations.
+However, the Kinode network does not have a network-wide consensus mechanism, so the importance of distributing nodes across many different entities is significantly reduced.
+It is safe to have the vast majority of nodes distributed across a few hosting providers, with a relatively small number of self-hosted nodes.
+Self-hosting in the CLI and desktop app form will always be available as a fallback to maintain user sovereignty.
 
 \end{document}
