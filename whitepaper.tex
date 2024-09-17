@@ -52,17 +52,16 @@ All of these components work in lockstep to solve the problems that have heretof
 \section{Overview}
 \label{sec:overview}
 
-Cryptocurrency, specifically smart contract blockchains, have triggered a nascent revolution in permissionless protocols: software in which all can participate and none can can shut down.
+Cryptocurrency, specifically smart contract blockchains, triggered a nascent revolution in permissionless protocols: software that allows participation by all, yet can be shut down by none.
 But progress towards a fully decentralized, permissionless internet has stagnated even as specific niches like decentralized finance flourish.
-We believe that this progress is constrained less by blockchain speed and throughput than by an underdeveloped offchain computing substrate.
+We believe that this progress is constrained less by blockchain speed and throughput as it is by an underdeveloped offchain computing substrate.
 
 Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.\footnote{\href{https://bitcoin.org/bitcoin.pdf}{The Bitcoin whitepaper} describes using a distributed ledger to prevent double-spend of Bitcoin, and subsequent cryptocurrency projects generalized this to a blockchain preventing double-spend of arbitrary digital assets.}
-The mechanism to achieve this, now well-proven, expanded to turing-complete VMs, and replicated dozens of times, is simple: signed transactions validated by a decentralized validator set and deposited into an append-only distributed ledger.
+The mechanism to achieve this, now well-proven, expanded to turing-complete VMs, and replicated dozens of times, is simple: signed transactions confirmed by a decentralized validator set and deposited into an append-only distributed ledger.
 
 But what operations \textit{actually benefit} from an onchain transaction?
 
-Permissionless finance obviously requires blockchains, at least at the moment of settlement.
-Similarly for operations that mutate ownership of an asset.
+Permissionless finance obviously requires blockchains, at least at the moment of settlement, as do operations that mutate ownership of an asset.
 Smart contracts have proven that double-spend prevention can productively be applied to any digital asset that requires guaranteed global consensus on the order and provenance of operations.
 
 Which operations do not benefit from such guarantees?
@@ -96,20 +95,20 @@ Until we provide a proper platform for such operations, ``Web3'' will simply nev
 
 The goal of the Kinode Hyperstructure\footnote{\url{https://jacob.energy/hyperstructures.html}}
 is to present a permissionless substrate for computing.
-Smart contract blockchains provide access to global consensus state for provenance over digital assets\textemdash Kinode does ``everything else''.
-In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and the long-term governance structure for those components.
+Smart contract blockchains provide access to global consensus state for provenance over digital assets, while Kinode does ``everything else''.
+In this paper, we present an operating system, an onchain global namespace, a value assignment and ranking mechanism, and the long-term governance structure for these components.
 
 \section{Kimap}
 \label{sec:kimap}
 
 Historically, discoverability of both \textit{peers} and \textit{content} has been a major barrier for peer-to-peer developers.
 Discoverability can present both social barriers (finding a new user on a game or chat) and technical obstacles (automatically acquiring networking information for a particular username).
-Many solutions have been designed to address this problem, but so far, the ``devex'' (developer experience) of deploying centralized services has continued to outcompete the p2p discoverability options available.
+Many solutions have been designed to address this problem, but so far, the ``devex'' (developer experience) of deploying centralized services has continued to outcompete the peer-to-peer discoverability options available.
 Why is this?
 \begin{enumerate}
-    \item Libraries such as \verb|libp2p|, while effective at their goal of providing p2p primitives, do not provide the ``batteries included'' identity, discoverability, and network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
+    \item Libraries such as \verb|libp2p|, while effective at their goal of providing peer-to-peer primitives, do not provide the ``batteries included'' identity, discoverability, and network-effect-potential of more traditional centralized alternatives, and can also be difficult to approach for new developers.
     \item ``Pure'' peer-to-peer protocols still rely on hardcoded lists to bootstrap new entrants.
-    \item Constructs such as distributed hash tables and CRDTs, frequently used in p2p protocols, are complex to properly implement.
+    \item Constructs such as distributed hash tables and CRDTs, frequently used in peer-to-peer protocols, are complex to properly implement.
     \item In order for a full, up-to-date snapshot of some globally-shared data to be easy to aquire, it should be stored in a single place.
     \subitem For Kinode, that ``one place'' is on a public blockchain inside a single smart contract.
     \subitem Multiple map contracts across multiple chains can be used to scale horizontally in the future while still providing a consistent interface to the global state.
@@ -126,11 +125,11 @@ Several aspects of the minimal map implementation are customized for the ``names
 A brief description:
 
 \begin{enumerate}
-    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase), - (hyphen).
+    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase),    - (hyphen).
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
     \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token), with a connected token-bound account with a counterfactual address, implemented according to the ERC-6551\footnote{\url{https://ercs.ethereum.org/ERCS/erc-6551}} standard.
-    \item The implementation of the token-bound account may be set when a name-key is created.
+    \item The implementation of the token-bound account may be set when a name–key is created.
     \item If the parent entry of a name-key has a token-bound account implementation set (a ``gene''), then the name-key will automatically inherit this implementation.
     7. Every name-key may inscribe data in data-keys directly beneath it.
     \item Every name-key may inscribe data in data-keys directly beneath it.
@@ -506,15 +505,15 @@ If process C sends message 7 to A, it may be received before 1, after 3, or some
 
 Message delivery is not guaranteed.
 If a message targets a local process, the target may crash or the kernel may suspend execution between message creation and delivery.
-Far more treacherous is delivery of messages to remote processes.
+Far more treacherous is the delivery of messages to remote processes.
 Nodes may go offline, experience network congestion, or otherwise drop incoming messages.\footnote{Computer networking, being a fundamentally physical process, is impossible to effectively abstract over without failure modes because the physical world imposes them.}
 To this end, two error modes are baked into Kinode message passing: offline and timeout.
 
 Requests can be sent at any time, while responses must target a process that has a matching outstanding request.
 A request is outstanding if:
 \begin{enumerate}
-    \item it expects a response
-    \item its timeout has not expired
+    \item It expects a response
+    \item Its timeout has not expired
 \end{enumerate}
 Every request that expects a response must set a timeout value, measured in seconds.
 The kernel is responsible for returning a timeout error to a request that expects a response and does not get matched to one within the number of seconds declared.\footnote{Timeouts must be viewed as a lower bound, as in, the kernel will not return a timeout error for at least X seconds. The upper bound cannot be guaranteed.}
@@ -527,7 +526,7 @@ In practice, ``offline'' and ``timeout'' can usually be treated the same way: by
 Protocols for retrying a message, particularly to a remote process, are left to userspace.
 Different applications are best served by different retry strategies:
 a one-off message may be awaited in a blocking fashion, surfacing an error to the sender's UI.
-A message that's part of a large data transfer may not expect a response at all, instead relying on the final message in the transfer to await a response.
+A message that is part of a large data transfer may not expect a response at all, instead relying on the final message in the transfer to await a response.
 The networking protocol's role as a general-purpose messaging system means that it must support all of these use cases and more.
 
 \subsection{Capabilities-Based Security}
@@ -537,7 +536,7 @@ Kinode OS uses capabilities\footnote{Capabilities are ``unforgeable tokens of au
 See the paper ``Capability Myths Demolished'' for a good introduction to the topic.}
 to enable sensible security between both userspace processes and runtime modules.
 Security between programs is directly related to the sovereignty goals of the OS: a user must be able to install a program without needing to evaluate its source code or blindly trust its developer.
-Wasm programs are sandboxed, but have access to powerful tools including networking, memory, CPU, and disk space, not to mention the possible secrets they contain (consider a wallet program).
+Wasm programs are sandboxed, but have access to powerful tools including networking, memory, CPU, and disk space—not to mention the possible secrets they contain (consider a wallet program).
 Not only must these tools be granted to programs on a case-by-case basis, but without some form of control between sandboxed programs, the sandbox becomes pointless, as any power or secret knowledge granted to a given program could be accessed by other programs!
 
 \begin{figure}[H]
@@ -629,7 +628,7 @@ impl Guest for Component {
     }
 }
 \end{verbatim}
-    \caption{A process implemented in Rust}
+    \caption{A process implemented in Rust.}
     \label{fig:example process}
 \end{figure}
 
@@ -642,7 +641,7 @@ To generate WIT bindings, it is merely required to import \verb|kinode.wit| and 
 
 This section describes a number of runtime modules of critical importance.
 
-\subsubsection{Virtual Filesystem}
+\subsubsection{Virtual Filesystem:}
 \label{sec:osvfs}
 
 The operating system ships with \verb|vfs:distro:sys|, a module that presents a standard filesystem API accessible to all processes with the capability to message it.
@@ -651,7 +650,7 @@ All I/O is mediated by the VFS, allowing processes to abstract away management o
 
 All processes that wish to persist data locally between boots will use either the VFS or another runtime module that writes to disk, which may be an extension or one of the default-distribution's SQLite or key-value store modules.
 
-\subsubsection{Networking}
+\subsubsection{Networking:}
 \label{sec:osnetworking}
 
 This runtime module is the part of the OS that implements the Kinode networking protocol.
@@ -661,7 +660,7 @@ For this reason, the networking module \textit{must} be made aware of the curren
 
 KNS updates are given to \verb|net:distro:sys| using a request API made available to processes that have messaging capabilities to it.
 Note that messaging capability to \verb|net| is only required to send configurational messages, and is not required to simply send networked messages: those are handled through the kernel.
-Note also that as the KNS state grows, it will become prudent to not load the entire state into the networking module, but rather dynamically query the state as networking information is required for accessing new nodes or updating stale data from known ones.
+Note also that as the KNS state grows, it will become prudent to not load the entire state into the networking module, but rather to dynamically query the state as networking information is required for accessing new nodes or updating stale data from known ones.
 
 The networking protocol itself will not be fully specified here, as it is still being finalized and is best suited by its own document. However, some key aspects:
 
@@ -685,7 +684,7 @@ The networking protocol itself will not be fully specified here, as it is still 
     Otherwise, the request-response pattern must be used to confirm message delivery.
 \end{itemize}
 
-\subsubsection{HTTP Client \& Server}
+\subsubsection{HTTP Client \& Server:}
 \label{sec:oshttp}
 
 Web access is a critical part of many programs that run on Kinode.
@@ -707,7 +706,7 @@ Users may then login at the subdomain with the same password as the base node se
 We call this model ``Secure Subdomains''.
 Processes that serve sensitive HTTP APIs for user interfaces are encouraged to use Secure Subdomains to properly sandbox these operations away from other software running on the user's node.
 
-\subsubsection{ETH RPC}
+\subsubsection{ETH RPC:}
 \label{sec:oseth}
 The OS includes an Ethereum (and EVM-compatible chains) indexing runtime module, \verb|eth:distro:sys|, which provides read and write access to blockchain data. This module can connect directly to WebSocket RPC endpoints or relay through other Kinode nodes, forming a potential chain of relays.
 
@@ -738,7 +737,7 @@ This design facilitates the development of decentralized applications that can e
 
 By providing this flexible and powerful interface to Ethereum and other EVM chains, Kinode OS enables developers to create robust blockchain-integrated applications while giving users control over their blockchain access points.
 
-\subsubsection{SQLite, KV-Store}
+\subsubsection{SQLite, KV-Store:}
 \label{sec:osdbs}
 
 In addition to the VFS, the OS provides SQLite and key-value store runtime modules.
@@ -797,7 +796,7 @@ These programs must also have capabilities to access the virtual filesystem, suc
 
 By convention, packages are stored in a \verb|.zip| file with the full name of the package \verb|<package_name>:<publisher_node_id>|, e.g., for a chat app \verb|chat| published by \verb|template.os|, the full name of the package is \verb|chat:template.os|.
 The top level of the zipped directory contains a \verb|pkg| directory and optionally a directory for the source code of each process defined in the \verb|pkg| directory.
-The \verb|pkg| directory defines processes by
+The \verb|pkg| directory defines processes by:
 \begin{enumerate}
     \item Containing a \verb|.wasm| file, the name of which matches the process name
     \item Optionally declaring the process in a file named \verb|manifest.json|, which defines the processes in the package that should be run upon installation and when a node with this package installed is first booted.
@@ -979,7 +978,7 @@ The \verb|main| process, \verb|main:app_store:sys|, indexes kimap to identify pa
 The app store also uses KINO to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization.
 In the case of an app store, this manifests as copycat apps, low-effort scams, and a lack of discoverability for even very popular and widely-installed apps.
-Registering KINO (see Section~\ref{sec:kinoregister}) with namespace entries that are packages published in kimap allows users to
+Registering KINO (see Section~\ref{sec:kinoregister}) with namespace entries that are packages published in kimap allows users to:
 \begin{enumerate}
 	\item Only display apps that have a certain amount of value assigned to them, filtering out discarded tests and spam, and
 	\item Have a metric to compare apps against one another, allowing one to compare two similarly-named apps and easily see which is more widely adopted in the peer-to-peer network.
@@ -1006,7 +1005,7 @@ For example, a developer can use \verb|kit new| to create a template, iterativel
 Finally, use \verb|run-tests| to ensure stability of the project going forward.
 
 Kit's built-in templates help newcomers to learn by giving them working examples so they can begin quickly begin experimenting.
-They also demonstrate off best-practices.
+They also demonstrate best-practices.
 
 Kit makes use of Kinode's HTTP server RPC endpoint to interact with Kinode.
 As such, kit is restricted to localhost only.
@@ -1030,8 +1029,7 @@ Notes are mutable, while facts are immutable once set.
 They may not have sub-entries.
 
 Combining these properties allows for the creation of advanced permissioning systems within kimap, allowing the namespace as a whole to become a tapestry of sub-namespaces, each with unique properties.
-For example, the process by which KNS integrates with existing onchain identity primitives (described in Section~\ref{sec:knsotherprimitives}):
-An entry is deployed with custom logic (using cross-chain messaging protocols if necessary) that restricts sub-entry creation to only wallets with the matching onchain asset for the sub-entry they are posting a transaction to mint.
+For example, the process by which KNS integrates with existing onchain identity primitives (described in Section~\ref{sec:knsotherprimitives}): an entry is deployed with custom logic (using cross-chain messaging protocols if necessary) that restricts sub-entry creation to only wallets with the matching onchain asset for the sub-entry they are posting a transaction to mint.
 
 \subsection{Top-Level Zones}
 \label{sec:tlz}
@@ -1173,7 +1171,7 @@ Smart account module inheritance may be limited to a single chain.
 A quick review of kimap's architecture:
 
 \begin{enumerate}
-    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase), - (hyphen).
+    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase),    - (hyphen).
     \item A key (also called an entry) may be one of two types, a name-key or a data-key.
     \item Every name-key is an ERC-721 NFT with an ERC-6551 token-bound account.
         \begin{enumerate}
@@ -1183,7 +1181,7 @@ A quick review of kimap's architecture:
     \item A data-key is controlled by its parent name-key and points to bytes stored in contract memory.
     \item Data-keys are either ``notes'' (mutable) or ``facts'' (immutable).
     \item An owner of a name-key can apply rules to the path structure beneath that key.
-    \item Various protocols will run on top of kimap by inspecting specific name-keys and their data entries, and parsing those entries in various ways.
+    \item Various protocols will run on top of kimap by inspecting specific name–keys and their data entries, and parsing those entries in various ways.
     \item The top level keys are called Top-Level Zones or TLZs.
         \begin{enumerate}
             \item TLZ minting will be governed in a decentralized manner.
@@ -1320,7 +1318,7 @@ Decentralized finance protocols generally benefit from maximal immutability: onc
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
 There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Kinode is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
 
-While the governance protocol will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects can be added to the protocol to keep pace with the fast-moving world of software.
+While the governance protocol will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Kinode will never be forced to apply an upgrade), additive non-breaking aspects can be integrated into the protocol to keep pace with the fast-moving world of software.
 
 \subsection{TLZ Management}
 \label{sec:tlzmanagement}
@@ -1354,7 +1352,7 @@ Revenue earned this way may be directed anywhere, depending on the auction imple
 
 Through 3 phases, Kinode governance will transition from a small team of core developers to a fully decentralized protocol.
 
-In phase 1, a small set of TLZs will be selected for creation. These will be minted directly to contracts, including ones already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|kino|, ones associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
+In phase 1, a small set of TLZs will be selected for creation. These will be minted directly to contracts, including those already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|kino|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
 
 During phase 1, more TLZs may be created and distributed.
 The KINO registration mechanism will be activated during this time.
@@ -1371,11 +1369,11 @@ Phase 2 will last until the auctions have completed and the operating system is 
 This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
 Development of the OS to the point of specification may take anywhere from 6 months to one year from the current Beta implementation.
 
-Phase 3 begins fully decentralized operation of the protocol.
+Phase 3 begins the fully decentralized operation of the protocol.
 Proposals are activated, which combined with voting completes the governance mechanism.
 Auctions in phase 3, rather than directing proceeds to a treasury, will direct KINO tokens to a burn address.
 Auction participants will compete to burn the largest amount of tokens to win the auction.
-In a similar sense that EIP-1559 directs gas fees to a burn rather than funding a treasury, auctions burning tokens allows the protocol to maintain neutrality.\footnote{\url{https://eips.ethereum.org/EIPS/eip-1559}}
+In a similar sense that EIP-1559 directs gas fees to a burn rather than funding a treasury, auctions burning tokens allow the protocol to maintain neutrality.\footnote{\url{https://eips.ethereum.org/EIPS/eip-1559}}
 
 The vote-proposal system includes a precise set of actions:
 \begin{itemize}
@@ -1420,13 +1418,13 @@ Such decisions will be made by the governance protocol, which will be the owner 
 
 In a Kinode future, the web as we know it today is replaced by a tapestry of permissionless protocols that combine the sovereignty of peer-to-peer with the power of industrial-scale computing.
 Via runtime extensions and controlled namespaces, today's first-party platforms will transform into modularized protocols where users tap into centrally-operated services à la carte.
-A new generation of protocols will be built p2p-first, allowing anyone to act as a provider of powerful services like AI image, text, and video producers or high-speed anonymous networking.
+A new generation of protocols will be built peer-to-peer-first, allowing anyone to act as a provider of powerful services like AI image, text, and video producers or high-speed anonymous networking.
 
 These protocols will not be developed by massive teams or require brigades of DevOps workers to stay online.
 A small group of programmers will specify their design, create an implementation, and publish it onchain.
 They may choose to enable future upgrades by decentralizing the governance of their specification with a DAO and token, or simply allow its permissionless use forever in a final state.
 Switching between protocols will be a trivially easy process for users.
-The monopoly of ossified web protocols will be obliterated by Kinode's user-node architecture, which allows for the operation of ``transformer'' protocols that enable vampire-attacks on any existing protocol with no technical knowhow on the side of the user.
+The monopoly of ossified web protocols will be obliterated by Kinode's user-node architecture, which allows for the operation of ``transformer'' protocols that enable vampire-attacks on any existing protocol with no technical know-how on the side of the user.
 Nodes can run anywhere: by a user in their home, in a data center, or on a mobile device.
 Nodes will execute the Kinode OS specification, but be virtualized by a diversity of runtimes optimized for different environments.
 
@@ -1450,7 +1448,7 @@ These are presented in order of complexity for the end user, from least technica
 We expect that most users will operate hosted nodes while developers and power users will self-host nodes.
 The desktop GUI version of Kinode will allow anyone with a computer to run a node for free, but have fundamental limitations regarding remote access (such as through a mobile app) and consistent uptime, which will likely be important for some protocols.
 
-\subsubsection{1. Hosted Nodes}
+\subsubsection{1. Hosted Nodes:}
 
 The absolute easiest way to join the Kinode network is to access a node hosted by a professional service.
 We have already developed a framework for running such a service and intend to open-source the platform while partnering with ecosystem participants to offer a managed service.
@@ -1471,7 +1469,7 @@ Why?
 Developers of various value-accretive protocols will offer hosting as a loss-leader to attract users.
 In Kinode's case, hosts can easily offer a node with their software pre-installed, while users can onboard for free and later migrate their identity to a new host or a fully self-hosted setup.
 
-\subsubsection{2. Desktop App}
+\subsubsection{2. Desktop App:}
 
 As a second entrypoint into the Kinode network, we maintain a desktop application for easy install and execution like that of a regular program.
 All that it does is run a node and serve its web frontend as a standalone application.
@@ -1485,7 +1483,7 @@ Since using Kinode-powered mobile apps will be a core user experience, most long
 The same holds true for running protocols that require a node to regularly perform actions or receive messages on the network: the uptime characteristics of a desktop app are not appropriate for such tasks.
 However, the desktop app will be ideal for testing out Kinode as a casual user.
 
-\subsubsection{3. Self-Host a Node}
+\subsubsection{3. Self-Host a Node:}
 
 Running a node on a home server or VPS instance offers the most control over one's identity and data.
 It is also a somewhat technical process that involves navigating a command line interface and performing system administration tasks like installing a web server, managing a firewall, and configuring DNS.
