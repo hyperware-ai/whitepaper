@@ -38,7 +38,7 @@ Users can run their own services at both the interface and backend level.
 Corporations or other entities can provide services in a permissionless, protocolized manner.
 This node-based cloud computing model resolves the impedance mismatch between onchain protocols and web services.
 Developers can write apps in any programming language that compiles to Wasm and easily distribute them to nodes.
-The Kinode platform includes several components that will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for governing and assigning value to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
+The Kinode platform includes several components that will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for expanding and assigning a value-topology to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
 All of these components work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 
 \keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
@@ -86,10 +86,10 @@ Until we provide a proper platform for such operations, ``Web3'' will simply nev
     \begin{tikzpicture}
     \draw (0,3) node[fill=yellow!80!black]{$kimap+KINO$}
     -- (4,3) node[fill=yellow!80!black]{$Kinode OS$}
-    -- (2,0) node[fill=yellow!80!black]{$Kinode Governance$}
+    -- (2,0) node[fill=yellow!80!black]{$Kinode\ Governance$}
     -- cycle;
     \end{tikzpicture}
-    \caption{Architecture of Kinode.}
+    \caption{Components of Kinode.}
     \label{fig:triangle}
 \end{figure}
 
@@ -260,7 +260,7 @@ Kinode OS provides all the primitives required to index effectively in a userspa
 \subsection{Adding Other Onchain Identity Primitives}
 \label{sec:knsotherprimitives}
 
-The KNS is not an attempt at replacing or competing with existing onchain identity primitives such as ENS and Lens.
+The KNS is not an attempt at replacing or competing with existing onchain identity primitives such as ENS\footnote{\url{https://ens.domains}} and Lens\footnote{\url{https://lens.xyz}}.
 Rather, it is designed to satisfy the public key infrastructure needs of the Kinode network.
 It is of paramount importance that nodes can initiate secure communication with one another without the use of any data other than what is available publicly onchain.
 Peer-discovery middlemen induce centralization and complicate networking protocols.
@@ -271,7 +271,7 @@ Here is a brief description of the procedure to do so:
 \begin{enumerate}
     \item Create a contract to allow owners, and only owners, of a given identity primitive to mint their corresponding name in a kimap namespace controlled by this contract.
     \item Mint and transfer the top-level namespace entry corresponding to an outside identity primitive, \verb|lens| for example.
-    \item If necessary, configure LayerZero, or other such cross-chain messaging protocol, to allow owners of an identity primitive on another chain to verify their ownership on the chain that kimap is deployed on.
+    \item If necessary, configure LayerZero, or another such cross-chain messaging protocol, to allow owners of an identity primitive on another chain to verify their ownership on the chain that kimap is deployed on.
     \item The final result is that the owner of, for example, \verb|myname.lens| can exclusively register \verb|myname.lens| in kimap, add a \verb|~net-key| sub-entry, and use it as their PKI entry for Kinode.
 \end{enumerate}
 
@@ -301,7 +301,7 @@ Runtime modules are blocks of code written at the same level of abstraction as t
 These modules are registered in the kernel \textit{as} processes, meaning that they can be messaged by userspace in the system-wide request-response protocol and secured via capabilities.
 Finally, userspace is comprised of all non-runtime-module processes executed virtually by the kernel.
 Userspace processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{\url{https://component-model.bytecodealliance.org}}.
-They are adapted to the Kinode WIT file which defines the common interface that all processes must implement and provides a set of ``system calls'' afforded to userspace processes by the kernel.
+Userspace Wasm code must be compiled against a Wasm Interface Type (WIT) file as used in the Wasm Component Model which defines the common set of ``system calls'' and types afforded to userspace processes by the kernel.
 
 The reference implementation is currently written in Rust, as are all the runtime modules.
 It also comes with a number of pre-installed userspace packages that perform critical tasks.
@@ -456,12 +456,13 @@ Public processes can be messaged by any other process.
 Private processes, as enforced by the kernel, require that the message source holds their messaging capability.
 See the discussion of capabilities in Section~\ref{sec:oscapabilities} for details on their use and how capabilities apply to processes running a remote node.
 
-As of this writing, the kernel runtime module in our reference implementation of the OS fits into about 2,700 lines of Rust.
+As of this writing, the kernel runtime module in our reference implementation of the OS fits into about 2,500 lines of Rust code.
 
 The kernel is responsible for maintaining backwards compatibility.
 If a process was written for an older version of the kernel (which is determined by the version number of the WIT file it implements), newer kernels must store that WIT version and match it to the process.
 If data structures in the WIT file change between versions, the kernel is responsible for translating between formats.
-This kind of upgrade is possible but unlikely once the kernel reaches version 1.0.
+The current version of the WIT file is 0.8.0 and the kernel maintains backwards compatibility with processes written for version 0.7.0.
+When the OS and WIT file together reach version 1.0, support for 0.x versions will be dropped and backwards compatibility will be permanently maintained for all subsequent versions.
 
 \subsection{Message Passing}
 \label{sec:osmessagepassing}
@@ -574,6 +575,7 @@ Note that remote processes are not filtered by messaging capabilities.
 Because other kernels can spoof such information as process names, it does not make sense to filter by process name for a remote message.
 Instead of using messaging capabilities to filter remote processes, a process instead may decide whether or not it accepts messages from remote sources in general, and then filter by the identity of the source node which cannot be spoofed.
 
+\newpage
 \subsection{System Primitives}
 \label{sec:osprimitives}
 
@@ -777,8 +779,8 @@ The surface area presented by the OS for the purpose of backwards-compatibility 
     \item The on-disk footprint of runtime modules that use disk, along with the encrypted keyfile used by the OS to store the networking key and JSON Web Token used for authenticating of node-served frontends.
 \end{itemize}
 
-A number of userspace packages included in the reference distribution must also be backwards-compatible due to the inconvenience created by breaking changes.
-This includes \verb|app_store:sys|, \verb|homepage:sys|, and \verb|terminal:sys|.
+A number of userspace packages included in the reference distribution must also be backwards-compatible in practice due to the inconvenience created by breaking changes.
+This includes (but is not limited to) \verb|app_store|, \verb|kns_indexer|, \verb|homepage|, and \verb|terminal|.
 
 \section{Package Manager}
 \label{sec:packagemanager}
@@ -1102,7 +1104,7 @@ A different protocol that wishes to use the \verb|~motd| entry label could speci
 A counterfactual address is an smart contract address that may be known before code is deployed into its storage on the blockchain.
 Ethereum enables counterfactual address creation with the create2 opcode, which deploys code to an address deterministically generated given the contract address calling the opcode, the initialization bytecode for the contract to be created, and a salt.
 Since each of these factors is known ahead of time for any given entry, every name key in kimap has a corresponding counterfactual address for its smart contract account.
-This property comes in very handy when designing protocols that operate on token-bound accounts.
+This property comes in handy when designing protocols that operate on token-bound accounts.
 A developer can instruct a user to create a sub-entry for their node identity and have already deposited assets in the wallet that will be created as a result.
 
 \subsection{ERC-6551 Token-Bound Accounts}
@@ -1161,9 +1163,11 @@ Subsequent deployments may scale horizontally across multiple blockchains by dep
 
 A subsequent deployment, therefore, has a ``pointer'' within the primary namespace and all entries are nested under the entry in the primary namespace.
 The ``pointer'' entry will likely post immutable facts such as \verb|!chain-id| and \verb|!address| to direct to the subsequent deployment.
-This strategy will allow the namespace to easily scale across a variety of blockchains.
-Note that while the namespace information will work straightforwardly across deployments, the smart account functionality and hierarchical module installation will require more implementation work to work across chain boundaries if at all.
+This strategy will allow the namespace to easily scale across a variety of Ethereum layer-2 blockchains, and possibly other EVM-compliant blockchains.
+Note that while the namespace information will work straightforwardly across deployments, the smart account functionality will require more implementation work to work across chain boundaries if at all.
 Smart account module inheritance may be limited to a single chain.
+It is worth noting, however, that cross-chain messaging projects such as LayerZero already support functionality for executing transactions from an ERC-6551 token-bound account in a cross-chain fashion.
+This means that namespace entries may operate as wallets across supported chains.
 
 \subsection{Review}
 \label{sec:kimapreview}
@@ -1201,17 +1205,19 @@ KINO is a utility token designed to fill two roles in the Kinode network: assign
 \label{sec:kinoregister}
 
 A token holder may choose to \textit{register} KINO with an entry in kimap.
-To register KINO, a token holder submits a transaction to the kimap contract specifying the amount of KINO to register, the duration of the registration, and the target entry.
+To register KINO, a token holder submits a transaction to the kimap registration contract specifying the amount of KINO to register, the duration of the registration, and the target entry.
 
 The duration of a registration is specified in blocks and will have a minimum value of around 7 days.
 
-Data keys (prefixed with \verb|~|) cannot be a target for registration.
+Data keys (prefixed with \verb|~|/\verb|!|) cannot be a target for registration.
 Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
+The target entry does not need to be owned by the address performing registration.
 
 Registration of KINO is performed in order to produce a value-weighted onchain directory of nodes, apps, and other content.
 Every protocol built on kimap can automatically benefit from the registration of KINO to keys to create a listing data structure that can be sorted, filtered, and act as a market for user attention.
 
-Note that multiple addresses can register tokens to the same kimap entry at any given time, and the holder of KINO does not need to own a kimap entry in order to register tokens on it.
+Note that multiple addresses can register tokens to the same kimap entry at any given time.
+The amount of KINO registered to an entry is the sum of all active registrations.
 Registered tokens are locked for the duration of the registration and automatically returned to the registering address at the end of this period.
 
 \subsection{Discussion}
@@ -1238,12 +1244,12 @@ Providers abuse attention in a similar manner by bribing operators to weight the
 These inefficiencies appear unavoidable in the modern web.
 The kimap architecture combined with a single weighting mechanism publicly shared between users and providers presents an alternative in which all parties are forced to compete fairly.
 Users, too, are empowered to reward entries in the global namespace.
-Because \textit{any address} can register on \textit{any namespace entry}, the ability of a single provider to spend tokens on their irrelevant or otherwise spam-like entry is generally washed out by the broader ability of users to reward valued content by attaching to it.
+Because any address can register on any namespace entry, the ability of a single provider to spend tokens on their irrelevant or otherwise spam-like entry is generally washed out by the broader ability of users to reward valued content by attaching to it.
 
 Meanwhile, the ``operator'' role is neutralized.
 Kinode's constrained governance mechanism is responsible for maintaining the namespace but has no control over the operation of a namespace entry held by another party or the registration operation.
-The protocol is incentivized not to interfere with the utility of KINO as a weighting mechanism.
-Any ``thumb on the scale'' by the namespace operator would be visible onchain and immediately impact the value of the neutral weighting mechanism.
+The protocol is naturally incentivized not to interfere with the utility of KINO as a weighting mechanism:
+any ``thumb on the scale'' would be visible onchain and immediately impact the value of the neutral weighting mechanism that is KINO.
 
 The kimap+KINO substrate does not include a built-in algorithm to execute ``search'' or any other ranking strategy on its weights and values.
 There is no single algorithm that will apply to the entire kimap.
@@ -1257,7 +1263,7 @@ Creating and mutating namespace entries is also not subject to adversarial condi
 Kimap and KINO are designed to be modular\textemdash as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace and other such things.
 These contracts must be designed carefully to avoid failure modes common to onchain protocols.
 For example, if one deploys a contract to manage a top-level namespace that wishes to allow for anyone to register a new sub-entry as their node ID, and exposes a function to claim any name, it would be trivially easy for someone else to front-run that transaction and ``steal'' the name.
-A simple solution is to have the user commit to a hash of their desired name as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{in ENS}.}
+A simple solution is to have the user commit to a hash of their desired name as \href{https://docs.ens.domains/registry/eth\#commit-reveal}{in ENS name minting}.}
 As a result, we have very little to discuss regarding protocol risk, assuming the protocol is implemented properly\footnote{Audits pending at the time of this writing.}.
 
 It is possible for algorithms operating on kimap to use other weight systems, even including a registration system deployed by someone else that uses an entirely different token.
@@ -1275,7 +1281,7 @@ Registration of tokens offers utility to the owner of the attached namespace by 
 For this reason, owners of a namespace entry will be naturally incentivized to register their tokens on their own namespace.
 This will manifest itself differently across different protocols running on kimap.
 In the Kinode Name System, tokens attached to a node identity enable spam-prevention algorithms, preferential routing algorithms, and many others that may be built in userspace or even directly into the OS.
-The mere social incentive to connect utility to an identity will likely inspire registration.
+The mere social incentive to connect value to an identity will likely inspire registration.
 We expect this dynamic to play out not just for KNS entries, but also for a number of other social or social-adjacent protocols that naturally fit into the kimap architecture.
 
 \subsection{Current and Future Uses}
@@ -1331,7 +1337,7 @@ In practice, though, there should be many hundreds of TLZ owners.
 Reasonable behavior by owners will be modulated by two things:
 \begin{enumerate}
     \item The ability of sub-entry owners to move to other areas of the namespace.
-    \item A \textbf{strong} natural preference by users to use sub-entries controlled by immutable smart contracts.
+    \item A strong natural preference by users to use sub-entries controlled by immutable smart contracts.
 \end{enumerate}
 
 Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, the Kinode governance mechanism will have succeeded in the first phase of its role.
@@ -1411,6 +1417,11 @@ Horizontal scaling of this kind is achievable by minting a namespace entry (poss
 The indicated deployment of kimap would use that namespace entry as its ``root node'' (which is simply \verb|0x0| on the primary deployment).
 Such decisions will be made by the governance protocol, which will be the owner of the root node.
 
+With the ability to propose and ratify Kinode Improvement Proposals, governance of Kinode also has the ability to create community schelling points around standards in software and data.
+The emergent behavior of Kinode users will determine how this ability is used, but since each instance of the operating system is keyed to the decisions of the governance mechanism, one may expect that the standards around community discussion, including where it takes place, could one day be determined by the protocol itself.
+In traditional centralized software, network effects and switching costs make communities fragile to platform risk or the obsolescence of a key protocol.
+Kinode's governance mechanism may be the solution to this fragility, allowing the Kinode community at large to coordinate at a meta-level beyond individual apps and protocols.
+
 \clearpage
 
 \section{A Kinode Future}
@@ -1420,7 +1431,7 @@ In a Kinode future, the web as we know it today is replaced by a tapestry of per
 Via runtime extensions and controlled namespaces, today's first-party platforms will transform into modularized protocols where users tap into centrally-operated services à la carte.
 A new generation of protocols will be built peer-to-peer-first, allowing anyone to act as a provider of powerful services like AI image, text, and video producers or high-speed anonymous networking.
 
-These protocols will not be developed by massive teams or require brigades of DevOps workers to stay online.
+These protocols will not be developed by massive teams or require brigades of dev-ops workers to stay online.
 A small group of programmers will specify their design, create an implementation, and publish it onchain.
 They may choose to enable future upgrades by decentralizing the governance of their specification with a DAO and token, or simply allow its permissionless use forever in a final state.
 Switching between protocols will be a trivially easy process for users.
