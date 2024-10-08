@@ -1,5 +1,6 @@
 \documentclass[runningheads]{llncs}
 \setcounter{tocdepth}{2}
+\raggedbottom
 \makeatletter
 \renewcommand*\l@author[2]{}
 \renewcommand*\l@title[2]{}
@@ -18,9 +19,9 @@
 %
 \begin{document}
 %
-\title{Kinode: A General-Purpose Sovereign Cloud Computer (DRAFT, PRIVATE)}
+\title{Kinode: A General-Purpose Sovereign Cloud Computer}
 %
-\titlerunning{Kinode \textemdash~DRAFT, PRIVATE}
+\titlerunning{Kinode: A General-Purpose Sovereign Cloud Computer}
 %
 \author{
 Benjamin McCormick \and
@@ -40,8 +41,6 @@ This node-based cloud computing model resolves the impedance mismatch between on
 Developers can write apps in any programming language that compiles to Wasm and easily distribute them to nodes.
 The Kinode platform includes several components that will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for expanding and assigning a value-topology to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
 All of these components work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
-
-\keywords{Operating System \and Decentralized \and Smart Contract Account \and Cloud \and Wasm \and Cryptocurrency \and Public-Key Infrastructure \and Namespace \and Peer-to-Peer }
 \end{abstract}
 %
 \tableofcontents
@@ -129,7 +128,7 @@ A brief description:
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
     \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token), with a connected token-bound account with a counterfactual address, implemented according to the ERC-6551\footnote{\url{https://ercs.ethereum.org/ERCS/erc-6551}} standard.
-    \item The implementation of the token-bound account may be set when a name–key is created.
+    \item The implementation of a token-bound account may be set when a name–key is created.
     \item If the parent entry of a name-key has a token-bound account implementation set (a ``gene''), then the name-key will automatically inherit this implementation.
     7. Every name-key may inscribe data in data-keys directly beneath it.
     \item Every name-key may inscribe data in data-keys directly beneath it.
