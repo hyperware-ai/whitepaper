@@ -42,6 +42,11 @@ Developers can write apps in any programming language that compiles to Wasm and 
 The Kinode platform includes several components that will be described in this whitepaper: a virtual machine, an onchain global namespace, a utility token for expanding and assigning a value-topology to that namespace, a PKI (Public-Key Infrastructure), a peer-to-peer networking protocol, a modular smart contract account system, and finally a governance apparatus to distribute onchain assets and continue development of the platform.
 All of these components work in lockstep to solve the problems that have heretofore discouraged developers from embracing peer-to-peer computing.
 \end{abstract}
+\vspace*{\fill}
+\begin{center}
+January 8 2025\\
+Revision 1
+\end{center}
 %
 \tableofcontents
 %
@@ -52,7 +57,7 @@ All of these components work in lockstep to solve the problems that have heretof
 \label{sec:overview}
 
 Cryptocurrency, specifically smart contract blockchains, triggered a nascent revolution in permissionless protocols: software that allows participation by all, yet can be shut down by none.
-But progress towards a fully decentralized, permissionless internet has stagnated even as specific niches like decentralized finance flourish.
+But progress towards a fully decentralized, permissionless Internet has stagnated even as specific niches like decentralized finance flourish.
 We believe that this progress is constrained less by blockchain speed and throughput as it is by an underdeveloped offchain computing substrate.
 
 Recall the singular problem blockchains are designed to solve: preventing the double-spending of a cryptographically-owned asset.\footnote{\href{https://bitcoin.org/bitcoin.pdf}{The Bitcoin whitepaper} describes using a distributed ledger to prevent double-spend of Bitcoin, and subsequent cryptocurrency projects generalized this to a blockchain preventing double-spend of arbitrary digital assets.}
@@ -77,7 +82,7 @@ Forcing these protocols into this model has led to countless failures.
 Some believe that merely increasing transaction throughput by a few orders of magnitude (no small task) can resolve the issue by allowing transactions to be cheaply verified, even when they are not strictly necessary.
 We do not.
 There will always be significant relative costs to placing transactions in a globally-distributed ledger—not only monetary, but also in terms of latency, data storage, and compute overhead.
-Transactions will \textit{always} present an impedence mismatch and be an inferior technical solution for operations that do not require global consensus.
+Transactions will \textit{always} present an impedance mismatch and be an inferior technical solution for operations that do not require global consensus.
 Until we provide a proper platform for such operations, ``Web3'' will simply never outcompete ``Web2''.
 
 \begin{figure}[H]
@@ -666,10 +671,10 @@ Note also that as the KNS state grows, it will become prudent to not load the en
 The networking protocol itself will not be fully specified here, as it is still being finalized and is best suited by its own document. However, some key aspects:
 
 \begin{itemize}
-    \item The protocol uses exclusively information available onchain, including IP addresses, ports, and router nodes, to faciliate message-passing.
+    \item The protocol uses exclusively information available onchain, including IP addresses, ports, and router nodes, to facilitate message-passing.
     See the description of KNS in Section~\ref{sec:kns}.
     \item Direct nodes publish their routing information onchain.
-    Indirect nodes publish a set of routers who faciliate message-passing for them.
+    Indirect nodes publish a set of routers who facilitate message-passing for them.
     This is analogous to STUN+TURN in WebRTC.
     A router may be able to facilitate a direct connection for indirect nodes in a STUN-like manner.
     \item Networking may occur across many underlying transport protocols.
