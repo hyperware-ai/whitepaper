@@ -44,8 +44,8 @@ All of these components work in lockstep to solve the problems that have heretof
 \end{abstract}
 \vspace*{\fill}
 \begin{center}
-January 8 2025\\
-Revision 1
+February 20 2025\\
+Revision 2
 \end{center}
 %
 \tableofcontents
@@ -56,7 +56,7 @@ Revision 1
 \section{Overview}
 \label{sec:overview}
 
-Cryptocurrency, specifically smart contract blockchains, has triggered a nascent revolution in permissionless protocols: software that allows participation by all, yet can be shut down by none.
+Cryptocurrency, specifically smart contract blockchains, triggered a nascent revolution in permissionless protocols: software that allows participation by all, yet can be shut down by none.
 But progress towards a fully decentralized, permissionless Internet has stagnated even as specific niches like decentralized finance flourish.
 We believe that this progress is constrained less by blockchain speed and throughput as it is by an underdeveloped offchain computing substrate.
 
@@ -129,13 +129,13 @@ Several aspects of the minimal map implementation are customized for the ``names
 A brief description:
 
 \begin{enumerate}
-    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase),    - (hyphen).
+    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase),    - (hyphen).
     \item A key may be one of two types, a name-key or a data-key.
     \item Every name-key may create sub-entries directly beneath it.
     \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token), with a connected token-bound account with a counterfactual address, implemented according to the ERC-6551\footnote{\url{https://ercs.ethereum.org/ERCS/erc-6551}} standard.
-    \item The implementation of a token-bound account may be set when a name–key is created.
-    \item If the parent entry of a name-key has a token-bound account implementation set (a ``gene''), then the name-key will automatically inherit this implementation.
-    7. Every name-key may inscribe data in data-keys directly beneath it.
+    \item The implementation of a token-bound account may be set when a name–key is created (unless parent name-key has set a ``gene'': see below).
+    \item A name-key may optionally specify a ``gene'': a token-bound account implementation that all of its child name-keys will inherit.
+    		  Thus children of a ``gene``-specifying parent will have both their ``gene` and their token-bound account implementation set as specified by their parent's ``gene''.
     \item Every name-key may inscribe data in data-keys directly beneath it.
     \item A data-key may be mutable (a ``note'', prepended with \verb|~|) or immutable (a ``fact'', prepended with \verb|!|)
 \end{enumerate}
@@ -152,11 +152,12 @@ For a description of the value-assignment mechanism that overlaps Hypermap, see 
         foo
             ~ip
             ~ws-port
+            ~tcp-port
             ~net-key
         bar
             ~routers
             ~net-key
-    hyper
+    hypr
         baz
             package
                 ~metadata-hash
@@ -175,7 +176,7 @@ For a description of the value-assignment mechanism that overlaps Hypermap, see 
     \label{fig:example hypermap}
 \end{figure}
 
-Fig.~\ref{fig:example hypermap} shows an example with three top-level ``zones'', \verb|eth|, \verb|hyper|, and \verb|os|.
+Fig.~\ref{fig:example hypermap} shows an example with three top-level ``zones'', \verb|eth|, \verb|hypr|, and \verb|os|.
 Below those are a number of namespace entries: \verb|foo|, \verb|bar|, and \verb|baz|.
 The full path for \verb|foo|'s \verb|~ip| sub-entry would be \verb|~ip.foo.os|.
 
@@ -184,14 +185,14 @@ This is a useful shorthand, and in many ways, Hypermap does mirror the role of D
 However, the domain analogy is inaccurate if applied directly to all namespace entries because not all namespace entries resolve to a networking protocol target.
 
 E.g., only entries containing \verb|~net-key| are used by the HNS (Hyperware Name System) which runs \textit{on top} of Hypermap.
-Entries \verb|baz.hypr| and \verb|package.baz.hypr| have no data keys to describe their status in the HNS, and so the ``domain'' analogy breaks down for them.
+Since entries \verb|baz.hypr| and \verb|package.baz.hypr| have no data keys to describe their status in the HNS, the ``domain'' analogy breaks down for them.
 The design of Hypermap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of HNS itself, as a protocol operating on Hypermap, is described in Section~\ref{sec:hns}, as is the specification of the Hyperware Package Manager, Section~\ref{sec:packagemanager}, both of which make an appearance in this example.
 
-Entries \verb|hyper|, \verb|baz.hypr|, and \verb|package.baz.hypr| are \textit{all} NFTs, and \textit{all} have associated token-bound accounts.
+Entries \verb|hypr|, \verb|baz.hypr|, and \verb|package.baz.hypr| are \textit{all} NFTs, and \textit{all} have associated token-bound accounts (so are all name-keys: `\verb|os|`, etc.).
 The owner address of a namespace entry (usually) has singular control of its token-bound account.
 However, a given account implementation may contain arbitrary logic, such as the ability for anyone to mint a sub-entry, or edit a ``note'' key underneath.
-A given namespace entry may also elect to set its account implementation as a ``gene'', meaning that \textit{all subsequently minted sub-entries will automatically use the same account implementation}.
+A given namespace entry may set a ``gene'', a token-bound account implementation which causes \textit{all subsequently minted children to use that implementation for their token-bound account implementation and ``gene''}.
 
 \section{HNS: Hyperware Name System}
 \label{sec:hns}
@@ -471,7 +472,7 @@ When the OS and WIT file together reach version 1.0, support for 0.x versions wi
 \subsection{Message Passing}
 \label{sec:osmessagepassing}
 
-A message between two Hyperware node processes is either a request or a response.
+A message between two Hyperware processes is either a request or a response.
 A message has a single source \verb|address| and a single target \verb|address|.
 
 \begin{figure}[H]
@@ -499,7 +500,7 @@ A message has a single source \verb|address| and a single target \verb|address|.
     \label{fig:WIT Types 2}
 \end{figure}
 
-Messages are produced and consumed by Hyperware node processes.
+Messages are produced and consumed by Hyperware processes.
 
 If the node identity indicated in the target \verb|address| matches that of the local kernel or is simply the string \verb|our|, the message is routed directly through the kernel to the target (assuming the source has the capability to message the target or the target is public).
 Otherwise, the message is routed through the networking runtime module, \verb|net:distro:sys|, to the remote node indicated.
@@ -512,7 +513,7 @@ Message delivery is not guaranteed.
 If a message targets a local process, the target may crash or the kernel may suspend execution between message creation and delivery.
 Far more treacherous is the delivery of messages to remote processes.
 Nodes may go offline, experience network congestion, or otherwise drop incoming messages.\footnote{Computer networking, being a fundamentally physical process, is impossible to effectively abstract over without failure modes because the physical world imposes them.}
-To this end, two error modes are baked into Hyperware node message passing: offline and timeout.
+To this end, two error modes are baked into Hyperware message passing: offline and timeout.
 
 Requests can be sent at any time, while responses must target a process that has a matching outstanding request.
 A request is outstanding if:
@@ -616,13 +617,13 @@ Now that the OS has been described in the abstract, and before we dive in to the
 \begin{verbatim}
 wit_bindgen::generate!({
     path: "wit",
-    world: "process-v0",
+    world: "process-v1",
 });
 
 struct Component;
 export!(Component);
 
-use crate::hyperware_node::process::standard::print_to_terminal;
+use crate::hyperware::process::standard::print_to_terminal;
 
 impl Guest for Component {
     fn init(our: String) {
@@ -731,7 +732,7 @@ let (tba, owner, note) = provider.hypermap_get(&node)?;
 
 The module acts as a relay and subscription manager for Ethereum JSON-RPC requests and responses. Processes may use helper functions and structs to format requests according to the Ethereum JSON-RPC specification\footnote{\url{https://ethereum.github.io/execution-apis/api-documentation/}}.
 
-\verb|eth:distro:sys| handles maintenance of subscriptions, managing provider connections, and facilitating the routing of Ethereum data between Hyperware node instances, allowing processes to have direct control over their Ethereum interactions while benefiting from the module's network management capabilities, including the ability to relay requests through other nodes when direct RPC access is unavailable or not yet configured.
+\verb|eth:distro:sys| handles maintenance of subscriptions, managing provider connections, and facilitating the routing of Ethereum data between Hyperware nodes, allowing processes to have direct control over their Ethereum interactions while benefiting from the module's network management capabilities, including the ability to relay requests through other nodes when direct RPC access is unavailable or not yet configured.
 
 This design facilitates the development of decentralized applications that can efficiently interact with global blockchain networks, even in constrained peer-to-peer environments. It allows for unique scaling possibilities:
 
@@ -759,7 +760,7 @@ Wasm is an excellent compilation target for processes.
 Processes are naturally sandboxed and cross-platform.
 However, there are also costs associated with Wasm.
 For example, not all libraries can be compiled to Wasm and hardware support for accelerators like GPUs is currently lacking.
-Extensions supplement and compliment Hyperware node processes, removing these constraints, while maintaining the advantages associated with kernel-provided services, e.g., the request/response system.
+Extensions supplement and compliment Hyperware processes, removing these constraints, while maintaining the advantages associated with kernel-provided services, e.g., the request/response system.
 
 Extensions are simply WebSocket clients, written in any language and run natively alongside Hyperware OS, that connect to a paired process.
 The paired process serves as the interface between the extension and the rest of the Hyperware system.
@@ -844,7 +845,7 @@ A \verb|metadata-uri| entry must contain a UTF-8 string: a Uniform Resource Iden
             foos-app
                 ~metadata-hash
                 ~metadata-uri
-    hyper
+    hypr
         bar
             baz
                 ~metadata-hash
@@ -1179,7 +1180,7 @@ This means that namespace entries may operate as wallets across supported chains
 A quick review of Hypermap's architecture:
 
 \begin{enumerate}
-    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase),    - (hyphen).
+    \item All keys are strings containing exclusively characters 0\textendash 9, a\textendash z (lowercase),    - (hyphen).
     \item A key (also called an entry) may be one of two types, a name-key or a data-key.
     \item Every name-key is an ERC-721 NFT with an ERC-6551 token-bound account.
         \begin{enumerate}
@@ -1362,7 +1363,8 @@ Revenue earned this way may be directed anywhere, depending on the auction imple
 
 Through 3 phases, Hyperware governance will transition from a small team of core developers to a fully decentralized protocol.
 
-In phase 1, a small set of TLZs will be selected for creation. These will be minted directly to contracts, including those already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|hyper|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
+In phase 1, a small set of TLZs will be selected for creation.
+These will be minted directly to contracts, including those already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|hypr|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
 
 During phase 1, more TLZs may be created and distributed.
 The HYPR registration mechanism will be activated during this time.
