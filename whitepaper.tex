@@ -184,11 +184,11 @@ This is a useful shorthand, and in many ways, Hypermap does mirror the role of D
 However, the domain analogy is inaccurate if applied directly to all namespace entries because not all namespace entries resolve to a networking protocol target.
 
 E.g., only entries containing \verb|~net-key| are used by the HNS (Hyperware Name System) which runs \textit{on top} of Hypermap.
-Entries \verb|baz.hyper| and \verb|package.baz.hyper| have no data keys to describe their status in the HNS, and so the ``domain'' analogy breaks down for them.
+Entries \verb|baz.hypr| and \verb|package.baz.hypr| have no data keys to describe their status in the HNS, and so the ``domain'' analogy breaks down for them.
 The design of Hypermap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of HNS itself, as a protocol operating on Hypermap, is described in Section~\ref{sec:hns}, as is the specification of the Hyperware Package Manager, Section~\ref{sec:packagemanager}, both of which make an appearance in this example.
 
-Entries \verb|hyper|, \verb|baz.hyper|, and \verb|package.baz.hyper| are \textit{all} NFTs, and \textit{all} have associated token-bound accounts.
+Entries \verb|hyper|, \verb|baz.hypr|, and \verb|package.baz.hypr| are \textit{all} NFTs, and \textit{all} have associated token-bound accounts.
 The owner address of a namespace entry (usually) has singular control of its token-bound account.
 However, a given account implementation may contain arbitrary logic, such as the ability for anyone to mint a sub-entry, or edit a ``note'' key underneath.
 A given namespace entry may also elect to set its account implementation as a ``gene'', meaning that \textit{all subsequently minted sub-entries will automatically use the same account implementation}.
@@ -862,11 +862,11 @@ A \verb|metadata-uri| entry must contain a UTF-8 string: a Uniform Resource Iden
     \label{fig:example hypermap with packages}
 \end{figure}
 
-In Fig.~\ref{fig:example hypermap with packages} there are 4 packages present: \verb|foos-app:foo.os|, \verb|baz:bar.hyper|, \verb|bam:bar.hyper|, and \verb|boozle:bam.bar.hyper|.
+In Fig.~\ref{fig:example hypermap with packages} there are 4 packages present: \verb|foos-app:foo.os|, \verb|baz:bar.hypr|, \verb|bam:bar.hypr|, and \verb|boozle:bam.bar.hypr|.
 Note that the parent path from a valid package sub-entry contains the entire package name including publisher.
 Note also that a publisher does not need to be a valid node identity as defined in the HNS protocol, though in practice it likely will be.
 A single publisher providing multiple packages can do so by minting sub-entries corresponding to those packages' names.
-Lastly, a package may also itself be a node identity as demonstrated in \verb|bam.bar.hyper|.
+Lastly, a package may also itself be a node identity as demonstrated in \verb|bam.bar.hypr|.
 This is a good example of how protocols in Hypermap's global namespace interact and overlap with one another.
 
 \subsection{Package Metadata}
@@ -1093,15 +1093,15 @@ A specific description of how these protocols atop Hypermap specify themselves m
 
 In the general case, a protocol specifies itself on Hypermap by declaring a set of data keys that are interpreted a certain way and endow certain properties to their parent name key.
 For example, a simple motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 string message from the parent key, which could be a node identity in the HNS.
-If the owner of the key \verb|howdy.hyper| wishes to participate in this protocol, it simply mints the key (mutably, one would hope) \verb|~motd.howdy.hyper| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
+If the owner of the key \verb|howdy.hypr| wishes to participate in this protocol, it simply mints the key (mutably, one would hope) \verb|~motd.howdy.hypr| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
 
 Extension of Hypermap is totally permissionless: any protocol can operate on the keys and data stored in the map.
 Note that if two protocols use the same entry or entries to store data, key owners may be forced to choose between participating in one protocol or the other.
 If an entry label is already in use by a popular protocol, developers creating a new protocol would be advised to either match the data format in current use for that entry label, or ensure non-overlap by prefixing/postfixing the entry label with a custom value.
-For example, if the key \verb|howdy.hyper| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.hyper|.
+For example, if the key \verb|howdy.hypr| is the entry-of-interest, and the motd protocol described above is in common use, a different protocol that wishes to use the \verb|~motd| entry label could specify that it instead reads that label from \verb|~my-protocol-motd.howdy.hypr|.
 
 Another strategy for avoiding conflicts is to subdivide the namespace by storing a protocol's data entries at a nested path beneath the relevant entry.
-A different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.hyper| rather than directly below.
+A different protocol that wishes to use the \verb|~motd| entry label could specify that it reads that label from \verb|~motd.my-protocol.howdy.hypr| rather than directly below.
 
 \subsection{Counterfactual Addresses For Hyperware Smart Accounts}
 
