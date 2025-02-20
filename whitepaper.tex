@@ -135,7 +135,7 @@ A brief description:
     \item Every name-key is an ERC-721\footnote{\url{https://eips.ethereum.org/EIPS/eip-721}} NFT (non-fungible token), with a connected token-bound account with a counterfactual address, implemented according to the ERC-6551\footnote{\url{https://ercs.ethereum.org/ERCS/erc-6551}} standard.
     \item The implementation of a token-bound account may be set when a name–key is created (unless parent name-key has set a ``gene'': see below).
     \item A name-key may optionally specify a ``gene'': a token-bound account implementation that all of its child name-keys will inherit.
-    		  Thus children of a ``gene``-specifying parent will have both their ``gene` and their token-bound account implementation set as specified by their parent's ``gene''.
+    		  Children of a ``gene``-specifying parent will have both their ``gene` and their token-bound account implementation set to the implementation specified by their parent's ``gene''.
     \item Every name-key may inscribe data in data-keys directly beneath it.
     \item A data-key may be mutable (a ``note'', prepended with \verb|~|) or immutable (a ``fact'', prepended with \verb|!|)
 \end{enumerate}
@@ -192,7 +192,7 @@ The specification of HNS itself, as a protocol operating on Hypermap, is describ
 Entries \verb|hypr|, \verb|baz.hypr|, and \verb|package.baz.hypr| are \textit{all} NFTs, and \textit{all} have associated token-bound accounts (so are all name-keys: `\verb|os|`, etc.).
 The owner address of a namespace entry (usually) has singular control of its token-bound account.
 However, a given account implementation may contain arbitrary logic, such as the ability for anyone to mint a sub-entry, or edit a ``note'' key underneath.
-A given namespace entry may set a ``gene'', a token-bound account implementation which causes \textit{all subsequently minted children to use that implementation for their token-bound account implementation and ``gene''}.
+A name-key may set its ``gene'' to a token-bound account implementation which causes \textit{all the name-key's subsequently minted children to use that implementation for their token-bound account implementation and ``gene''}.
 
 \section{HNS: Hyperware Name System}
 \label{sec:hns}
@@ -284,10 +284,11 @@ Here is a brief description of the procedure to do so:
 \label{sec:os}
 
 This section discusses the architecture of Hyperware OS.
-For a more ``hands-on'' description of the OS, including detailed programming examples and documentation, go to \href{https://book.hyperware.ai/}{book.hyperware.ai}.
+For a more ``hands-on'' description of the OS, including detailed programming examples and documentation, go to \href{https://book.hyperware.ai}{book.hyperware.ai}.
 
 Hyperware OS is a process virtual machine run to operate a ``node'' on the Hyperware network.
-At its core, the virtual machine wraps around a Wasm runtime\footnote{Wasm is specified at \url{https://webassembly.github.io/spec}. Hyperware uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
+At its core, the virtual machine wraps around a Wasm runtime\footnote{Wasm is specified at \url{https://webassembly.github.io/spec}.
+Hyperware uses Wasm for processes because it is a highly performant, language independent, portable, and sandboxable compilation target.}
 that executes all userspace code.
 After a node identity is registered onchain in the HNS, the operator should boot the OS using the private key matching the public \verb|~net-key| posted in the Hypermap during registration.
 Once this has been done, if the networking details (routers, IP, etc) are properly read from the Hypermap and matched by the runtime, that node is now ``online''.
@@ -297,6 +298,7 @@ The runtime is as simple as possible, with a maximal amount of logic ejected to 
 In the future, Hyperware will benefit from ``client diversity'' as does a traditional blockchain: many implementations of the virtual machine\footnote{The Wasm runtime is by a wide margin the most complex aspect of the OS, and at least a dozen such runtimes exist today, written in multiple languages.
 This bodes well for future Hyperware client diversity.}
 will make the network more resilient to potential bugs and decentralize the development process, leading to productive ossification of core features, stability, and long-term strength.
+Sybil Technologies distributes the reference runtime: \href{https://github.com/hyperware-ai/hyperdrive}{Hyperdrive}.
 
 While all packaged into a single executable, the OS can productively be described in 3 parts: a \textit{runtime}, a set of \textit{runtime modules}, and \textit{userspace}.
 The ``kernel'' frequently referred to in this paper is in fact just a runtime module.
@@ -304,11 +306,11 @@ The ``kernel'' frequently referred to in this paper is in fact just a runtime mo
 The runtime is a ``native'' (to whatever architecture it targets, e.g., Unix, a browser, hardware, \ldots) program that manages node booting (including onchain registration) and (generally asynchronously or in parallel) executes the runtime modules.
 Runtime modules are blocks of code written at the same level of abstraction as the runtime itself, but designed to resemble userspace processes.
 These modules are registered in the kernel \textit{as} processes, meaning that they can be messaged by userspace in the system-wide request-response protocol and secured via capabilities.
-Finally, userspace is comprised of all non-runtime-module processes executed virtually by the kernel.
+Finally, userspace consists of all non-runtime-module processes executed virtually by the kernel.
 Userspace processes are always compiled to Wasm and comport to the Wasm Component Model\footnote{\url{https://component-model.bytecodealliance.org}}.
 Userspace Wasm code must be compiled against a Wasm Interface Type (WIT) file as used in the Wasm Component Model which defines the common set of ``system calls'' and types afforded to userspace processes by the kernel.
 
-The reference implementation is currently written in Rust, as are all the runtime modules.
+Hyperdrive, the reference implementation, is written in Rust as are all the runtime modules.
 It also comes with a number of pre-installed userspace packages that perform critical tasks.
 In the future, other entities will likely seek to distribute their own implementations that may contain different pre-installed packages or even different runtime modules.
 
@@ -316,8 +318,8 @@ In the future, other entities will likely seek to distribute their own implement
     \centering
     \begin{lstlisting}
     eth:distro:sys
-    http_client:distro:sys
-    http_server:distro:sys
+    http-client:distro:sys
+    http-server:distro:sys
     kernel:distro:sys
     kv:distro:sys
     net:distro:sys
@@ -327,7 +329,7 @@ In the future, other entities will likely seek to distribute their own implement
     sqlite:distro:sys
     vfs:distro:sys
     \end{lstlisting}
-    \caption{The full list of runtime modules in the OS distribution maintained by core developers as of this writing.}
+    \caption{The full list of runtime modules in Hyperdrive (the reference implementation) as of this writing.}
     \label{fig:runtime modules list}
 \end{figure}
 
@@ -389,7 +391,7 @@ A \verb|process-id| identifies a particular process by its publisher, package na
 \subsubsection{WIT Host Functions}
 \label{sec:oswitfuncs}
 
-WIT host functions must be implemented by the kernel.
+WIT host functions are implemented by the kernel.
 The Wasm Component model allows these functions to be called by processes.
 
 \begin{figure}[H]
@@ -447,7 +449,7 @@ When \verb|init| returns, the process will cease execution.\footnote{All process
 
 Every aspect of the operating system, including the kernel itself, comports to a set of messaging rules defined by the microkernel\footnote{A microkernel architecture is ideal for a ``Wasm OS'' because it allows a maximal amount of system logic to live in Wasm itself, allowing system code to experience all the safety and conveniences afforded to userspace processes. See \url{https://wiki.osdev.org/Microkernel}} which is responsible for five things:
 \begin{enumerate}
-    \item Using a Wasm runtime\footnote{The reference implementation currently uses \href{https://wasmtime.dev}{Wasmtime}.}
+    \item Using a Wasm runtime\footnote{Hyperdrive uses \href{https://wasmtime.dev}{Wasmtime}.}
     to execute compiled processes that implement the Hyperware WIT standard, where execution includes managing their memory usage.
     \item Implementing the host functions, exposed to all processes, defined in Hyperware WIT standard.
     \item Implementing the kernel API that allows processes with kernel-messaging capabilities to perform aspects of process management.
@@ -461,7 +463,7 @@ Public processes can be messaged by any other process.
 Private processes, as enforced by the kernel, require that the message source holds their messaging capability.
 See the discussion of capabilities in Section~\ref{sec:oscapabilities} for details on their use and how capabilities apply to processes running a remote node.
 
-As of this writing, the kernel runtime module in our reference implementation of the OS fits into about 2,500 lines of Rust code.
+As of this writing, the kernel runtime module in Hyperdrive fits into about 2,500 lines of Rust code.
 
 The kernel is responsible for maintaining backwards compatibility.
 If a process was written for an older version of the kernel (which is determined by the version number of the WIT file it implements), newer kernels must store that WIT version and match it to the process.
@@ -785,7 +787,7 @@ The surface area presented by the OS for the purpose of backwards-compatibility 
 \end{itemize}
 
 A number of userspace packages included in the reference distribution must also be backwards-compatible in practice due to the inconvenience created by breaking changes.
-This includes (but is not limited to) \verb|app_store|, \verb|hns_indexer|, \verb|homepage|, and \verb|terminal|.
+This includes (but is not limited to) \verb|app-store|, \verb|hns-indexer|, \verb|homepage|, and \verb|terminal|.
 
 \section{Package Manager}
 \label{sec:packagemanager}
@@ -814,7 +816,7 @@ Scripts are merely processes that, by convention, can be executed from the syste
 
 It is important to note that all of the above logic exists outside of the kernel and runtime.
 A package's directory, metadata, and manifest are all interpreted by userspace code and boiled down to a series of kernel commands including \verb|InitializeProcess|, \verb|RunProcess|, and \verb|KillProcess|.
-Of course, Hyperware OS would not be very useful without this logic, and so the distribution maintained by core developers comes with a combination app store and package manager called \verb|app_store:sys|.
+Of course, Hyperware OS would not be very useful without this logic, and so the distribution maintained by core developers comes with a combination app store and package manager called \verb|app-store:sys|.
 Note that the publisher name, \verb|sys|, is not a node identity.
 The publisher value in a package name is not enforced by the kernel.
 It is accepted uncritically, and it is again the responsibility of the userspace package manager to assert a valid publisher if desired.
@@ -933,12 +935,12 @@ The manifest is a JSON array where each element is a description of a process th
                 "request_networking": true,
                 "request_capabilities": [
                     "homepage:homepage:sys",
-                    "http_server:distro:sys",
+                    "http-server:distro:sys",
                     "net:distro:sys",
                     "vfs:distro:sys"
                 ],
                 "grant_capabilities": [
-                    "http_server:distro:sys"
+                    "http-server:distro:sys"
                 ],
                 "public": true
             }
@@ -979,8 +981,8 @@ The shorthand version of a kernel-mediated messaging capability is simply the st
 \label{sec:appstore}
 
 As noted, the current distribution of the OS comes with an app store.
-This package is named \verb|app_store:sys|.
-The \verb|main| process, \verb|main:app_store:sys|, indexes Hypermap to identify packages onchain, manages the installation of packages using kernel commands, and presents a web UI for a node operator to browse, install, and manage packages (generally labeled as ``apps'' in the frontend).
+This package is named \verb|app-store:sys|.
+The \verb|main| process, \verb|main:app-store:sys|, indexes Hypermap to identify packages onchain, manages the installation of packages using kernel commands, and presents a web UI for a node operator to browse, install, and manage packages (generally labeled as ``apps'' in the frontend).
 
 The app store also uses HYPR to enable ranking and filtering of available apps.
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization.
