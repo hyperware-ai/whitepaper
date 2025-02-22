@@ -1311,7 +1311,7 @@ This may prove to be an ideal way to run protocols in a future where Hypermap is
 \section{Hyperware Governance}
 \label{sec:governance}
 
-In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Hyperware is presented as an inverted triangle with Hypermap+HYPR and Hyperware OS above Hyperware Governance.
+In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Hyperware is presented as a triangle with Hypermap+HYPR and Hyperware OS above Hyperware Governance.
 Seated at the base of the protocol, Hyperware's governance mechanism is responsible for:
 \begin{enumerate}
     \item Initially distributing the Hypermap namespace and stewarding it towards full permissionlessness via ossification at the TLZ level.
@@ -1324,19 +1324,15 @@ Seated at the base of the protocol, Hyperware's governance mechanism is responsi
 
 To achieve decentralized governance, the onchain namespace and HYPR weighting protocol generate voting power as a side effect of token registration.
 The address performing registration selects which address receives this voting power, allowing for delegation schemes.
-
+The voting power is 1:1 with the amount of tokens registered.
 As noted in Section~\ref{sec:hyprregister}, registration of HYPR occurs for a set time period.
-The lock duration produces a decay curve that determines the voting power created from registration.
-
-The voting strength of a given address is therefore calculated by iterating across all the registration actions that address has been indicated as receiving voting power for, dividing the number of tokens using the decay curve applied to that registration, then summing the total.
-Since this is a computationally intensive operation, the voting power is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
-Votes may be shared peer-to-peer and bundled into proofs submitted in bulk.
 
 Governance is not an empty role in Hyperware\textemdash unlike purely onchain protocols, which often fail to benefit from active governance, Hyperware governance includes ongoing responsibilities over the namespace and protocol.
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Hyperware is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
+There is no governance necessary if a protocol is truly immutable and permissionless.
+\textbf{Hyperware is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
 
 While the governance protocol will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Hyperware will never be forced to apply an upgrade), additive non-breaking aspects can be integrated into the protocol to keep pace with the fast-moving world of software.
 
@@ -1345,8 +1341,8 @@ While the governance protocol will be strongly incentivized by builders to remai
 
 The most important role of the governance mechanism is to steward the Hypermap namespace until it can stand on its own.\footnote{Note that each TLZ can create its own form of governance, and we hope to see a diversity of approaches. The Hyperware governance mechanism does not dictate how any portion of the namespace operates.}
 
-At some point, ownership of the Hypermap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
-Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
+At some point, ownership of the Hypermap namespace, and in particular the TLZs, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
+Since each TLZ can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
 In practice, though, there should be many hundreds of TLZ owners.
 Reasonable behavior by owners will be modulated by two things:
 \begin{enumerate}
@@ -1354,14 +1350,14 @@ Reasonable behavior by owners will be modulated by two things:
     \item A strong natural preference by users to use sub-entries controlled by immutable smart contracts.
 \end{enumerate}
 
-Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, the Hyperware governance mechanism will have succeeded in the first phase of its role.
+Therefore, once enough TLZs are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, the Hyperware governance mechanism will have succeeded in the first phase of its role.
 From that point on, core developers will continue to contribute to the development of all open-source components of the software.
 
 \subsubsection{TLZ Auctions}
 \label{sec:tlzauctions}
 
 Initial namespace distribution will take the form of auctions, in which the governance mechanism executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
-Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
+Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations}}
 TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
 
 By auctioning off and otherwise selling namespace, particularly top-level namespace, the governance mechanism may generate revenue.
@@ -1373,7 +1369,7 @@ Revenue earned this way may be directed anywhere, depending on the auction imple
 Through 3 phases, Hyperware governance will transition from a small team of core developers to a fully decentralized protocol.
 
 In phase 1, a small set of TLZs will be selected for creation.
-These will be minted directly to contracts, including those already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|hypr|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
+These will be minted directly to contracts, including those already in use such as \verb|os|, \verb|dev|, and \verb|hypr|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
 
 During phase 1, more TLZs may be created and distributed.
 The HYPR registration mechanism will be activated during this time.
@@ -1388,7 +1384,7 @@ TLZs can also implement rent mechanisms of all sorts within their namespace, whi
 
 Phase 2 will last until the auctions have completed and the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by voters.
 This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
-Development of the OS to the point of specification may take anywhere from 6 months to one year from the current Beta implementation.
+Development of the OS to the point of specification may take anywhere from 6 months to one year from the current implementation.
 
 Phase 3 begins the fully decentralized operation of the protocol.
 Proposals are activated, which combined with voting completes the governance mechanism.
@@ -1408,36 +1404,31 @@ Proposals will be shared peer-to-peer in the Hyperware network using a protocol 
 Since Hyperware Improvement Proposals (HIPs) affect (only) offchain software, they only exist to alter the agreed-upon specification of the operating system, which is written, hashed, and posted onchain.
 A successful HIP will result in a Specification vote.
 At the point of a successful specification change, all Hyperware users are expected to run an implementation of the operating system that comports to the new specification.
-This will act as an effective schelling point for the network.
+This will act as an effective Schelling point for the network.
 
 \subsection{Default-distro App: Governance Portal}
 \label{sec:govportal}
 
-The reference distribution of Hyperware OS will include a Governance Portal app, alongside the App Store and other utilites.
+Hyperdrive will include a Governance Portal app, alongside the App Store and other utilites.
 The Governance Portal will serve as a central point where a node identity can create, vote on, and review proposals.
-As mentioned in Section~\ref{sec:voting}, the voting power of a given address is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
-Functionality for this will be included in the Governance Portal along with a peer-to-peer protocol for sharing signed votes and bundling them into proofs.
-
 Auctions and other onchain activities may also be accessible through the Governance Portal.
 
 \subsection{Other Duties}
 \label{sec:govduties}
 
-The governance protocol may perform other work to increase the utility of the namespace and improve the functionality of the operating system, such as developing more Hypermap protocols like HNS and the package manager.
+The governance protocol may do other work to increase the utility of the namespace and improve the functionality of the operating system, such as developing more Hypermap protocols like HNS and the App Store.
 It may also take actions to incentivize use of Hypermap and HYPR together.
 
 One significant possibility for the onchain namespace protocol involves scaling and expansion.
-The initial deployment will take place on a single blockchain, but both volume of transactions and support for composition with other onchain protocols may inspire expansion to multiple other chains.
+The initial deployment will take place on a single blockchain, but both volume of transactions and support for composition with other onchain protocols may inspire expansion to other chains.
 Horizontal scaling of this kind is achievable by minting a namespace entry (possibly a new TLZ) that points to a smart contract on another blockchain.
 The indicated deployment of Hypermap would use that namespace entry as its ``root node'' (which is simply \verb|0x0| on the primary deployment).
 Such decisions will be made by the governance protocol, which will be the owner of the root node.
 
-With the ability to propose and ratify Hyperware Improvement Proposals, governance of Hyperware also has the ability to create community schelling points around standards in software and data.
+With the ability to propose and ratify Hyperware Improvement Proposals, governance of Hyperware also has the ability to create community Schelling points around standards in software and data.
 The emergent behavior of Hyperware users will determine how this ability is used, but since each instance of the operating system is keyed to the decisions of the governance mechanism, one may expect that the standards around community discussion, including where it takes place, could one day be determined by the protocol itself.
 In traditional centralized software, network effects and switching costs make communities fragile to platform risk or the obsolescence of a key protocol.
 Hyperware's governance mechanism may be the solution to this fragility, allowing the Hyperware community at large to coordinate at a meta-level beyond individual apps and protocols.
-
-\clearpage
 
 \section{A Hyperware Future}
 \label{sec:future}
@@ -1462,7 +1453,7 @@ Hyperware is a beneficiary of this innovation, and at the same time, it unleashe
 \section{Appendix: 3 Ways to Use Hyperware}
 
 Hyperware enables ``sovereign computing'' by allowing anyone to run their own node and communicate directly peer-to-peer using protocols deployed on the network.
-However, making this sufficiently approachable for non-technical users has been a historically insurmountable challenge for countless instances of similarly decentralized software.
+However, making this sufficiently approachable for non-technical users has been a stumbling block for past instances of similarly decentralized software.
 We address this issue by supporting three user-level entrypoints into the Hyperware network:
 \begin{enumerate}
     \item Hosted Nodes
