@@ -140,7 +140,7 @@ A brief description:
     \item A data-key may be mutable (a ``note'', prepended with \verb|~|) or immutable (a ``fact'', prepended with \verb|!|)
 \end{enumerate}
 
-For a complete specification, see Advanced Hypermap in Section~\ref{sec:hypermapadvanced}, which goes into detail regarding token-bound accounts, sub-entry management, the use of data keys, and protocol extensibility.
+For a complete specification, see Advanced Hypermap in Section~\ref{sec:hypermapadvanced}, which goes into detail regarding token-bound accounts, sub-entry management, the use of data-keys, and protocol extensibility.
 For a description of the value-assignment mechanism that overlaps Hypermap, see Section~\ref{sec:hypr} for the HYPR utility token.
 
 \subsection{Example Hypermap Entries}
@@ -185,7 +185,7 @@ This is a useful shorthand, and in many ways, Hypermap does mirror the role of D
 However, the domain analogy is inaccurate if applied directly to all namespace entries because not all namespace entries resolve to a networking protocol target.
 
 E.g., only entries containing \verb|~net-key| are used by the HNS (Hyperware Name System) which runs \textit{on top} of Hypermap.
-Since entries \verb|baz.hypr| and \verb|package.baz.hypr| have no data keys to describe their status in the HNS, the ``domain'' analogy breaks down for them.
+Since entries \verb|baz.hypr| and \verb|package.baz.hypr| have no data-keys to describe their status in the HNS, the ``domain'' analogy breaks down for them.
 The design of Hypermap is generic in the sense that many protocols are expected to share this global namespace for different purposes.
 The specification of HNS itself, as a protocol operating on Hypermap, is described in Section~\ref{sec:hns}, as is the specification of the Hyperware Package Manager, Section~\ref{sec:packagemanager}, both of which make an appearance in this example.
 
@@ -316,7 +316,7 @@ In the future, other entities will likely seek to distribute their own implement
 
 \begin{figure}
     \centering
-    \begin{lstlisting}
+    \begin{verbatim}
     eth:distro:sys
     http-client:distro:sys
     http-server:distro:sys
@@ -328,7 +328,7 @@ In the future, other entities will likely seek to distribute their own implement
     timer:distro:sys
     sqlite:distro:sys
     vfs:distro:sys
-    \end{lstlisting}
+    \end{verbatim}
     \caption{The full list of runtime modules in Hyperdrive (the reference implementation) as of this writing.}
     \label{fig:runtime modules list}
 \end{figure}
@@ -337,7 +337,7 @@ In the future, other entities will likely seek to distribute their own implement
 \label{sec:oswit}
 
 Wasm Interface Type\footnote{\url{https://component-model.bytecodealliance.org/design/wit.html}}, or WIT, is a language to describe types and function definitions that can be used in a Wasm component.
-Hyperware OS uses a single WIT file to define the types shared across all processes and provide a number of functions.
+Hyperware OS uses a single WIT file\footnote{\url{https://github.com/hyperware-ai/hyperware-wit}} to define the types shared across all processes and provide a number of functions.
 The functions fall into three categories:
 \begin{enumerate}
     \item Self-configuration
@@ -347,7 +347,7 @@ The functions fall into three categories:
 
 WIT files are organized into ``worlds''.
 All types and functions provided to Hyperware processes are currently stored in one world labeled \verb|lib|.
-In a separate world, \verb|process|, a single function named \verb|init| is exported, which means that all Wasm apps that use the \verb|process| world must implement that function.
+In a separate world, \verb|process-v1|, a single function named \verb|init| is exported, which means that all Wasm apps that use the \verb|process-v1| world must implement that function.
 The Hyperware kernel starts executing a process by calling the process's \verb|init|.
 
 \subsubsection{WIT Types}
@@ -468,8 +468,8 @@ As of this writing, the kernel runtime module in Hyperdrive fits into about 2,50
 The kernel is responsible for maintaining backwards compatibility.
 If a process was written for an older version of the kernel (which is determined by the version number of the WIT file it implements), newer kernels must store that WIT version and match it to the process.
 If data structures in the WIT file change between versions, the kernel is responsible for translating between formats.
-The current version of the WIT file is 0.8.0 and the kernel maintains backwards compatibility with processes written for version 0.7.0.
-When the OS and WIT file together reach version 1.0, support for 0.x versions will be dropped and backwards compatibility will be permanently maintained for all subsequent versions.
+The current version of the WIT file is 1.0.0.
+Backwards compatibility will be permanently maintained for all subsequent versions.
 
 \subsection{Message Passing}
 \label{sec:osmessagepassing}
@@ -567,7 +567,7 @@ Remote capabilities\textemdash capabilities created by a different kernel\textem
 Why not?
 If an invalid remote capability is created and passed in a message, the holder will be alerted to its invalid nature if/when the holder tries to use it.
 
-As elaborated on in Section~\ref{sec:packagemanager}, which describes a package manager for Hyperware, software written on Hyperware OS will often benefit from declaring a set of capabilities desired at the time of install.
+Software written on Hyperware OS will often benefit from declaring a set of capabilities desired at the time of install (see further discussion in Section~\ref{sec:packagemanager}).
 Many of the built-in runtime modules distributed with the OS, including the kernel itself, have a capabilities protocol.
 The kernel's capabilities protocol is part of the OS specification because it applies to every process and is the bedrock security model of the OS.
 It is also very simple:
@@ -579,8 +579,9 @@ It is also very simple:
 \end{enumerate}
 
 Note that remote processes are not filtered by messaging capabilities.
-Because other kernels can spoof such information as process names, it does not make sense to filter by process name for a remote message.
+Because other nodes could run modified runtimes that spoof such information as process names, it does not make sense to filter by process name for a remote message.
 Instead of using messaging capabilities to filter remote processes, a process instead may decide whether or not it accepts messages from remote sources in general, and then filter by the identity of the source node which cannot be spoofed.
+The situation may change with the advent of trusted computing, since remote nodes can be guaranteed to be running an unmodified runtime.
 
 \newpage
 \subsection{System Primitives}
@@ -606,7 +607,7 @@ The OS uses a single semantic versioning number to indicate breaking and non-bre
 This is covered further in the discussion of backwards compatibility in Section~\ref{sec:osbackwardscompat}.
 
 A few not-strictly-necessary but useful I/O primitives are also presented as APIs via runtime modules.
-These are: a terminal, a timer, and the advanced data persistence options of SQlite, a key-value store, and a virtual filesystem.
+These are: a terminal, a timer, and the advanced data persistence options of SQLite, a key-value store, and a virtual filesystem.
 
 Hyperware OS can expose new primitives at the runtime level via \textit{extensions}, covered in Section~\ref{sec:osextensions}.
 
@@ -671,10 +672,11 @@ HNS updates are given to \verb|net:distro:sys| using a request API made availabl
 Note that messaging capability to \verb|net| is only required to send configurational messages, and is not required to simply send networked messages: those are handled through the kernel.
 Note also that as the HNS state grows, it will become prudent to not load the entire state into the networking module, but rather to dynamically query the state as networking information is required for accessing new nodes or updating stale data from known ones.
 
-The networking protocol itself will not be fully specified here, as it is still being finalized and is best suited by its own document. However, some key aspects:
+The networking protocol itself will not be fully specified here\footnote{See \url{https://book.hyperware.ai/system/networking_protocol.html}}.
+However, some key aspects:
 
 \begin{itemize}
-    \item The protocol uses exclusively information available onchain, including IP addresses, ports, and router nodes, to facilitate message-passing.
+    \item The protocol exclusively uses information available onchain, including IP addresses, ports, and router nodes, to facilitate message-passing.
     See the description of HNS in Section~\ref{sec:hns}.
     \item Direct nodes publish their routing information onchain.
     Indirect nodes publish a set of routers who facilitate message-passing for them.
@@ -753,6 +755,7 @@ In addition to the VFS, the OS provides SQLite and key-value store runtime modul
 These modules serve as high-performance disk storage options for processes that require persistence.
 Each module has a request-response API (documented elsewhere) exposing their respective operations.
 Both SQLite and KV-store structure requests such that processes with the default messaging capability may create and access only their own tables.
+However, the capability to read or write a database can be shared from one process to another, enabling extensibility.
 Of course, processes may use other storage options designed in userspace or as runtime extensions.
 
 \subsection{Runtime Extensions}
@@ -761,15 +764,15 @@ Of course, processes may use other storage options designed in userspace or as r
 Wasm is an excellent compilation target for processes.
 Processes are naturally sandboxed and cross-platform.
 However, there are also costs associated with Wasm.
-For example, not all libraries can be compiled to Wasm and hardware support for accelerators like GPUs is currently lacking.
+For example, not all libraries can be compiled to Wasm and hardware support for accelerators like GPUs is still bleeding edge.
 Extensions supplement and compliment Hyperware processes, removing these constraints, while maintaining the advantages associated with kernel-provided services, e.g., the request/response system.
 
-Extensions are simply WebSocket clients, written in any language and run natively alongside Hyperware OS, that connect to a paired process.
+Extensions are simply WebSocket clients, written in any language, that run natively alongside Hyperware OS and connect to a paired process.
 The paired process serves as the interface between the extension and the rest of the Hyperware system.
 
 Extensions can be written in any language and can use any library, since an extension is just a native program that can connect to Hyperware as a WebSocket client and that implements a certain protocol.
 
-The cost of extensions is that they are not as easy for users to install and use.
+The downside of extensions is that they are not as easy for users to install and use.
 Since they are native, rather than Wasm, they will not run on arbitrary systems.
 They are also not as easy to distribute as packages.
 Therefore only sophisticated users should be expected to run extensions, since they will either need to compile them themselves or set up and maintain an additional program running next to Hyperware.
@@ -777,7 +780,7 @@ Therefore only sophisticated users should be expected to run extensions, since t
 \subsection{Backwards Compatibility}
 \label{sec:osbackwardscompat}
 
-Once the OS reaches version 1.0, no backwards-incompatible change will be allowed in a subsequent version.
+No backwards-incompatible change will be allowed in a subsequent version.
 The surface area presented by the OS for the purpose of backwards-compatibility is defined as:
 \begin{itemize}
     \item The networking protocol
@@ -798,12 +801,12 @@ As described in Section~\ref{sec:os}, the userspace presented by the OS is compr
 There is no kernel-level method for managing the packages installed in a node.
 Rather, userspace programs with the required capabilities must save packages in the virtual filesystem and prompt the kernel to start running certain processes.
 
-If a process has the necessary capabilities, they may create requests to and receive responses from \verb|kernel:distro:sys| like any other process.
+If a process has the necessary capabilities, it may create requests to and receive responses from \verb|kernel:distro:sys| like any other process.
 The kernel specifies a request type that includes commands relevant to managing processes.
 Programs that wish to ``install'' and ``uninstall'' processes merely submit these requests.
 These programs must also have capabilities to access the virtual filesystem, such that they can create new top-level directories formatted in such a way that the kernel can access compiled \verb|.wasm| files that contain a single process.
 
-By convention, packages are stored in a \verb|.zip| file with the full name of the package \verb|<package_name>:<publisher_node_id>|, e.g., for a chat app \verb|chat| published by \verb|template.os|, the full name of the package is \verb|chat:template.os|.
+By convention, packages are stored in a \verb|.zip| file with the full name of the package \verb|<package-name>:<publisher-node-id>|, e.g., for a chat app \verb|chat| published by \verb|template.os|, the full name of the package is \verb|chat:template.os|.
 The top level of the zipped directory contains a \verb|pkg| directory and optionally a directory for the source code of each process defined in the \verb|pkg| directory.
 The \verb|pkg| directory defines processes by:
 \begin{enumerate}
@@ -816,7 +819,7 @@ Scripts are merely processes that, by convention, can be executed from the syste
 
 It is important to note that all of the above logic exists outside of the kernel and runtime.
 A package's directory, metadata, and manifest are all interpreted by userspace code and boiled down to a series of kernel commands including \verb|InitializeProcess|, \verb|RunProcess|, and \verb|KillProcess|.
-Of course, Hyperware OS would not be very useful without this logic, and so the distribution maintained by core developers comes with a combination app store and package manager called \verb|app-store:sys|.
+Of course, Hyperware OS would not be very useful without this logic, and so Hyperdrive comes with a combination app store and package manager called \verb|app-store:sys|.
 Note that the publisher name, \verb|sys|, is not a node identity.
 The publisher value in a package name is not enforced by the kernel.
 It is accepted uncritically, and it is again the responsibility of the userspace package manager to assert a valid publisher if desired.
@@ -824,7 +827,7 @@ It is accepted uncritically, and it is again the responsibility of the userspace
 \subsection{Specification}
 \label{sec:packagemanagerspec}
 
-The userspace app store/package manager maintained by core developers uses an onchain protocol running on Hypermap to enable app discoverability and ranking.
+The userspace app store/package manager uses an onchain protocol running on Hypermap to enable app discoverability and ranking.
 The definition of a package (interchangeably called an ``app'') in this protocol is any Hypermap entry that has both of the following sub-entries:
 
 \verb|~metadata-hash|, \verb|~metadata-uri|.
@@ -865,11 +868,11 @@ A \verb|metadata-uri| entry must contain a UTF-8 string: a Uniform Resource Iden
     \label{fig:example hypermap with packages}
 \end{figure}
 
-In Fig.~\ref{fig:example hypermap with packages} there are 4 packages present: \verb|foos-app:foo.os|, \verb|baz:bar.hypr|, \verb|bam:bar.hypr|, and \verb|boozle:bam.bar.hypr|.
+In Fig.~\ref{fig:example hypermap with packages} there are 4 packages present: \verb|foos-app:foo.os|, \verb|baz:bar.hypr|, \verb|bam:bar.hypr|, and \verb|boozle:bam:bar.hypr|.
 Note that the parent path from a valid package sub-entry contains the entire package name including publisher.
 Note also that a publisher does not need to be a valid node identity as defined in the HNS protocol, though in practice it likely will be.
 A single publisher providing multiple packages can do so by minting sub-entries corresponding to those packages' names.
-Lastly, a package may also itself be a node identity as demonstrated in \verb|bam.bar.hypr|.
+Lastly, a package may also itself be a node identity as demonstrated in \verb|bam:bar.hypr|.
 This is a good example of how protocols in Hypermap's global namespace interact and overlap with one another.
 
 \subsection{Package Metadata}
@@ -890,13 +893,16 @@ If these requirements are met, a user may use \verb|metadata.json| to gather inf
                 "current_version": "0.1.0",
                 "publisher": "template.os",
                 "mirrors": [
+                    "template.os",
                     "mirror-node-1.os",
                     "mirror-node-2.os",
                     "https://my-site.com/my-package.zip"
                 ],
                 "code_hashes": {
                     "0.1.0": "abc"
-                }
+                },
+                "wit_version": 1,
+                "dependencies": []
             },
             "external_url": "a URL to a project website",
             "animation_url": "a URL to an animation file"
@@ -977,14 +983,14 @@ In the case of the package manager, a user will be notified and expected to manu
 Granted capabilities are generated from the process being instantiated.
 The shorthand version of a kernel-mediated messaging capability is simply the string version of the \verb|process-id| for which messaging is being requested or granted, seen in Fig.~\ref{fig:example manifest.json}.
 
-\subsection{Default-distro App: App Store}
+\subsection{Hyperdrive App: App Store}
 \label{sec:appstore}
 
-As noted, the current distribution of the OS comes with an app store.
+As noted, Hyperdrive comes with the App Store.
 This package is named \verb|app-store:sys|.
 The \verb|main| process, \verb|main:app-store:sys|, indexes Hypermap to identify packages onchain, manages the installation of packages using kernel commands, and presents a web UI for a node operator to browse, install, and manage packages (generally labeled as ``apps'' in the frontend).
 
-The app store also uses HYPR to enable ranking and filtering of available apps.
+The App Store will also use HYPR to enable ranking and filtering of available apps (see discussion of HYPR in Section~\ref{sec:hypr}).
 A common failure mode of distributed networks is that content becomes saturated and global curation is impossible without re-centralization.
 In the case of an app store, this manifests as copycat apps, low-effort scams, and a lack of discoverability for even very popular and widely-installed apps.
 Registering HYPR (see Section~\ref{sec:hyprregister}) with namespace entries that are packages published in Hypermap allows users to:
@@ -1002,24 +1008,24 @@ It provides a variety of tools, including but not limited to:
 \begin{itemize}
 	\item \verb|new|: Creates packages from templates
 	\item \verb|build|: Builds packages by compiling processes within
-	\item \verb|start-package|: Installs and starts a built package
+	\item \verb|start-package|: Installs and starts a built package on a node
 	\item \verb|boot-fake-node|: Runs ``fake'' temporary development nodes
 	\item \verb|boot-real-node|: Runs a node with a given ``home'' directory
-	\item \verb|chain|: Starts a local chain with Hypermap contracts for development
 	\item \verb|run-tests|: Runs user-defined tests on a network of ``fake'' nodes
+	\item \verb|publish|: Publish a package on Hypermap
 \end{itemize}
 
 Kit aims to provide developers with every tool required to go from idea to finished project.
 For example, a developer can use \verb|kit new| to create a template, iteratively develop, build, and test using a combination of an IDE, \verb|kit build|, \verb|kit start-package|, and \verb|kit boot-fake-node|.
-Finally, use \verb|run-tests| to ensure stability of the project going forward.
+Finally, use \verb|run-tests| to ensure stability of the project going forward and \verb|publish| to distribute it!
 
-Kit's built-in templates help newcomers to learn by giving them working examples so they can begin quickly begin experimenting.
+Kit's built-in templates help newcomers learn by giving them working examples so they can quickly begin experimenting.
 They also demonstrate best-practices.
 
 Kit makes use of Hyperware's HTTP server RPC endpoint to interact with Hyperware.
 As such, kit is restricted to localhost only.
 However, \verb|kit connect| allows remote development as long as developers have \verb|ssh| access to the remote machine.
-\verb|kit connect| showcases a strategy employed throughout \verb|kit|: when tools already exist, make use of them by wrapping them in a very easy-to-use way.
+\verb|kit connect| showcases a strategy employed throughout \verb|kit|: when tools already exist, make use of them by wrapping them in an easy-to-use way.
 Here, \verb|connect| uses \verb|ssh| tunneling to send the \verb|kit| request securely to the remote machine.
 As such, developers can work on remote Hyperware nodes with the same ease that \verb|kit| affords for local development, but security is not compromised for users.
 
@@ -1031,7 +1037,7 @@ Keys in the map come in three varieties: ``name'', ``note'', and ``fact''.
 
 Each name entry is an ERC-721 NFT.
 The entry NFT is minted with an ERC-6551\footnote{\url{https://eips.ethereum.org/EIPS/eip-6551}} token-bound account.
-This token-bound account, or TBA, is the only address which is permitted to create sub-entries beneath the associated name key.
+This token-bound account, or TBA, is the only address which is permitted to create sub-entries beneath the associated name-key.
 
 Note and fact entries within Hypermap may store data in their memory slot within the map.
 Notes are mutable, while facts are immutable once set.
@@ -1059,30 +1065,31 @@ Unlike DNS, though, TLZs in Hypermap must be distributed in a fair manner and in
 Of course, ownership of a TLZ is also permissionless once acquired, leaving no central authority in control of namespace operation.
 The existence of immutable and relatively ungoverned TLZs also guarantees free expression for protocols within at least those areas of the namespace.
 
-We have designed a multi-phase process for TLZ distribution, described in Section~\ref{sec:tlzmanagement}.
+See Section~\ref{sec:tlzmanagement} for a description of the multi-phase TLZ distribution process.
 
 A given TLZ can be owned by a contract that implements rent logic, requiring regular payments for control over a sub-entry.
 Or, an owner contract could dynamically re-allocate sub-entries as temporary or permanent rewards for auctions, gameplay, or other onchain activities.
 We anticipate and welcome these experimental outcomes.
 A number of TLZs will be transferred to immutable contracts at launch to perform various system roles and integrate with existing onchain identity primitives.
-The \verb|os| TLD, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
+The \verb|os| TLZ, for example, will be controlled by a contract that allows any sub-entry to be minted freely, by anyone, and owned forever.
 To prevent name squatting and generally dilute the value of this ``namespace of last resort'', minted sub-entries are required to be 9 or more characters long.
 This character minimum is an example of custom logic that may be implemented at the TBA level for a given name entry.
 
-\subsection{Name Keys}
+\subsection{Name-Keys}
 
-Name keys determine ownership of entries in the namespace and the ability to both create sub-entries and inscribe data into data keys. Sub-entries are just name keys directly beneath the parent name key, so, unless contract logic in a higher parent entry has disallowed it, the name key \verb|hello.os| may freely create sub-entries like \verb|sub1.hello.os| and \verb|sub2.hello.os|.
-Name keys are tokenized as ERC-721 NFTs and bound to TBAs at counterfactual addresses.
-The usual properties of NFTs apply to name keys: they may be transferred, wrapped, and composed with onchain protocols that operate on ERC-721s.
+Name-keys determine ownership of entries in the namespace and the ability to both create sub-entries and inscribe data into data-keys.
+Sub-entries are just name-keys directly beneath the parent name-key, so, unless contract logic in a higher parent entry has disallowed it, the name-key \verb|hello.os| may freely create sub-entries like \verb|sub1.hello.os| and \verb|sub2.hello.os|.
+Name-keys are tokenized as ERC-721 NFTs and bound to TBAs at counterfactual addresses.
+The usual properties of NFTs apply to name-keys: they may be transferred, wrapped, and composed with onchain protocols that operate on ERC-721s.
 
-\subsection{Data Keys}
+\subsection{Data-Keys}
 
-Data keys store content in the Hypermap. There are two flavors: mutable ``notes'', and immutable ``facts''.
+Data-keys store content in the Hypermap. There are two flavors: mutable ``notes'', and immutable ``facts''.
 
 Entries of this variety \textbf{may not} mint sub-entries, hence the prefix: one can use \verb|~my-data.hello.os| to store data while minting \verb|my-data.hello.os| in order to mint sub-entries beneath it, should one desire to do so.
 
 The content of a note or fact is stored as bytes inside the contract map.
-The owner of the parent name key is the only address that can set/modify the data stored at that slot.
+The owner of the parent name-key is the only address that can set/modify the data stored at that slot.
 The interpretation of stored bytes is the responsibility of the protocol reading and writing from that entry.
 
 All data is public. Protocols that wish to operate on private data may store hashes at namespace entries, operate offchain within the end-to-end encrypted Hyperware networking protocol, or ideally use a combination of both: Hypermap for public signaling and dispersion of schelling points, peer-to-peer messaging for data exchange.
@@ -1094,7 +1101,7 @@ Hypermap is designed to be extensible.
 Protocols such as the Hyperware Name System and the package manager extend Hypermap by interpreting the data stored at certain keys in a particular way.
 A specific description of how these protocols atop Hypermap specify themselves may be seen in Section~\ref{sec:hns} and Section~\ref{sec:packagemanager}, respectively.
 
-In the general case, a protocol specifies itself on Hypermap by declaring a set of data keys that are interpreted a certain way and endow certain properties to their parent name key.
+In the general case, a protocol specifies itself on Hypermap by declaring a set of data-keys that are interpreted a certain way and endow certain properties to their parent name-key.
 For example, a simple motd (``message of the day'') protocol might specify that the bytes stored at any \verb|~motd| key will be interpreted as a UTF-8 string message from the parent key, which could be a node identity in the HNS.
 If the owner of the key \verb|howdy.hypr| wishes to participate in this protocol, it simply mints the key (mutably, one would hope) \verb|~motd.howdy.hypr| and stores bytes there, perhaps \verb|[68 65 6c 6c 6f 20 77 6f 72 6c 64]|.
 
@@ -1108,9 +1115,9 @@ A different protocol that wishes to use the \verb|~motd| entry label could speci
 
 \subsection{Counterfactual Addresses For Hyperware Smart Accounts}
 
-A counterfactual address is an smart contract address that may be known before code is deployed into its storage on the blockchain.
+A counterfactual address is a smart contract address that is known before code is deployed into its storage on the blockchain.
 Ethereum enables counterfactual address creation with the create2 opcode, which deploys code to an address deterministically generated given the contract address calling the opcode, the initialization bytecode for the contract to be created, and a salt.
-Since each of these factors is known ahead of time for any given entry, every name key in Hypermap has a corresponding counterfactual address for its smart contract account.
+Since each of these factors is known ahead of time for any given entry, every name-key in Hypermap has a corresponding counterfactual address for its smart contract account.
 This property comes in handy when designing protocols that operate on token-bound accounts.
 A developer can instruct a user to create a sub-entry for their node identity and have already deposited assets in the wallet that will be created as a result.
 
@@ -1125,11 +1132,11 @@ As a result, they can implement arbitrary logic to govern the assets within.
 They can also be used to control the sub-entries endowed to them by Hypermap's logic.
 By default, the token-bound account associated with a name entry will have the sole ability to create sub-entries beneath.
 This can be modified to expose a public mint function with arbitrary requirements, such as a minimum amount of HYPR registered to the sub-entry.
-Such logic has already been implemented in various top-level zones to create public namespaces.
+Such logic has already been implemented in various top-level zones to create public namespaces (e.g. \verb|os|).
 
 When a name entry is created, the minter sets an implementation for the token-bound account.
 A name entry in Hypermap may set its \verb|gene| to a specific token-bound account implementation.
-This enforces that all subsequently created sub-entries will use the same implementation, overriding the implementation set by the minter.
+This enforces that all subsequently created sub-entries will use the same implementation (and inherit the \verb|gene| as well), overriding the implementation set by the minter.
 
 % \subsection{ERC-7579 Modular Smart Contract Accounts}
 
@@ -1170,7 +1177,7 @@ Subsequent deployments may scale horizontally across multiple blockchains by dep
 
 A subsequent deployment, therefore, has a ``pointer'' within the primary namespace and all entries are nested under the entry in the primary namespace.
 The ``pointer'' entry will likely post immutable facts such as \verb|!chain-id| and \verb|!address| to direct to the subsequent deployment.
-This strategy will allow the namespace to easily scale across a variety of Ethereum layer-2 blockchains, and possibly other EVM-compliant blockchains.
+This strategy will allow the namespace to easily scale across a variety of Ethereum Layer-2 blockchains, and possibly other EVM-compliant blockchains.
 Note that while the namespace information will work straightforwardly across deployments, the smart account functionality will require more implementation work to work across chain boundaries if at all.
 Smart account module inheritance may be limited to a single chain.
 It is worth noting, however, that cross-chain messaging projects such as LayerZero already support functionality for executing transactions from an ERC-6551 token-bound account in a cross-chain fashion.
@@ -1216,7 +1223,7 @@ To register HYPR, a token holder submits a transaction to the Hypermap registrat
 
 The duration of a registration is specified in blocks and will have a minimum value of around 7 days.
 
-Data keys (prefixed with \verb|~|/\verb|!|) cannot be a target for registration.
+Data-keys (prefixed with \verb|~|/\verb|!|) cannot be a target for registration.
 Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
 The target entry does not need to be owned by the address performing registration.
 
@@ -1264,7 +1271,7 @@ Algorithms will instead be written for specific protocols running on Hypermap.
 These will have access to HYPR ``weights'' as one tool in determining quality rankings, and many will also take into account other factors.
 At the time of this writing, it is impossible to predict the specifics of algorithms that will enter popular use for evaluating protocols on Hypermap.
 
-One may note that the onchain primitives described in this paper are remarkably simple.
+The onchain primitives described in this paper are remarkably simple.
 Registering tokens does not require any game theory or MEV protection properties.
 Creating and mutating namespace entries is also not subject to adversarial conditions, since the ability to do so is only granted to an entry's owner.\footnote{That does not mean the same is true for contracts that utilize the protocol.
 Hypermap and HYPR are designed to be modular\textemdash as described at length elsewhere in this paper, much of the utility of the protocol will come from contracts deployed ``on top'' to manage a given namespace and other such things.
@@ -1304,7 +1311,7 @@ This may prove to be an ideal way to run protocols in a future where Hypermap is
 \section{Hyperware Governance}
 \label{sec:governance}
 
-In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Hyperware is presented as an inverted triangle with Hypermap+HYPR and Hyperware OS above Hyperware Governance.
+In \hyperref[fig:triangle]{Fig.~\ref{fig:triangle}}, Hyperware is presented as a triangle with Hypermap+HYPR and Hyperware OS above Hyperware Governance.
 Seated at the base of the protocol, Hyperware's governance mechanism is responsible for:
 \begin{enumerate}
     \item Initially distributing the Hypermap namespace and stewarding it towards full permissionlessness via ossification at the TLZ level.
@@ -1317,19 +1324,15 @@ Seated at the base of the protocol, Hyperware's governance mechanism is responsi
 
 To achieve decentralized governance, the onchain namespace and HYPR weighting protocol generate voting power as a side effect of token registration.
 The address performing registration selects which address receives this voting power, allowing for delegation schemes.
-
+The voting power is 1:1 with the amount of tokens registered.
 As noted in Section~\ref{sec:hyprregister}, registration of HYPR occurs for a set time period.
-The lock duration produces a decay curve that determines the voting power created from registration.
-
-The voting strength of a given address is therefore calculated by iterating across all the registration actions that address has been indicated as receiving voting power for, dividing the number of tokens using the decay curve applied to that registration, then summing the total.
-Since this is a computationally intensive operation, the voting power is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
-Votes may be shared peer-to-peer and bundled into proofs submitted in bulk.
 
 Governance is not an empty role in Hyperware\textemdash unlike purely onchain protocols, which often fail to benefit from active governance, Hyperware governance includes ongoing responsibilities over the namespace and protocol.
 
 Decentralized finance protocols generally benefit from maximal immutability: once a stable and useful primitive exists, its value only tends to decay with changes.
 For this reason, ``governance'' as applied to purely onchain protocols has historically been somewhat weak.
-There is no governance necessary if a protocol is truly immutable and permissionless. \textbf{Hyperware is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
+There is no governance necessary if a protocol is truly immutable and permissionless.
+\textbf{Hyperware is not a purely onchain protocol}, however, and its governance must be executed in a decentralized manner for the network to be stable, neutral, and permissionless.
 
 While the governance protocol will be strongly incentivized by builders to remain permanently backwards-compatible (meaning that protocols launched on Hyperware will never be forced to apply an upgrade), additive non-breaking aspects can be integrated into the protocol to keep pace with the fast-moving world of software.
 
@@ -1338,8 +1341,8 @@ While the governance protocol will be strongly incentivized by builders to remai
 
 The most important role of the governance mechanism is to steward the Hypermap namespace until it can stand on its own.\footnote{Note that each TLZ can create its own form of governance, and we hope to see a diversity of approaches. The Hyperware governance mechanism does not dictate how any portion of the namespace operates.}
 
-At some point, ownership of the Hypermap namespace, and in particular the top-level entries, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
-Since each top-level namespace entry can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
+At some point, ownership of the Hypermap namespace, and in particular the TLZs, will be distributed enough that no single entity could disrupt the operation of the network as a whole by abusing ownership rights.
+Since each TLZ can be the root of an entire namespace, the theoretical security requirements for continued operation of the network are 1 of N good actors.
 In practice, though, there should be many hundreds of TLZ owners.
 Reasonable behavior by owners will be modulated by two things:
 \begin{enumerate}
@@ -1347,14 +1350,14 @@ Reasonable behavior by owners will be modulated by two things:
     \item A strong natural preference by users to use sub-entries controlled by immutable smart contracts.
 \end{enumerate}
 
-Therefore, once enough top-level namespace entries are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, the Hyperware governance mechanism will have succeeded in the first phase of its role.
+Therefore, once enough TLZs are held by a diversity of immutable smart contracts, and possibly mutable contracts controlled by DAOs, the Hyperware governance mechanism will have succeeded in the first phase of its role.
 From that point on, core developers will continue to contribute to the development of all open-source components of the software.
 
 \subsubsection{TLZ Auctions}
 \label{sec:tlzauctions}
 
 Initial namespace distribution will take the form of auctions, in which the governance mechanism executes a proposal to mint a single TLZ or bundle of TLZs and send them to an onchain auction contract, where the winner takes ownership.
-Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations/}}
+Auctions can take many forms, such as English or Dutch, and many smart contract implementations of various auction types exist.\footnote{\url{https://a16zcrypto.com/posts/article/how-auction-theory-informs-implementations}}
 TLZ auctions may sell ownership of a namespace entry or merely rent it by either transferring the NFT to the winner or approving the winner to use a smart contract, which owns the actual TLZ NFT, for a given period of time.
 
 By auctioning off and otherwise selling namespace, particularly top-level namespace, the governance mechanism may generate revenue.
@@ -1366,7 +1369,7 @@ Revenue earned this way may be directed anywhere, depending on the auction imple
 Through 3 phases, Hyperware governance will transition from a small team of core developers to a fully decentralized protocol.
 
 In phase 1, a small set of TLZs will be selected for creation.
-These will be minted directly to contracts, including those already in use in the beta system such as \verb|os|, \verb|dev|, and \verb|hypr|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
+These will be minted directly to contracts, including those already in use such as \verb|os|, \verb|dev|, and \verb|hypr|, those associated with an existing onchain identity primitive such as \verb|eth|, and anything else useful.
 
 During phase 1, more TLZs may be created and distributed.
 The HYPR registration mechanism will be activated during this time.
@@ -1381,7 +1384,7 @@ TLZs can also implement rent mechanisms of all sorts within their namespace, whi
 
 Phase 2 will last until the auctions have completed and the operating system is at a point in its development where future changes can be approved or denied via Improvement Proposals approved by voters.
 This means the operating system must be fully specified such that it can be altered by Proposals and confirmed by Specification votes.
-Development of the OS to the point of specification may take anywhere from 6 months to one year from the current Beta implementation.
+Development of the OS to the point of specification may take anywhere from 6 months to one year from the current implementation.
 
 Phase 3 begins the fully decentralized operation of the protocol.
 Proposals are activated, which combined with voting completes the governance mechanism.
@@ -1401,36 +1404,31 @@ Proposals will be shared peer-to-peer in the Hyperware network using a protocol 
 Since Hyperware Improvement Proposals (HIPs) affect (only) offchain software, they only exist to alter the agreed-upon specification of the operating system, which is written, hashed, and posted onchain.
 A successful HIP will result in a Specification vote.
 At the point of a successful specification change, all Hyperware users are expected to run an implementation of the operating system that comports to the new specification.
-This will act as an effective schelling point for the network.
+This will act as an effective Schelling point for the network.
 
 \subsection{Default-distro App: Governance Portal}
 \label{sec:govportal}
 
-The reference distribution of Hyperware OS will include a Governance Portal app, alongside the App Store and other utilites.
+Hyperdrive will include a Governance Portal app, alongside the App Store and other utilites.
 The Governance Portal will serve as a central point where a node identity can create, vote on, and review proposals.
-As mentioned in Section~\ref{sec:voting}, the voting power of a given address is calculated offchain and bundled into a zero-knowledge proof submitted to the governance contract.
-Functionality for this will be included in the Governance Portal along with a peer-to-peer protocol for sharing signed votes and bundling them into proofs.
-
 Auctions and other onchain activities may also be accessible through the Governance Portal.
 
 \subsection{Other Duties}
 \label{sec:govduties}
 
-The governance protocol may perform other work to increase the utility of the namespace and improve the functionality of the operating system, such as developing more Hypermap protocols like HNS and the package manager.
+The governance protocol may do other work to increase the utility of the namespace and improve the functionality of the operating system, such as developing more Hypermap protocols like HNS and the App Store.
 It may also take actions to incentivize use of Hypermap and HYPR together.
 
 One significant possibility for the onchain namespace protocol involves scaling and expansion.
-The initial deployment will take place on a single blockchain, but both volume of transactions and support for composition with other onchain protocols may inspire expansion to multiple other chains.
+The initial deployment will take place on a single blockchain, but both volume of transactions and support for composition with other onchain protocols may inspire expansion to other chains.
 Horizontal scaling of this kind is achievable by minting a namespace entry (possibly a new TLZ) that points to a smart contract on another blockchain.
 The indicated deployment of Hypermap would use that namespace entry as its ``root node'' (which is simply \verb|0x0| on the primary deployment).
 Such decisions will be made by the governance protocol, which will be the owner of the root node.
 
-With the ability to propose and ratify Hyperware Improvement Proposals, governance of Hyperware also has the ability to create community schelling points around standards in software and data.
+With the ability to propose and ratify Hyperware Improvement Proposals, governance of Hyperware also has the ability to create community Schelling points around standards in software and data.
 The emergent behavior of Hyperware users will determine how this ability is used, but since each instance of the operating system is keyed to the decisions of the governance mechanism, one may expect that the standards around community discussion, including where it takes place, could one day be determined by the protocol itself.
 In traditional centralized software, network effects and switching costs make communities fragile to platform risk or the obsolescence of a key protocol.
 Hyperware's governance mechanism may be the solution to this fragility, allowing the Hyperware community at large to coordinate at a meta-level beyond individual apps and protocols.
-
-\clearpage
 
 \section{A Hyperware Future}
 \label{sec:future}
@@ -1455,7 +1453,7 @@ Hyperware is a beneficiary of this innovation, and at the same time, it unleashe
 \section{Appendix: 3 Ways to Use Hyperware}
 
 Hyperware enables ``sovereign computing'' by allowing anyone to run their own node and communicate directly peer-to-peer using protocols deployed on the network.
-However, making this sufficiently approachable for non-technical users has been a historically insurmountable challenge for countless instances of similarly decentralized software.
+However, making this sufficiently approachable for non-technical users has been a stumbling block for past instances of similarly decentralized software.
 We address this issue by supporting three user-level entrypoints into the Hyperware network:
 \begin{enumerate}
     \item Hosted Nodes
