@@ -3,6 +3,7 @@
 \usepackage{amssymb}
 \usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{graphicx}
 
 \title{A Modest (Tokenomics) Proposal}
 \date{250305}
@@ -38,6 +39,13 @@ c &> 2d \cdot T
 
 where $n_m$ is the maximum number of tokens that a single wallet can lock.
 $n_m$ can reasonably be set to $S$.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{voting-power-surface.png}
+    \caption{An example of $V(n, t)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab * nt$.}
+    \label{fig:example-image}
+\end{figure}
 
 If $n$ or $t$ is $0$, $V$ is $0$.
 The role of the parameters $b$ and $d$ is to make the voting power sub-linear in $n$ and $t$, respectively.
