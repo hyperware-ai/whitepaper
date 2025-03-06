@@ -1,8 +1,9 @@
-whitepaper.pdf
-whitepaper.out
-whitepaper.log
-whitepaper.synctex.gz
-whitepaper.aux
-whitepaper.toc
-whitepaper.fdb_latexmk
-whitepaper.fls
+whitepaper/whitepaper.pdf
+whitepaper/whitepaper.out
+whitepaper/whitepaper.log
+whitepaper/whitepaper.synctex.gz
+whitepaper/whitepaper.aux
+whitepaper/whitepaper.toc
+whitepaper/whitepaper.fdb_latexmk
+whitepaper/whitepaper.fls
+whitepaper/whitepaper.html
