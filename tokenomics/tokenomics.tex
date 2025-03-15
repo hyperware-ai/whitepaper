@@ -5,142 +5,124 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 
-\title{A Modest (Tokenomics) Proposal}
-\date{250305}
+\title{A Modest (Tokenomics) Proposal, Version 2}
+\date{250314}
 \author{}
 
 \begin{document}
 
 \maketitle
 
-\section{Goals}
+\section{Goals}\label{sec:goals}
 \begin{itemize}
     \item HYPR provides genuine utility to users
     \item HYPR has long-term incentives to keep demand in long-term
     \item HYPR allows user to be involved in useful DAO governance
 \end{itemize}
 
-\section{Voting Power}
+\section{Registration Power}\label{sec:registration}
 
-Voting power depends on two parameters: $n$, the number of HYPR tokens locked, and $t$, the remaining period tokens are locked for (in weeks).
-Token supply is denoted $S$ (it is $10^8 = 100\_000\_000$).
-Max lock time is denoted $T$ (it is some small single-digit number of years).
-The voting power of a wallet is denoted $V(n, t)$.
+Registration power depends on two parameters: $n_i$, the number of HYPR tokens registered for node $i$, and $t_i$, the remaining period tokens are registered for (in weeks) to node $i$.
+Token supply is denoted $S$ (it is $10^9$).
+Max registration time is denoted $T$ and is equal to four years (208 weeks).
+The registration power of a wallet is denoted $R(n_i, t_i)$.
 \begin{equation}
-V(n, t) = (an - bn^2) \cdot (ct - dt^2)
+R(n_i, t_i) = (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
 \end{equation}
 
-The parameters $a$, $b$, $c$, $d$, all greater than or equal to $0$, are chosen such that voting power is a strictly monotonically-increasing function of $n$ and $t$ (i.e. it only ever increases as $n$ and $t$ increase).
+The parameters $a$, $b$, $c$, $d$, all greater than or equal to $0$, are chosen such that voting power is a strictly monotonically-increasing function of $n_i$ and $t_i$ (i.e. it only ever increases as $n_i$ and $t_i$ increase).
 This leads to the following requirements for the parameters:
 \begin{align}
 a &> 2b \cdot n_m\\
 c &> 2d \cdot T
 \end{align}
 
-where $n_m$ is the maximum number of tokens that a single wallet can lock.
+where $n_m$ is the maximum number of tokens that a single wallet can register.
 $n_m$ can reasonably be set to $S$.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{voting-power-surface.png}
-    \caption{An example of $V(n, t)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab * nt$.}
+    \caption{An example of $R(n_i, t_i)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab \cdot n_it_i$.}
     \label{fig:example-image}
 \end{figure}
 
-If $n$ or $t$ is $0$, $V$ is $0$.
-The role of the parameters $b$ and $d$ is to make the voting power sub-linear in $n$ and $t$, respectively.
+
+If $n_i$ or $t_i$ is $0$, $R$ is $0$.
+The role of the parameters $b$ and $d$ is to make the voting power sub-linear in $n_i$ and $t_i$, respectively.
 This means that:
 \begin{itemize}
-    \item A whale who locks a large amount of tokens does not dominate voting to the same degree as they would in the linear case (e.g. if one user owns 51\% of the tokens, locking them all will result in less than 51\% of the possible voting power).
-    \item Locking for the maximum period gets less than double locking for half the maximum period.
+    \item A whale who registers a large amount of tokens does not dominate registration on the Hypermap to the same degree as they would in the linear case (e.g. if one user owns 51\% of the tokens, registering them all will result in less than 51\% of the possible registration power).
+    \item Registering for the maximum period gets less than double registering for half the maximum period.
     \item The sublinearity can be tuned by changing the value of $b$ and $d$.
-      As $b$ or $d$ tends to $0$, the voting power tends to linear in $n$ or $t$ respectively.
+      As $b$ or $d$ tends to $0$, the registration power tends to linear in $n_i$ or $t_i$ respectively.
 \end{itemize}
 
-Voting power decreases as time passes.
-Say initial lock is for 100 HYPR for 52 weeks.
-Initial voting power is then
+Registration power decreases as time passes.
+Say initial registration is for 100 HYPR for 52 weeks.
+Initial registration power is then
 \begin{equation}
-V(n=100, t=52) = (a\cdot 100 - b\cdot 100^2) \cdot (c\cdot 52 - d\cdot 52^2)
+R(n_i=100, t_i=52) = (a\cdot 100 - b\cdot 100^2) \cdot (c\cdot 52 - d\cdot 52^2)
 \end{equation}
 
-After one week has past, $t$ declines to $51$.
-Each subsequent week, voting power of the locked tokens decreases, until it eventually reaches $0$.
+After one week has past, $t_i$ declines to $51$.
+Each subsequent week, registration power of the locked tokens decreases, until it eventually reaches $0$.
+This means that registrations that are not actively updated will naturally decay in relevance, so the Hypermap will be naturally biased towards:
+1. High value registrations,
+2. Actively updated, long-term registrations.
 
-A locked token position can be modified in three ways:
+A registered token position can be modified in three ways:
 \begin{enumerate}
-    \item Token lock can be extended.
-       For example, say 100 tokens were locked for 52 weeks and 20 have passed, leaving 32 weeks remaining in the lock.
-       The user can extend the lock to 52 weeks once again, extending the lockup period by an additional 20 weeks, and bringing voting power up to its original value.
+    \item Token registration can be extended.
+       For example, say 100 tokens were registered for 52 weeks and 20 have passed, leaving 32 weeks remaining in the registration.
+       The user can extend the registration to 52 weeks once again, extending the registration period by an additional 20 weeks, and bringing registration power up to its original value.
     \item Tokens may be added.
-       For example, say 100 tokens we locked for 52 weeks and 20 have passed, leaving 32 weeks remaining in the lock.
-       10 additional tokens might be added, leading to a locked set of 110 tokens for 32 weeks.
-    \item Tokens within the locked set may be registered, see \hyperref[sec:registration]{Registration discussion below}.
+       For example, say 100 tokens we registered for 52 weeks and 20 have passed, leaving 32 weeks remaining in the registration.
+       10 additional tokens might be added, leading to a registered set of 110 tokens for 32 weeks.
 \end{enumerate}
 
-Note that locked tokens cannot be unlocked until the locked time has passed!
+Note that registered tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending registration or adding tokens) until the registration time has passed!
 
-\subsection{Voting Power Open Questions}
-\begin{itemize}
-    \item Token supply, $S$, is fixed at $10^8 = 100\_000\_000$ at launch.
-      Will more tokens ever be minted?
-    \item What is the max lock time, $T$?
-\end{itemize}
 
-\section{Registration}\label{sec:registration}
 
-Tokens that are locked can be registered.
-Registration can occur on either all locked tokens (that have not yet been registered) or a subset.
-Registration points those tokens at a name-key on the Hypermap.
+\section{Voting Power}\label{sec:votingpower}
 
-Registration power has a similar form to voting power with the number of locked tokens allocated to the registration, $r_{node}$, where $_{node}$ denotes the name-key in the Hypermap.
-Thus, if we denote registration power $R(r_{node}, t)$, then we can write
-\begin{equation}
-R(r_{node}, t) = V(n=r_{node}, t)
-\end{equation}
+Voting power is the sum of all registration powers:
+\begin{align}
+V(r_i, t_i: i\in[0,N)) &= \sum_i^N R(n_i, t_i)\\
+  &= \sum_i^N (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
+\end{align}
 
-Registering tokens to a $_{node}$ is similar in some ways to locking tokens, and different in others.
 
-Similar:
-\begin{itemize}
-    \item Registered tokens cannot be unregistered until the locked time has passed.
-    \item Additional locked tokens can be added to a $_{node}$.
-\end{itemize}
-
-Different:
-\begin{itemize}
-    \item Increasing the locked time increases the registration time as well.
-\end{itemize}
-
-\section{Voting in DAO Governance}
+\section{Voting in DAO Governance}\label{sec:voting}
 
 A proposal has a closing time associated with it.
 Voters cast votes.
 Voting power of voters is calculated at closing time, and the proposal passes or fails.
 Voters and their voting power, as well as the result of the vote, is recorded.
 
-\section{Governance Participation Rewards}
+\section{Governance Participation Rewards}\label{sec:rewards}
 
 Governance participation incentives are distributed quarterly: 2\% of the incentive treasury per quarter.
-For each proposal, a user $i$ that participates in that vote gets an award $A_i$ that is a fraction of the incentives dedicated to that vote equal to
+For each proposal, a user $j$ that participates in that vote gets an award $A_j$ that is a fraction of the incentives dedicated to that vote equal to
 \begin{equation}
-A_i = \frac{V_i}{\sum_i V_i}
+A_j = \frac{V_j}{\sum_j V_j}
 \end{equation}
 
 If no votes occur in a quarter, no incentives are distributed.
 If multiple votes occur in a quarter, the incentives are split amongst them based on the total voting power that participated in each vote.
-Denote the $j$th vote in a quarter $V^{j}$.
-Then the fraction of quarterly incentives allocated to a specific vote $j$, $F^{j}$ is
+Denote the $k$th vote in a quarter $V^{k}$.
+Then the fraction of quarterly incentives allocated to a specific vote $k$, $F^{k}$ is
 \begin{equation}
-F^{j} = \frac{\sum_i V^{j}_i}{\sum_i \sum_j V^{j}_i}
+F^{k} = \frac{\sum_j V^{k}_j}{\sum_j \sum_k V^{k}_j}
 \end{equation}
 
 and so the total award of a user in a multi-vote quarter looks like
 \begin{equation}
-A_i = \sum_j \left[F^{j} \cdot \frac{V^{j}_i}{\sum_i V^{j}_i}\right]
+A^{Q}_j = \sum_k \left[F^{k} \cdot \frac{V^{k}_j}{\sum_j V^{k}_j}\right]
 \end{equation}
 
-\section{Vesting}
+\section{Vesting}\label{sec:vesting}
 
 Vesting tokens cannot do anything except be fractionally claimed, depending on the percentage of the vesting time that has passed.
 Thus, they cannot participate in locking, governance, registration.
@@ -156,5 +138,11 @@ There are two reasons that vesting tokens cannot do anything:
        This also gives community members a chance to acquire a larger fraction of the governance rewards, improving the distribution of tokens to the community.
        Investors and team members have been of fundamental importance to the project and will continue to be so, but establishing an involved and aligned community is of the utmost importance for Hyperware to succeed.
 \end{enumerate}
+
+\section{Open Questions}\label{sec:questions}
+\begin{itemize}
+    \item Token supply, $S$, is fixed at $10^9$ at launch.
+      Will more tokens ever be minted?
+\end{itemize}
 
 \end{document}
