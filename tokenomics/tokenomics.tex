@@ -4,9 +4,10 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{hyperref}
 
 \title{A Modest (Tokenomics) Proposal, Version 2}
-\date{250314}
+\date{250315}
 \author{}
 
 \begin{document}
@@ -17,15 +18,21 @@
 \begin{itemize}
     \item HYPR provides genuine utility to users
     \item HYPR has long-term incentives to keep demand in long-term
-    \item HYPR allows user to be involved in useful DAO governance
+    \item HYPR allows user to participate in useful DAO governance
 \end{itemize}
 
 \section{Registration Power}\label{sec:registration}
 
-Registration power depends on two parameters: $n_i$, the number of HYPR tokens registered for node $i$, and $t_i$, the remaining period tokens are registered for (in weeks) to node $i$.
+Registration power depends on two parameters: $n_i$, the number of HYPR tokens registered at name-key $i$, and $t_i$, the remaining period tokens are registered for (in weeks) to name-key $i$.\footnote{
+	Recall that the Hypermap has two types of keys, name-keys and data-keys.
+	Data-keys hold data, whereas name-keys provide hierarchical structure and can be nested.
+	Name-keys can have tokens registered to them to indicate value.
+	The registration values found on the Hypermap can be used in arbitrarily programmable ways, with current plans to use them for search and filtering.
+	More discussion can be found in the \href{https://hyperware.ai/whitepaper.pdf}{Hyperware Whitepaper}.
+}
 Token supply is denoted $S$ (it is $10^9$).
 Max registration time is denoted $T$ and is equal to four years (208 weeks).
-The registration power of a wallet is denoted $R(n_i, t_i)$.
+The registration power of a wallet for a given name-key is denoted $R(n_i, t_i)$.
 \begin{equation}
 R(n_i, t_i) = (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
 \end{equation}
@@ -33,8 +40,8 @@ R(n_i, t_i) = (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
 The parameters $a$, $b$, $c$, $d$, all greater than or equal to $0$, are chosen such that voting power is a strictly monotonically-increasing function of $n_i$ and $t_i$ (i.e. it only ever increases as $n_i$ and $t_i$ increase).
 This leads to the following requirements for the parameters:
 \begin{align}
-a &> 2b \cdot n_m\\
-c &> 2d \cdot T
+	a &> 2b \cdot n_m\\
+	c &> 2d \cdot T
 \end{align}
 
 where $n_m$ is the maximum number of tokens that a single wallet can register.
@@ -46,7 +53,6 @@ $n_m$ can reasonably be set to $S$.
     \caption{An example of $R(n_i, t_i)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab \cdot n_it_i$.}
     \label{fig:example-image}
 \end{figure}
-
 
 If $n_i$ or $t_i$ is $0$, $R$ is $0$.
 The role of the parameters $b$ and $d$ is to make the voting power sub-linear in $n_i$ and $t_i$, respectively.
@@ -83,14 +89,33 @@ A registered token position can be modified in three ways:
 
 Note that registered tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending registration or adding tokens) until the registration time has passed!
 
-
+\begin{table}[htbp]
+    \centering
+    \caption{Summary of important known and unknown parameters}
+    \label{tab:student-performance}
+    \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Parameter} & \textbf{Value} & \textbf{Description} \\
+    \hline
+    $S$ & $10^9$ & Total token supply \\
+    $n_m$ & likely $S$ & Max token parameter in $R$ \\
+    $T$ & 4 years = 208 weeks & Max registration time \\
+    $a$ & $> 2b \cdot n_m$ & Constraints on $R$'s $n$-dependent parameters \\
+    $c$ & $> 2d \cdot T$ & Constraints on $R$'s $t$-dependent parameters \\
+    $L_t$ & ? & Vesting lockup duration for team members \\
+    $C_t$ & ? & Vesting cliff duration for team members \\
+    $L_i$ & ? & Vesting lockup duration for investors \\
+    $C_i$ & ? & Vesting cliff duration for investors \\
+    \hline
+	\end{tabular}
+\end{table}
 
 \section{Voting Power}\label{sec:votingpower}
 
 Voting power is the sum of all registration powers:
 \begin{align}
 V(r_i, t_i: i\in[0,N)) &= \sum_i^N R(n_i, t_i)\\
-  &= \sum_i^N (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
+    &= \sum_i^N (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
 \end{align}
 
 
@@ -104,45 +129,71 @@ Voters and their voting power, as well as the result of the vote, is recorded.
 \section{Governance Participation Rewards}\label{sec:rewards}
 
 Governance participation incentives are distributed quarterly: 2\% of the incentive treasury per quarter.
-For each proposal, a user $j$ that participates in that vote gets an award $A_j$ that is a fraction of the incentives dedicated to that vote equal to
+For each proposal, $k$, a user $j$ that participates in that vote gets an award $A^{k}_j$ that is a fraction of the incentives dedicated to that vote equal to
 \begin{equation}
-A_j = \frac{V_j}{\sum_j V_j}
+A^{k}_j = \frac{V^{k}_j}{\sum_j V^{k}_j}
 \end{equation}
+where $V^{k}_j$ denotes the voting power contributed by user $j$ in the $k$th vote in a quarter.
 
 If no votes occur in a quarter, no incentives are distributed.
 If multiple votes occur in a quarter, the incentives are split amongst them based on the total voting power that participated in each vote.
-Denote the $k$th vote in a quarter $V^{k}$.
 Then the fraction of quarterly incentives allocated to a specific vote $k$, $F^{k}$ is
 \begin{equation}
-F^{k} = \frac{\sum_j V^{k}_j}{\sum_j \sum_k V^{k}_j}
+F^{k} = \frac{\sum_j V^{k}_j}{\sum_k \sum_j V^{k}_j}
+\end{equation}
+and so the total award of a user in a multi-vote quarter becomes
+\begin{equation}
+A_j = \sum_k \left[F^{k} \cdot A^{k}_j\right]
 \end{equation}
 
-and so the total award of a user in a multi-vote quarter looks like
+Users can delegate their voting power to a third-party.
+The delegate's voting power becomes the sum of their own voting power and all voting powers delegated to them
 \begin{equation}
-A^{Q}_j = \sum_k \left[F^{k} \cdot \frac{V^{k}_j}{\sum_j V^{k}_j}\right]
+V^{(D)}_i = V_i + \sum_j V_j
 \end{equation}
+Incentive rewards are distributed to the owners of the voting powers, not the delegate.
+If the delegate does not cast a vote, the voting power delegated to them earns no rewards from that vote.
 
 \section{Vesting}\label{sec:vesting}
 
-Vesting tokens cannot do anything except be fractionally claimed, depending on the percentage of the vesting time that has passed.
-Thus, they cannot participate in locking, governance, registration.
+Vesting tokens cannot do anything except be have the vested fraction claimed, depending on the percentage of the vesting time that has passed.
+Thus, they cannot participate in registration or governance.
 They cannot be transferred.
 
-There are two reasons that vesting tokens cannot do anything:
+There are two reasons that vesting tokens cannot participate in registration or governance:
 \begin{enumerate}
     \item Simplicity.
-       Vesting tokens will only exist for the start of the network.
-       There should not be logic for them that lives forever in locking, governance, registration contracts.
+         Vesting tokens will only exist for the start of the network.
+         There should not be logic for them that lives forever in locking, governance, registration contracts.
     \item Giving community members a headstart on governance and incentive rewards.
-       Investors and team members will only be able to access a fraction of their tokens -- the ones that have already vested -- and thus will not be able to control governance due to their outsized ownership in early days.
-       This also gives community members a chance to acquire a larger fraction of the governance rewards, improving the distribution of tokens to the community.
-       Investors and team members have been of fundamental importance to the project and will continue to be so, but establishing an involved and aligned community is of the utmost importance for Hyperware to succeed.
+         Investors and team members will only be able to access a fraction of their tokens -- the ones that have already vested -- and thus will not be able to control governance due to their outsized ownership in early days.
+         This also gives community members a chance to acquire a larger fraction of the governance rewards, improving the distribution of tokens to the community.
+         Investors and team members have been of fundamental importance to the project and will continue to be so, but establishing an involved and aligned community is of the utmost importance for Hyperware to succeed.
 \end{enumerate}
 
 \section{Open Questions}\label{sec:questions}
+
 \begin{itemize}
     \item Token supply, $S$, is fixed at $10^9$ at launch.
-      Will more tokens ever be minted?
+        Will more tokens ever be minted?
+
+        I would recommend: no.
+    \item Should the vesting token contract allow an admin (i.e. a Hyperware-held multisig) transfer existing vesting tokens?
+        The reason to allow this is in case a vesting token holder loses an account or wants to move funds between, e.g., a hot and cold wallet.
+        The reason to disallow this is it gives Hyperware multisig holders the power to arbitrarily change vesting distribution.
+        In addition, even in legitimate cases where a user wants to transfer their funds, it puts a huge honus on the admin to confirm the legitimacy of the request.
+
+        I would recommend: no.
+    \item ``If no votes occur in a quarter, no incentives are distributed'': see Section~\ref{sec:rewards}.
+        Does this lead to bad incentives in either stage of governance?
+        E.g., in the initial stage, proposals will be generated by Hyperware, not the DAO (since the DAO will not exist yet).
+        Since Hyperware team members will be locked in vesting tokens, the incentive will be for Hyperware to avoid creating proposals in order to delay distribution of incentives until vested.
+
+        After the DAO is in charge of proposing, will quarters in which no useful proposals are put forward incentivize a ``no action'' proposal to force distribution of funds for that quarter?
+        
+        One way to avoid this is to simply make a ``no-vote quarter'' distribute funds according to voting power at end of quarter (as if all voting power had participated in a vote).
+        Another possibility is to accumulate the incentive rewards for that ``no-vote quarter'' and distribute them in the next ``voting quarter''.
+        E.g., if three quarters pass without a vote, and in the fourth quarter a vote occurs, that vote will pay out the incentive rewards for all four of those quarters.
 \end{itemize}
 
 \end{document}
