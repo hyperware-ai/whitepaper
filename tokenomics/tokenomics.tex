@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{A Modest (Tokenomics) Proposal, Version 2}
-\date{250315}
+\title{A Modest (Tokenomics) Proposal, Version 3}
+\date{250324}
 \author{}
 
 \begin{document}
@@ -16,13 +16,78 @@
 
 \section{Goals}\label{sec:goals}
 \begin{itemize}
-    \item HYPR provides genuine utility to users
-    \item HYPR has long-term incentives to keep demand in long-term
-    \item HYPR allows user to participate in useful DAO governance
+    \item HYPR provides genuine utility to users,
+    \item HYPR has long-term incentives to keep demand in long-term,
+    \item HYPR allows user to participate in useful DAO governance.
 \end{itemize}
+
+\section{Voting Power}\label{sec:votingpower}
+
+Voting power depends on two parameters: $n$, the number of HYPR tokens locked, and $t$, the remaining period tokens are locked for (in weeks).
+Token supply is denoted $S$ (it is $10^9$).
+Max lock time is denoted $T$ (it is some small single-digit number of years).
+The voting power of a wallet is denoted $V(n, t)$.
+\begin{equation}
+V(n, t) = (an - bn^2) \cdot (ct - dt^2)
+\end{equation}
+
+The parameters $a$, $b$, $c$, $d$, all greater than or equal to $0$, are chosen such that voting power is a strictly monotonically-increasing function of $n$ and $t$ (i.e. it only ever increases as $n$ and $t$ increase).
+This leads to the following requirements for the parameters:
+\begin{align}
+a &> 2b \cdot n_m\\
+c &> 2d \cdot T
+\end{align}
+
+where $n_m$ is the maximum number of tokens that a single wallet can lock.
+$n_m$ can reasonably be set to $S$.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{voting-power-surface.png}
+    \caption{An example of $V(n, t)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab * nt$.}
+    \label{fig:example-image}
+\end{figure}
+
+If $n$ or $t$ is $0$, $V$ is $0$.
+The role of the parameters $b$ and $d$ is to make the voting power sub-linear in $n$ and $t$, respectively.
+This means that:
+\begin{itemize}
+    \item A whale who locks a large amount of tokens does not dominate voting to the same degree as they would in the linear case (e.g. if one user owns 51\% of the tokens, locking them all will result in less than 51\% of the possible voting power).
+    \item Locking for the maximum period gets less than double locking for half the maximum period.
+    \item The sublinearity can be tuned by changing the value of $b$ and $d$.
+      As $b$ or $d$ tends to $0$, the voting power tends to linear in $n$ or $t$ respectively.
+\end{itemize}
+
+Voting power decreases as time passes.
+Say initial lock is for 100 HYPR for 52 weeks.
+Initial voting power is then
+\begin{equation}
+V(n=100, t=52) = (a\cdot 100 - b\cdot 100^2) \cdot (c\cdot 52 - d\cdot 52^2)
+\end{equation}
+
+After one week has past, $t$ declines to $51$.
+Each subsequent week, voting power of the locked tokens decreases, until it eventually reaches $0$.
+
+A locked token position can be modified in three ways:
+\begin{enumerate}
+    \item Token lock can be extended.
+       For example, say 100 tokens were locked for 52 weeks and 20 have passed, leaving 32 weeks remaining in the lock.
+       The user can extend the lock to 52 weeks once again, extending the lockup period by an additional 20 weeks, and bringing voting power up to its original value.
+    \item Tokens may be added.
+       For example, say 100 tokens we locked for 52 weeks and 20 have passed, leaving 32 weeks remaining in the lock.
+       10 additional tokens might be added, leading to a locked set of 110 tokens for 32 weeks.
+    \item Tokens within the locked set may be registered, see \hyperref[sec:registration]{Registration discussion below}.
+\end{enumerate}
+
+Note that locked tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending lock; adding tokens; registering locked tokens to Hypermap) until the lock time has passed!
 
 \section{Registration Power}\label{sec:registration}
 
+Tokens that are locked can be registered.
+Registration can occur on either all locked tokens (that have not yet been registered) or a subset.
+Registration points those tokens at a name-key on the Hypermap.
+
+Registration power has a similar form to voting power.
 Registration power depends on two parameters: $n_i$, the number of HYPR tokens registered at name-key $i$, and $t_i$, the remaining period tokens are registered for (in weeks) to name-key $i$.\footnote{
 	Recall that the Hypermap has two types of keys, name-keys and data-keys.
 	Data-keys hold data, whereas name-keys provide hierarchical structure and can be nested.
@@ -30,54 +95,20 @@ Registration power depends on two parameters: $n_i$, the number of HYPR tokens r
 	The registration values found on the Hypermap can be used in arbitrarily programmable ways, with current plans to use them for search and filtering.
 	More discussion can be found in the \href{https://hyperware.ai/whitepaper.pdf}{Hyperware Whitepaper}.
 }
-Token supply is denoted $S$ (it is $10^9$).
-Max registration time is denoted $T$ and is equal to four years (208 weeks).
+Tokens must be registered for a duration shorter-than-or-equal-to the tokens are locked for $t_i \leq t$.
 The registration power of a wallet for a given name-key is denoted $R(n_i, t_i)$.
 \begin{equation}
 R(n_i, t_i) = (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
 \end{equation}
 
-The parameters $a$, $b$, $c$, $d$, all greater than or equal to $0$, are chosen such that voting power is a strictly monotonically-increasing function of $n_i$ and $t_i$ (i.e. it only ever increases as $n_i$ and $t_i$ increase).
-This leads to the following requirements for the parameters:
-\begin{align}
-	a &> 2b \cdot n_m\\
-	c &> 2d \cdot T
-\end{align}
-
-where $n_m$ is the maximum number of tokens that a single wallet can register.
-$n_m$ can reasonably be set to $S$.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{voting-power-surface.png}
-    \caption{An example of $R(n_i, t_i)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab \cdot n_it_i$.}
-    \label{fig:example-image}
-\end{figure}
-
-If $n_i$ or $t_i$ is $0$, $R$ is $0$.
-The role of the parameters $b$ and $d$ is to make the voting power sub-linear in $n_i$ and $t_i$, respectively.
-This means that:
-\begin{itemize}
-    \item A whale who registers a large amount of tokens does not dominate registration on the Hypermap to the same degree as they would in the linear case (e.g. if one user owns 51\% of the tokens, registering them all will result in less than 51\% of the possible registration power).
-    \item Registering for the maximum period gets less than double registering for half the maximum period.
-    \item The sublinearity can be tuned by changing the value of $b$ and $d$.
-      As $b$ or $d$ tends to $0$, the registration power tends to linear in $n_i$ or $t_i$ respectively.
-\end{itemize}
-
-Registration power decreases as time passes.
-Say initial registration is for 100 HYPR for 52 weeks.
-Initial registration power is then
-\begin{equation}
-R(n_i=100, t_i=52) = (a\cdot 100 - b\cdot 100^2) \cdot (c\cdot 52 - d\cdot 52^2)
-\end{equation}
-
-After one week has past, $t_i$ declines to $51$.
 Each subsequent week, registration power of the locked tokens decreases, until it eventually reaches $0$.
-This means that registrations that are not actively updated will naturally decay in relevance, so the Hypermap will be naturally biased towards:
-1. High value registrations,
-2. Actively updated, long-term registrations.
+This means that registrations that are not actively updated will naturally decay in relevance, so the Hypermap will be biased towards:
+\begin{enumerate}
+	\item High value registrations,
+	\item Actively updated, long-term registrations.
+\end{enumerate}
 
-A registered token position can be modified in three ways:
+A registered token position on a given name-key can be modified in two ways:
 \begin{enumerate}
     \item Token registration can be extended.
        For example, say 100 tokens were registered for 52 weeks and 20 have passed, leaving 32 weeks remaining in the registration.
@@ -88,6 +119,18 @@ A registered token position can be modified in three ways:
 \end{enumerate}
 
 Note that registered tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending registration or adding tokens) until the registration time has passed!
+Note also that token registration positions expire into a locked token position, and can only become truly liquid once the locked token position expires.
+For example, say a user has 100 HYPR.
+The use locks 80 HYPR for 52 weeks, so now only has 20 HYPR liquid.
+Any of the 80 locked HYPR can be registered for up to 52 weeks.
+Say 40 is registered to $foo.os$ for 2 weeks and 30 is registered to $app.bar.os$ for 52 weeks.
+Then 10 locked HYPR can still be registered at will.
+The $foo.os$ registration will expire after 2 weeks, at which time the state of the locked tokens will look like:
+\begin{enumerate}
+    \item 50 locked and unregistered, free for registration,
+    \item 30 registered for 50 weeks.
+\end{enumerate}
+After an additional 50 weeks, the $app.bar.os$ registration will expire as will the lock, and the tokens can be unlocked and become liquid again.
 
 \begin{table}[htbp]
     \centering
@@ -109,15 +152,6 @@ Note that registered tokens are illiquid (cannot be transferred, or interacted w
     \hline
 	\end{tabular}
 \end{table}
-
-\section{Voting Power}\label{sec:votingpower}
-
-Voting power is the sum of all registration powers:
-\begin{align}
-V(r_i, t_i: i\in[0,N)) &= \sum_i^N R(n_i, t_i)\\
-    &= \sum_i^N (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
-\end{align}
-
 
 \section{Voting in DAO Governance}\label{sec:voting}
 
