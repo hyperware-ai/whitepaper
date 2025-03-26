@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{A Modest (Tokenomics) Proposal, Version 3}
-\date{250324}
+\title{A Modest (Tokenomics) Proposal, Version 3.2}
+\date{250325}
 \author{}
 
 \begin{document}
@@ -81,14 +81,11 @@ A locked token position can be modified in three ways:
 
 Note that locked tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending lock; adding tokens; registering locked tokens to Hypermap) until the lock time has passed!
 
-\section{Registration Power}\label{sec:registration}
+\section{Registration}\label{sec:registration}
 
 Tokens that are locked can be registered.
 Registration can occur on either all locked tokens (that have not yet been registered) or a subset.
-Registration points those tokens at a name-key on the Hypermap.
-
-Registration power has a similar form to voting power.
-Registration power depends on two parameters: $n_i$, the number of HYPR tokens registered at name-key $i$, and $t_i$, the remaining period tokens are registered for (in weeks) to name-key $i$.\footnote{
+Registration points those tokens at a name-key on the Hypermap for some duration: $n_i$, the number of HYPR tokens registered at name-key $i$, and $t_i$, the remaining period tokens are registered for (in weeks) to name-key $i$.\footnote{
 	Recall that the Hypermap has two types of keys, name-keys and data-keys.
 	Data-keys hold data, whereas name-keys provide hierarchical structure and can be nested.
 	Name-keys can have tokens registered to them to indicate value.
@@ -96,16 +93,19 @@ Registration power depends on two parameters: $n_i$, the number of HYPR tokens r
 	More discussion can be found in the \href{https://hyperware.ai/whitepaper.pdf}{Hyperware Whitepaper}.
 }
 Tokens must be registered for a duration shorter-than-or-equal-to the tokens are locked for $t_i \leq t$.
-The registration power of a wallet for a given name-key is denoted $R(n_i, t_i)$.
-\begin{equation}
-R(n_i, t_i) = (an_i - bn_i^2) \cdot (ct_i - dt_i^2)
-\end{equation}
 
-Each subsequent week, registration power of the locked tokens decreases, until it eventually reaches $0$.
-This means that registrations that are not actively updated will naturally decay in relevance, so the Hypermap will be biased towards:
+Offchain applications will determine how to definte registration power for their uses.
+A form like voting power is reasonable for some applications, since it will reflect both the user's stake and time horizon.
+To take two examples:
 \begin{enumerate}
-	\item High value registrations,
-	\item Actively updated, long-term registrations.
+	\item App Store search sorting.
+		Devs or others can register tokens to apps in the App Store.
+		When a user searches, the total registration power of the app will be used to sort the search results.
+		If using a form like voting power, high-value, long-duration apps will appear first.
+		This makes sense because it indicates the dev has put a significant stake into the system.
+	\item Chat app spam resistance.
+		A chat app might have a setting to only allow cold DMs from other users with a certain amount of registration power on their Hyperware node.
+		Once again, the idea is that users with more than a certain registration power are invested in the system, and so are unlikely to be bots.
 \end{enumerate}
 
 A registered token position on a given name-key can be modified in two ways:
@@ -169,7 +169,7 @@ A^{k}_j = \frac{V^{k}_j}{\sum_j V^{k}_j}
 \end{equation}
 where $V^{k}_j$ denotes the voting power contributed by user $j$ in the $k$th vote in a quarter.
 
-If no votes occur in a quarter, no incentives are distributed.
+At least one vote will occur each quarter.
 If multiple votes occur in a quarter, the incentives are split amongst them based on the total voting power that participated in each vote.
 Then the fraction of quarterly incentives allocated to a specific vote $k$, $F^{k}$ is
 \begin{equation}
@@ -190,8 +190,8 @@ If the delegate does not cast a vote, the voting power delegated to them earns n
 
 \section{Vesting}\label{sec:vesting}
 
-Vesting tokens cannot do anything except be have the vested fraction claimed, depending on the percentage of the vesting time that has passed.
-Thus, they cannot participate in registration or governance.
+Vesting tokens cannot do anything except have the vested fraction claimed, depending on the percentage of the vesting time that has passed.
+Thus, they cannot participate in locking, registration, or governance.
 They cannot be transferred.
 
 There are two reasons that vesting tokens cannot participate in registration or governance:
@@ -204,30 +204,5 @@ There are two reasons that vesting tokens cannot participate in registration or 
          This also gives community members a chance to acquire a larger fraction of the governance rewards, improving the distribution of tokens to the community.
          Investors and team members have been of fundamental importance to the project and will continue to be so, but establishing an involved and aligned community is of the utmost importance for Hyperware to succeed.
 \end{enumerate}
-
-\section{Open Questions}\label{sec:questions}
-
-\begin{itemize}
-    \item Token supply, $S$, is fixed at $10^9$ at launch.
-        Will more tokens ever be minted?
-
-        I would recommend: no.
-    \item Should the vesting token contract allow an admin (i.e. a Hyperware-held multisig) transfer existing vesting tokens?
-        The reason to allow this is in case a vesting token holder loses an account or wants to move funds between, e.g., a hot and cold wallet.
-        The reason to disallow this is it gives Hyperware multisig holders the power to arbitrarily change vesting distribution.
-        In addition, even in legitimate cases where a user wants to transfer their funds, it puts a huge honus on the admin to confirm the legitimacy of the request.
-
-        I would recommend: no.
-    \item ``If no votes occur in a quarter, no incentives are distributed'': see Section~\ref{sec:rewards}.
-        Does this lead to bad incentives in either stage of governance?
-        E.g., in the initial stage, proposals will be generated by Hyperware, not the DAO (since the DAO will not exist yet).
-        Since Hyperware team members will be locked in vesting tokens, the incentive will be for Hyperware to avoid creating proposals in order to delay distribution of incentives until vested.
-
-        After the DAO is in charge of proposing, will quarters in which no useful proposals are put forward incentivize a ``no action'' proposal to force distribution of funds for that quarter?
-        
-        One way to avoid this is to simply make a ``no-vote quarter'' distribute funds according to voting power at end of quarter (as if all voting power had participated in a vote).
-        Another possibility is to accumulate the incentive rewards for that ``no-vote quarter'' and distribute them in the next ``voting quarter''.
-        E.g., if three quarters pass without a vote, and in the fourth quarter a vote occurs, that vote will pay out the incentive rewards for all four of those quarters.
-\end{itemize}
 
 \end{document}
