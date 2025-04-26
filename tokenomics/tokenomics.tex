@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{A Modest (Tokenomics) Proposal, Version 3.2}
-\date{250325}
+\title{A Modest (Tokenomics) Proposal, Version 3.3}
+\date{250425}
 \author{}
 
 \begin{document}
@@ -23,29 +23,31 @@
 
 \section{Voting Power}\label{sec:votingpower}
 
-Voting power depends on two parameters: $n$, the number of HYPR tokens locked, and $t$, the remaining period tokens are locked for (in weeks).
+The voting power of a wallet depends on two parameters: $n$, the number of uHYPR tokens locked (there are $10^{18}$ uHYPR in one HYPR), and $t$, the remaining period tokens are locked for (in weeks).
 Token supply is denoted $S$ (it is $10^9$).
 Max lock time is denoted $T$ (it is some small single-digit number of years).
 The voting power of a wallet is denoted $V(n, t)$.
 \begin{equation}
-V(n, t) = (an - bn^2) \cdot (ct - dt^2)
+V(n, t) = (n/a - n^2/b) \cdot (t/c - t^2/d)
 \end{equation}
 
 The parameters $a$, $b$, $c$, $d$, all greater than or equal to $0$, are chosen such that voting power is a strictly monotonically-increasing function of $n$ and $t$ (i.e. it only ever increases as $n$ and $t$ increase).
 This leads to the following requirements for the parameters:
-\begin{align}
-a &> 2b \cdot n_m\\
-c &> 2d \cdot T
-\end{align}
-
+\begin{equation}\label{eq:parameters-extremum}
+\begin{aligned}
+1/a &\geq 2 n_m / b\\
+1/c &\geq 2 T / d
+\end{aligned}
+\end{equation}
 where $n_m$ is the maximum number of tokens that a single wallet can lock.
 $n_m$ can reasonably be set to $S$.
+The parameters are written as denominators to match the implementation (which is integer-, not real-number-based).
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.7\textwidth]{voting-power-surface.png}
-    \caption{An example of $V(n, t)$ with $a = c = 1$ and $b = d = 0.05$ compared with the ``linear surface'' $ab * nt$.}
-    \label{fig:example-image}
+    \includegraphics[width=\textwidth]{voting-power-surface.png}
+    \caption{An example of $V(n, t)$ compared with the ``linear surface'' $n t / (a b)$.}
+    \label{fig:voting-power}
 \end{figure}
 
 If $n$ or $t$ is $0$, $V$ is $0$.
@@ -59,10 +61,13 @@ This means that:
 \end{itemize}
 
 Voting power decreases as time passes.
-Say initial lock is for 100 HYPR for 52 weeks.
+Say initial lock is for $100~\text{uHYPR}$ for $52~\text{weeks} = 3.14496 \times 10^7~\text{s}$.
 Initial voting power is then
 \begin{equation}
-V(n=100, t=52) = (a\cdot 100 - b\cdot 100^2) \cdot (c\cdot 52 - d\cdot 52^2)
+\begin{aligned}
+V(n=100, t=3.14496 \times 10^7) &= (100/a - 100^2/b) \\
+	&~~ \cdot (3.14496 \times 10^7~\text{s}\cdot /c - (3.14496 \times 10^7~\text{s})^2/d)
+\end{aligned}
 \end{equation}
 
 After one week has past, $t$ declines to $51$.
@@ -80,6 +85,47 @@ A locked token position can be modified in three ways:
 \end{enumerate}
 
 Note that locked tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending lock; adding tokens; registering locked tokens to Hypermap) until the lock time has passed!
+
+\subsection{Deriving $a$, $b$, $c$, $d$}\label{sec:deriving-parameters}
+
+To derive the parameters, we make use of
+\begin{enumerate}
+	\item Setting $a$ and $c$ such that the smallest unit of $n$ and $t$ yield $1$ voting power,
+	\item Using Equation~\ref{eq:parameters-extremum}, derived by setting the partial derivatives of $V(n,t)$ to $0$, to set $b$ and $d$,
+	\item Checking that the maximum possible voting power does not exceed the size of a uint256 (of the order of $10^{77}$).
+\end{enumerate}
+
+The units of $n$ are uHYPR: the smallest unit of HYPR tokens.
+HYPR tokens are divisible into $10^{18}$ uHYPR, and so $a$ is $1$ with units uHYPR.
+
+The units of $t$ are seconds, but the shortest lock time is $1$ week.
+Thus we set $c$ to $1$ week of seconds, or $6.048 \times 10^5$ seconds.
+
+Now, to set $b$ and $d$, we use the equalities in Equation~\ref{eq:parameters-extremum}, leading to:
+\begin{equation}
+\begin{aligned}
+b &= 2 a \cdot n_m \\
+  &= 2 \times 10^{27}~\text{uHYPR}^2
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+d &= 2 d \cdot T \\
+  &= 2 \times 10^{27}~\text{s}^2
+\end{aligned}
+\end{equation}
+
+Finally, we check if these parameters will lead to a too-large value in the maximum-voting-power case.
+The maximum-possible-voting-power case is when $1~\text{uHYPR}$ is held by each of $10^{27}$ wallets, each for the maximum time period of $T$.
+This leads to
+\begin{equation}
+\begin{aligned}
+10^{77} & \geq \sum_i^{10^{27}} V(n_i = 1, t = T) \\
+	&~~~~= 10^{27} \cdot 1/a \cdot (T/b - T^2/d) \\
+\end{aligned}
+\end{equation}
+where the right-hand side of the equation is much less than the left-hand side: the maximum-voting-power case will easily fit into a uint256.
 
 \section{Registration}\label{sec:registration}
 
@@ -140,15 +186,17 @@ After an additional 50 weeks, the $app.bar.os$ registration will expire as will 
     \hline
     \textbf{Parameter} & \textbf{Value} & \textbf{Description} \\
     \hline
-    $S$ & $10^9$ & Total token supply \\
-    $n_m$ & likely $S$ & Max token parameter in $R$ \\
-    $T$ & 4 years = 208 weeks & Max registration time \\
-    $a$ & $> 2b \cdot n_m$ & Constraints on $R$'s $n$-dependent parameters \\
-    $c$ & $> 2d \cdot T$ & Constraints on $R$'s $t$-dependent parameters \\
-    $L_t$ & ? & Vesting lockup duration for team members \\
-    $C_t$ & ? & Vesting cliff duration for team members \\
-    $L_i$ & ? & Vesting lockup duration for investors \\
-    $C_i$ & ? & Vesting cliff duration for investors \\
+    $S = n_m$ & $10^9$ & Total token supply \\
+    $1$ HYPR & $10^{18}~\text{uHYPR}$ & Each HYPR token has $10^{18}$ ``units'' \\
+    $T$ & $4~\text{years} = 208~\text{weeks}$ & Max registration time \\
+    $a$ & $1~\text{uHYPR}$ & One uHYPR gives one voting power \\
+    $b$ & $2 \times 10^{27}~\text{uHYPR}^2$ & See Section~\ref{sec:deriving-parameters} \\
+    $c$ & $6.048 \times 10^5~\text{s}$ & One week gives one voting power \\
+    $d$ & $1.525837824 \times 10^{14}~\text{s}^2$ & See Section~\ref{sec:deriving-parameters} \\
+    $L_t$ & ? & Lockup duration for team members \\
+    $C_t$ & ? & Cliff duration for team members \\
+    $L_i$ & ? & Lockup duration for investors \\
+    $C_i$ & ? & Cliff duration for investors \\
     \hline
 	\end{tabular}
 \end{table}
@@ -162,12 +210,19 @@ Voters and their voting power, as well as the result of the vote, is recorded.
 
 \section{Governance Participation Rewards}\label{sec:rewards}
 
-Governance participation incentives are distributed quarterly: 2\% of the incentive treasury per quarter.
+Governance participation incentives are distributed quarterly: 2\% of the remaining incentive treasury per quarter.
 For each proposal, $k$, a user $j$ that participates in that vote gets an award $A^{k}_j$ that is a fraction of the incentives dedicated to that vote equal to
 \begin{equation}
 A^{k}_j = \frac{V^{k}_j}{\sum_j V^{k}_j}
 \end{equation}
 where $V^{k}_j$ denotes the voting power contributed by user $j$ in the $k$th vote in a quarter.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{incentives-treasury-over-time.png}
+    \caption{The remaining incentives treasury and quarterly rewards, over time}
+    \label{fig:incentives}
+\end{figure}
 
 At least one vote will occur each quarter.
 If multiple votes occur in a quarter, the incentives are split amongst them based on the total voting power that participated in each vote.
