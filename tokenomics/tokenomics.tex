@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{A Modest (Tokenomics) Proposal, Version 3.4}
-\date{250428}
+\title{A Modest (Tokenomics) Proposal, Version 3.5}
+\date{250520}
 \author{}
 
 \begin{document}
@@ -23,9 +23,9 @@
 
 \section{Voting Power}\label{sec:votingpower}
 
-The voting power of a wallet depends on two parameters: $n$, the number of uHYPR tokens locked (there are $10^{18}$ uHYPR in one HYPR), and $t$, the remaining period tokens are locked for (in weeks).
-Token supply is denoted $S$ (it is $10^9$).
-Max lock time is denoted $T$ (it is some small single-digit number of years).
+The voting power of a wallet depends on two parameters: $n$, the number of uHYPR tokens locked (there are $10^{18}$ uHYPR in one HYPR), and $t$, the remaining period tokens are locked for (in seconds).
+Token supply is denoted $S$ (it is $10^9$~HYPR).
+Max lock time is denoted $T$ (it is $4$ years $ = 208$~weeks $= 1.257984\times 10^8$~seconds).
 The voting power of a wallet is denoted $V(n, t)$.
 \begin{equation}
 V(n, t) = (n/a - n^2/b) \cdot (t/c - t^2/d)
