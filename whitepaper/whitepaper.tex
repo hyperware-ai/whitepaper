@@ -44,8 +44,8 @@ All of these components work in lockstep to solve the problems that have heretof
 \end{abstract}
 \vspace*{\fill}
 \begin{center}
-February 20 2025\\
-Revision 2
+July 16 2025\\
+Revision 3
 \end{center}
 %
 \tableofcontents
@@ -1221,7 +1221,7 @@ HYPR is a utility token designed to fill two roles in the Hyperware network: ass
 A token holder may choose to \textit{register} HYPR with an entry in Hypermap.
 To register HYPR, a token holder submits a transaction to the Hypermap registration contract specifying the amount of HYPR to register, the duration of the registration, and the target entry.
 
-The duration of a registration is specified in blocks and will have a minimum value of around 7 days.
+The minumum registration duration is four weeks (one ``month'').
 
 Data-keys (prefixed with \verb|~|/\verb|!|) cannot be a target for registration.
 Any other entry is a valid target, from top-level entries to arbitrarily deeply nested entries.
@@ -1232,7 +1232,7 @@ Every protocol built on Hypermap can automatically benefit from the registration
 
 Note that multiple addresses can register tokens to the same Hypermap entry at any given time.
 The amount of HYPR registered to an entry is the sum of all active registrations.
-Registered tokens are locked for the duration of the registration and automatically returned to the registering address at the end of this period.
+More details about registration can be found in the Hyperware Tokenomics document, published separately.
 
 \subsection{Discussion}
 \label{sec:hyprdiscussion}
@@ -1289,7 +1289,7 @@ Protocols such as HNS and the package manager already integrate with HYPR and fu
 \noindent\rule{8cm}{0.4pt}
 \end{center}
 
-What inspires locking tokens to a namespace entry?
+What inspires registering tokens to a namespace entry?
 
 Registration of tokens offers utility to the owner of the attached namespace by enhancing their property's ranking in various algorithms running on the namespace.
 For this reason, owners of a namespace entry will be naturally incentivized to register their tokens on their own namespace.
@@ -1322,10 +1322,10 @@ Seated at the base of the protocol, Hyperware's governance mechanism is responsi
 \subsection{Voting}
 \label{sec:voting}
 
-To achieve decentralized governance, the onchain namespace and HYPR weighting protocol generate voting power as a side effect of token registration.
-The address performing registration selects which address receives this voting power, allowing for delegation schemes.
-The voting power is 1:1 with the amount of tokens registered.
-As noted in Section~\ref{sec:hyprregister}, registration of HYPR occurs for a set time period.
+HYPR can be locked, producing voting power as a side effect, and allowing for registration to Hypermap entries as discussed in Section~\ref{sec:hyprregister}.
+Voting power is related to the number of HYPR tokens locked and the duration they are locked for.
+Voting power can be delegated.
+More information about locking and registration can be found in the Hyperware Tokenomics document.
 
 Governance is not an empty role in Hyperware\textemdash unlike purely onchain protocols, which often fail to benefit from active governance, Hyperware governance includes ongoing responsibilities over the namespace and protocol.
 
