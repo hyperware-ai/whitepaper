@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{Hyperware Tokenomics, Version 4}
-\date{250615}
+\title{Hyperware Tokenomics, Version $4.1$}
+\date{250723}
 \author{Nicholas B Ludwig}
 
 \begin{document}
@@ -96,18 +96,19 @@ Note that locked tokens are illiquid (cannot be transferred, or interacted with 
 
 \subsection{Deriving $a$, $b$, $c$, $d$}\label{sec:deriving-parameters}
 
-To derive the parameters, we make use of
+To derive the parameters, we:
 \begin{enumerate}
-	\item Setting $a$ and $c$ such that the smallest unit of $n$ and $t$ yield $1$ voting power,
-	\item Using Equation~\ref{eq:parameters-extremum}, derived by setting the partial derivatives of $V(n,t)$ to $0$, to set $b$ and $d$,
-	\item Checking that the maximum possible voting power does not exceed the size of a uint256 (of the order of $10^{77}$).
+	\item Set $a$ and $c$ such that the smallest unit of $n$ and $t$ yield $100$ voting power (see discussion below),
+	\item Use Equation~\ref{eq:parameters-extremum}, derived by setting the partial derivatives of $V(n,t)$ to $0$, to set $b$ and $d$,
+	\item Check that the maximum possible voting power does not exceed the size of a uint256 (of the order of $10^{77}$).
 \end{enumerate}
 
 The units of $n$ are uHYPR: the smallest unit of HYPR tokens.
 HYPR tokens are divisible into $10^{18}$ uHYPR, and so $a$ is $1$ with units uHYPR.
 
 The units of $t$ are seconds, but the shortest lock time is $1$~``month'' ($4$~weeks).
-Thus we set $c$ to $1$~month (of $4$~weeks) of seconds, or $2.4192 \times 10^6$ seconds.
+Thus we set $c$ to $1$~month (of $4$~weeks) of seconds dived by $100$, or $2.4192 \times 10^4$ seconds.
+We divide by $100$ because otherwise there is no change, within rounding, in the duration term for long durations.
 
 Now, to set $b$ and $d$, we use the equalities in Equation~\ref{eq:parameters-extremum}, leading to:
 \begin{equation}
@@ -120,7 +121,7 @@ and
 \begin{equation}
 \begin{aligned}
 d &= 2 c \cdot T \\
-  &= 3.0433148928 \times 10^{14}~\text{s}^2
+  &= 3.0433148928 \times 10^{12}~\text{s}^2
 \end{aligned}
 \end{equation}
 
@@ -130,7 +131,9 @@ This leads to
 \begin{equation}
 \begin{aligned}
 10^{77} & \geq \sum_i^{10^{27}} V(n_i = 1, t = T) \\
-	&~~~~= 10^{27} \cdot 1/a \cdot (T/b - T^2/d) \\
+	&~~~~= 10^{27} \cdot 1/a \cdot T/(2 c) \\
+	&~~~~\sim 10^{27} \cdot 1 \cdot 10^{4} \\
+	&~~~~\sim 10^{31} \\
 \end{aligned}
 \end{equation}
 where the right-hand side of the equation is much less than the left-hand side: the maximum-voting-power case will easily fit into a uint256.
