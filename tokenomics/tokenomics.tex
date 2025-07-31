@@ -6,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{Hyperware Tokenomics, Version $4.2$}
-\date{250725}
+\title{Hyperware Tokenomics, Version $4.3$}
+\date{250730}
 \author{Nicholas B Ludwig \and Pax Green}
 
 \begin{document}
@@ -178,9 +178,9 @@ A registered token position on a given name-key can be modified in two ways:
 Note that registered tokens are illiquid (cannot be transferred, or interacted with in any way aside from extending registration or adding tokens) until the registration time has passed (or, if the lock time has been reduced by locking more tokens for a shorter time, the lesser of the registration time and the lock time)!
 Note also that token registration positions expire into a locked token position, and can only become truly liquid once the locked token position expires.
 For example, say a user has 100 HYPR.
-The use locks 80 HYPR for 52 weeks, so now only has 20 HYPR liquid.
+The user locks 80 HYPR for 52 weeks, so now only has 20 HYPR liquid.
 Any of the 80 locked HYPR can be registered for up to 52 weeks.
-Say 40 is registered to $foo.os$ for 2 weeks and 30 is registered to $app.bar.os$ for 52 weeks.
+Say 40 are registered to $foo.os$ for 2 weeks and 30 are registered to $app.bar.os$ for 52 weeks.
 Then 10 locked HYPR can still be registered at will.
 The $foo.os$ registration will expire after 2 weeks, at which time the state of the locked tokens will look like:
 \begin{enumerate}
@@ -214,10 +214,8 @@ After an additional 50 weeks, the $app.bar.os$ registration will expire as will 
 
 \section{Voting in DAO Governance}\label{sec:voting}
 
-A proposal has a closing time associated with it.
-Voters cast votes.
-Voting power of voters is calculated at closing time, and the proposal passes or fails.
-Voters and their voting power, as well as the result of the vote, is recorded.
+The Hyperware DAO is a customized OpenZeppelin DAO.
+The customization is in how voting power is computed, see discussion in Section~\ref{sec:votingpower}.
 
 \section{Governance Participation Rewards}\label{sec:rewards}
 
@@ -256,6 +254,7 @@ If the delegate does not cast a vote, the voting power delegated to them earns n
 
 \section{Vesting}\label{sec:vesting}
 
+Team members and investors are issued with vesting tokens (sometimes called ``locked'' tokens in other projects, but not here due to ``locked'' tokens referring to something else) rather than liquid tokens.
 Vesting tokens cannot do anything except have the vested fraction claimed, depending on the percentage of the vesting time that has passed.
 Thus, they cannot participate in locking, registration, or governance.
 They cannot be transferred except with approval.
@@ -264,11 +263,11 @@ There are two reasons that vesting tokens cannot participate in registration or 
 \begin{enumerate}
     \item Simplicity.
          Vesting tokens will only exist for the start of the network.
-         There should not be logic for them that lives forever in locking, governance, registration contracts.
+         There should not be logic for them that lives forever in locking, governance, or registration contracts.
     \item Giving community members a headstart on governance and incentive rewards.
          Investors and team members will only be able to access a fraction of their tokens -- the ones that have already vested -- and thus will not be able to control governance due to their outsized ownership in early days.
          This also gives community members a chance to acquire a larger fraction of the governance rewards, improving the distribution of tokens to the community.
-         Investors and team members have been of fundamental importance to the project and will continue to be so, but establishing an involved and aligned community is of the utmost importance for Hyperware to succeed.
+         Investors and team members have been of fundamental importance to the project and will continue to be so, but establishing an involved and aligned community is required for Hyperware to succeed.
 \end{enumerate}
 
 \end{document}
